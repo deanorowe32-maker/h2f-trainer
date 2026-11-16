@@ -1,5 +1,5 @@
-/* H2F Trainer offline cache, version 901368c7b4 */
-const V='h2f-901368c7b4',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/ph/body-m-front.webp", "/ph/body-m-back.webp", "/ph/body-f-front.webp", "/ph/body-f-back.webp"];
+/* H2F Trainer offline cache, version 7e0bb1a1af */
+const V='h2f-7e0bb1a1af',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/ph/body-m-front.webp", "/ph/body-m-back.webp", "/ph/body-f-front.webp", "/ph/body-f-back.webp"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{

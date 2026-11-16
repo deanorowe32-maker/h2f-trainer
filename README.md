@@ -14,4 +14,9 @@ Your data stays on your phone. It works offline, and it installs like an app fro
 
 This is a static site with no build step. On Vercel: Add New → Project → import this repo → Deploy, with every setting left as it is.
 
+## Credits
+
+- Exercise photos: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain, Unlicense).
+- Exercise illustrations drawn with [Meng To's flat-kit](https://github.com/MengTo/Skills) (MIT License, Copyright (c) 2026 Meng To).
+
 *H2F Trainer is an independent tool and is not an official U.S. Army product.*
