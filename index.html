@@ -202,6 +202,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 #cftClock{font:800 48px/1 var(--display,var(--body));font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 #cftLeft{margin-top:6px;font:600 14px var(--body);opacity:.85}
 #cftLeft.over{color:var(--gold);opacity:1}
+.focus{margin:12px 0;padding:14px 16px;border-radius:var(--r);border:1px solid color-mix(in srgb,var(--gold) 55%,var(--line));background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
+.focus p{margin:4px 0 0}.focus .row{margin-top:12px}
+.ready{margin-top:12px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--gold) 22%,transparent);color:inherit}
+.ready p{margin:0 0 8px}.ready.on{background:color-mix(in srgb,#fff 12%,transparent)}
+.privacy{margin:20px 0 8px;font:500 14px var(--body);color:var(--muted);text-align:center}
 .cftbtns{margin:0 0 8px}
 .cftbtns .cftnext{flex:1 1 100%;min-height:64px;font-size:18px}
 .cftlist{list-style:none;margin:0;padding:0;counter-reset:cft}
@@ -1419,7 +1424,7 @@ function viewUnit(){const row=(a,ic,t,d,cls='')=>`<button type="button" class="u
   return `<h2>Unit</h2><p>Work with your squad, keep your data safe and set up the app.</p>
   ${rbCaseHtml()}
   <section class="grp"><h3>Squad</h3><div class="ulist">${row('sqopen','unit','Squad','Send your weekly summary, collect your Soldiers’ codes and share a PT plan.')}</div></section>
-  <section class="grp"><h3>Your data</h3><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
+  <section class="grp"><h3>Your data</h3><p class="tag">Everything you log stays on this phone. There is no account and no server, so nothing is sent anywhere unless you share it. Make a backup before you change phones.</p><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
   <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('touropen','tour','App tour','A one-minute walk through every tab.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
 
 function moreShow(){document.getElementById('moreList').innerHTML=TABS.filter(t=>!PRIMARY.includes(t[0])).map(([id,n])=>`<button type="button" data-a="tab" data-v="${id}" aria-current="${S.tab===id?'page':'false'}">${ico(id)}${n}</button>`).join('');document.getElementById('moreSheet').hidden=false}
@@ -1463,14 +1468,25 @@ function viewToday(){
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
   ${startHtml()}${schedHtml()}${streakHtml()}
-  <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}</section>
+  <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
   <section class="tdcard"><h3>${ico('nut')}Fuel</h3><div class="tdbig">${t.k}<small>${tg?' of '+tg.kcal:''} kcal</small></div><p class="tag">Protein ${t.p}${tg?' of '+tg.p:''} g today.${tg?'':' Set targets under Readiness, Fuel.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="nut">Log a meal</button></section>
   <section class="tdcard"><h3>${ico('assess')}AFT</h3><div class="tdbig">${af?af.t:'–'}<small>${af?' points':''}</small></div><p class="tag">${af?(aftPass(af)?'Pass':'Fail')+', '+(af.std==='c'?'combat':'general')+' standard, '+esc(jrLabel(af.d))+'.':'No score saved yet.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="assess">${af?'Score again':'Score my AFT'}</button></section>
-  </div>`}
+  </div>
+  <p class="privacy">Everything you log stays on this phone. No account, no ads, and nothing is sent anywhere unless you choose to share it.</p>`}
 
+/* ---- Readiness check: a short night or a low mood today suggests a lighter session ---- */
+function readyItems(wd){const W=wkData(0);return wd<5&&W&&W.plan&&!isStW(W,wd)?(W.plan[wd]||[]).filter(it=>EX[it.id]):[]}
+function readyHtml(wd){const items=readyItems(wd);if(!items.length)return '';
+  const lite=items.some(it=>typeof it.rx0==='string');
+  const k=today(),sl=typeof S.sleep.log[k]==='number'?S.sleep.log[k]:typeof S.sleep.log[slKey(1)]==='number'?S.sleep.log[slKey(1)]:null;
+  const md=S.mind&&S.mind.log&&S.mind.log[k]&&S.mind.log[k].mood>=0?S.mind.log[k].mood:-1;
+  const why=[];if(sl!==null&&sl<6)why.push(`you slept ${slFmt(sl)} h`);if(md>=0&&md<=1)why.push(`your mood today is ${MOODS[md].toLowerCase()}`);
+  if(lite)return `<div class="ready on"><p><b>Lighter session on.</b> One set less on each exercise today.</p><button class="btn ghost small" data-a="readyfull">Back to the full workout</button></div>`;
+  if(!why.length)return '';
+  return `<div class="ready"><p><b>Readiness check:</b> ${why.join(' and ')}. A lighter session today lowers injury risk and still keeps your streak.</p><button class="btn small" data-a="readylite">Make today lighter</button></div>`}
 function startHtml(){const st=S.start||{};if(st.hide)return '';
   const slept=typeof S.sleep.log[today()]==='number'||typeof S.sleep.log[slKey(1)]==='number';
   const steps=[[!!st.wk,'train','Set up your training week','Pick a focus for each day under Train.'],[!!st.inj,'pt','Mark any injuries','Tap where it hurts on the Rehab body map. Skip it if you are healthy.'],[slept,'sleep','Log last night’s sleep','Ten seconds under Readiness, Sleep.']];
@@ -1542,11 +1558,23 @@ function monthHtml(){
   <div class="row">${empty?`<button class="btn ghost" data-a="wkfill" data-v="0">Copy this week into the ${empty} empty week${empty===1?'':'s'}</button><button class="btn ghost" data-a="wkfill" data-v="1">Copy, with week 4 lighter</button>`:''}<button class="btn ghost" data-a="print" data-k="mo">Print 4-week plan</button></div>`}
 function wkLight(w){w.plan.forEach(d=>d.forEach(i=>{if(typeof i.rx==='string')i.rx=i.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>2?+a-1:+a)+b)}));w.note='Lighter week';return w}
 
+/* ---- Focus card: the latest AFT or CFT practice result adds targeted work to the week being viewed ---- */
+var FOCUS_AFT={mdl:{ids:['tbdl','rdl'],days:['lower'],why:'deadlift'},hrp:{ids:['hrpu','pu'],days:['upper'],why:'hand-release push-ups'},sdc:{ids:['sdcc','dbfc'],days:['anaerobic'],why:'sprint-drag-carry'},plk:{ids:['plank','mcgcu'],days:['upper','lower'],why:'plank'},run:{ids:['tempo','r400'],days:['aerobic','anaerobic'],why:'two-mile run'}};
+function focusPick(){const lim=Date.now()-120*864e5,h=(S.aft.hist||[])[0];
+  if(h&&Array.isArray(h.p)&&new Date(h.d+'T12:00:00').getTime()>=lim){let k=-1;h.p.forEach((v,i)=>{if(Number.isFinite(v)&&(k<0||v<h.p[k]))k=i});
+    if(k>=0&&h.p[k]<100){const ev=AFT_EV[k][0],f=FOCUS_AFT[ev];return {key:'aft-'+h.id+'-'+ev,ids:f.ids,days:f.days,head:`Lowest AFT event: ${AFT_EV[k][1]}`,txt:`${h.p[k]} points on ${fmt(new Date(h.d+'T12:00:00'))}. Add ${f.ids.map(i=>EX[i]?EX[i].name:i).join(' and ')} to your ${f.days.map(d=>DTYPES[d].toLowerCase()).join(' and ')} days this week to build your ${f.why}.`}}}
+  const c=(S.cft&&S.cft.hist||[])[0];
+  if(c&&c.ts>=lim&&(c.n<7||c.t>CFT_CAP)){const ids=['sbcar','dbfc','bcrawl'];return {key:'cft-'+c.ts,ids,days:['anaerobic'],head:'CFT practice: '+(c.n<7?`stopped after ${c.n} of 7`:fmtT(c.t)+', over 30:00'),txt:`Add ${ids.map(i=>EX[i].name).join(', ')} to your anaerobic days this week to train the sandbag, water-can and movement events.`}}
+  return null}
+function focusDays(f){const d=[];S.types.forEach((t,i)=>{if(f.days.includes(t))d.push(i)});if(!d.length){const i=S.types.findIndex(t=>t&&t!=='stretch');if(i>=0)d.push(i)}return d}
+function focusHtml(){const f=focusPick();if(!f||!f.ids.every(i=>EX[i]))return '';S.focus=S.focus||{};if(S.focus[mkey(S.week)+f.key])return '';
+  const days=focusDays(f);if(!days.length)return '';const done=days.every(d=>f.ids.every(id=>S.plan[d].some(x=>x.id===id)));if(done)return '';
+  return `<div class="focus"><b>${esc(f.head)}</b><p>${esc(f.txt)}</p><p class="tag">Goes on ${days.map(d=>DN[d]).join(', ')}.</p><div class="row"><button class="btn" data-a="focusadd">Add to this week</button><button class="btn ghost" data-a="focushide">Not now</button></div></div>`}
 var trEdit=false;
 function viewTrain(){
   const t=S.types[S.day];
   return `${ptBanner()}
-  ${weekBar()}${strip('train')}
+  ${weekBar()}${strip('train')}${focusHtml()}
   <details class="editday"${trEdit?' open':''} ontoggle="trEdit=this.open"><summary>Edit ${DN[S.day]}: ${esc(DTYPES[t]||'not planned')}${(t==='upper'||t==='lower')&&S.fmt[S.day]==='s'?', stations':''}</summary>
   <h3 style="margin-top:10px">${DN[S.day]} focus</h3>
   <div class="chips" role="group" aria-label="Day focus">${Object.entries(DTYPES).map(([k,n])=>`<button class="chip" aria-pressed="${t===k}" data-a="type" data-v="${k}">${n}</button>`).join('')}</div>
@@ -1861,6 +1889,10 @@ document.addEventListener('click',ev=>{
   else if(a==='tdday'){if(S.week!==0)wkGo(0);S.day=+v;S.tab='train';FX.view=true;render();window.scrollTo(0,0)}
   else if(a==='pctset'){pcId=EX[v]?v:'bsq';S.tab='assess';render();setTimeout(()=>{const e=document.getElementById('pcEx');if(e)e.scrollIntoView({block:'center'});const m=document.getElementById('pcMax');if(m)m.focus()},50)}
   else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
+  else if(a==='readylite'){const wd=(new Date().getDay()+6)%7;readyItems(wd).forEach(it=>{if(typeof it.rx!=='string'||typeof it.rx0==='string')return;const r=it.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>1?+a-1:+a)+b);if(r!==it.rx){it.rx0=it.rx;it.rx=r}});save();render()}
+  else if(a==='readyfull'){const wd=(new Date().getDay()+6)%7;readyItems(wd).forEach(it=>{if(typeof it.rx0==='string'){it.rx=it.rx0;delete it.rx0}});save();render()}
+  else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
+  else if(a==='focushide'){const f=focusPick();if(f){S.focus=S.focus||{};S.focus[mkey(S.week)+f.key]=1;save();render()}}
   else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
@@ -3661,7 +3693,7 @@ document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset
 /* Share the app: link, share buttons and a QR code to scan at PT */
 const APP_LINK='https://h2f-trainer.vercel.app/';
 function appLink(){return xsSite()||APP_LINK}
-function shareMsg(){return `H2F Trainer: workouts, injury PT, sleep, fuel and readiness for Soldiers. Open it here: ${appLink()} — ask ${S.squad&&S.squad.name?S.squad.name.trim():'me'} for the access code.`}
+function shareMsg(){return `H2F Trainer: workouts, injury PT, CFT practice, sleep, fuel and readiness for Soldiers. No account, and your data stays on your phone. Open it here: ${appLink()} — ask ${S.squad&&S.squad.name?S.squad.name.trim():'me'} for the access code.`}
 function shareHtml(){const u=appLink(),m=encodeURIComponent(shareMsg()),canShare=!!(navigator.share&&xsSite());
   return `<h2>Share the app</h2><p>Send H2F Trainer to another Soldier. They will need the access code to open it, so give them that in person.</p>
   <div class="qrbox"><div class="qr" id="qrImg" role="img" aria-label="QR code for the app link"><span class="tag">Loading QR code…</span></div><p class="tag">Have them point their phone camera at this code.</p></div>
