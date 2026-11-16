@@ -198,6 +198,22 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .editday>summary::after{content:'';margin-left:auto;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s}
 .editday[open]>summary::after{transform:rotate(-135deg)}
 .editday[open]{padding-bottom:12px}
+.cftclock{margin:12px 0;padding:16px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);text-align:center}
+#cftClock{font:800 48px/1 var(--display,var(--body));font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#cftLeft{margin-top:6px;font:600 14px var(--body);opacity:.85}
+#cftLeft.over{color:var(--gold);opacity:1}
+.cftbtns{margin:0 0 8px}
+.cftbtns .cftnext{flex:1 1 100%;min-height:64px;font-size:18px}
+.cftlist{list-style:none;margin:0;padding:0;counter-reset:cft}
+.cftev{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);counter-increment:cft}
+.cftev>span:first-child{display:flex;flex-direction:column}
+.cftev>span:first-child b::before{content:counter(cft) ". ";color:var(--muted)}
+.cftev small{font:500 14px var(--body);color:var(--muted)}
+.cftev.now{background:color-mix(in srgb,var(--gold) 14%,transparent);margin:0 -8px;padding:12px 8px;border-radius:8px}
+.cftev.done b{color:var(--muted)}
+.cftsp{text-align:right;font:700 16px var(--body);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end}
+.cftsp .up{color:var(--sage-text)}.cftsp .dn{color:var(--warn)}
+.cfthist{list-style:none;margin:0;padding:0}.cfthist li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .tdsec{font:700 12px var(--body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:12px 0 2px}
 .nm .code{display:inline-block;min-width:28px;margin-right:4px;font:700 12px var(--body);color:var(--muted);letter-spacing:.02em}
 .item.hasw .nm{flex:1 1 100%}
@@ -1223,6 +1239,8 @@ const EX={};
 RAW.split('\n').forEach(l=>{const p=l.split('|');EX[p[0]]={id:p[0],name:p[1],cat:p[2],sec:p[3],eq:p[4],steps:p[5].split(';').map(s=>s.trim()),cue:p[6]}});
 const SECNAME={W:'Warm-up',M:'Main workout',C:'Stretching and cool-down'};
 
+var CFT_EV=[['One-mile run','1 mile'],['Dead-stop push-ups','30 reps'],['Sprint','100 m'],['Sandbag lifts','40 lb onto 65 in, 16 times'],['Water-can carry','Two 40 lb cans, 50 m'],['Movement drill','25 m high crawl, 25 m rushes'],['Final one-mile run','1 mile']];
+var CFT_CAP=30*60000,cftTick=0,cftBeeped=false;
 const DTYPES={aerobic:'Aerobic',anaerobic:'Anaerobic',upper:'Upper body',lower:'Lower body',stretch:'Stretching'};
 const TPL={
  upper:[['armc','1×10'],['inch','1×6'],['mslam','3×6'],['bench','4×6'],['bor','4×8'],['dbsp','3×8'],['pull','3×max'],['sarow','3×10/side'],['bpa','3×15'],['chest','2×30–45 s'],['blat','2×30–45 s']],
@@ -1410,7 +1428,7 @@ function groupView(v){if(!GROUPED.includes(S.tab))return;const kids=[...v.childr
   kids.forEach(el=>{if(el.tagName==='H3'){g=document.createElement('section');g.className='grp';el.before(g)}
     else if(el.tagName==='H2'||el.tagName==='FOOTER'||(el.classList&&el.classList.contains('foot'))){g=null}
     if(g)g.appendChild(el)})}
-function afterRender(){const v=document.getElementById('view');groupView(v);hashSync();try{if(S.rb)rbShow()}catch(e){}
+function afterRender(){const v=document.getElementById('view');if(S.cft&&S.cft.run&&S.cft.run.on&&document.getElementById('cftClock'))cftStartTick();groupView(v);hashSync();try{if(S.rb)rbShow()}catch(e){}
   FX.cup=-1;
   if(S.tab==='pt'){const h=document.getElementById('bstage');if(h)B3.mount(h)}
   if(FX.view){v.style.setProperty('--dx',(FX.dir||0)*22+'px');v.style.setProperty('--dy',FX.dir?'0px':'10px');v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');FX.view=false}
@@ -1843,6 +1861,8 @@ document.addEventListener('click',ev=>{
   else if(a==='tdday'){if(S.week!==0)wkGo(0);S.day=+v;S.tab='train';FX.view=true;render();window.scrollTo(0,0)}
   else if(a==='pctset'){pcId=EX[v]?v:'bsq';S.tab='assess';render();setTimeout(()=>{const e=document.getElementById('pcEx');if(e)e.scrollIntoView({block:'center'});const m=document.getElementById('pcMax');if(m)m.focus()},50)}
   else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
+  else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
+  else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
   else if(a==='tdundo'){const k=today();S.hist=(S.hist||[]).filter(x=>!(x.man&&dayKeyTs(x.ts)===k));render()}
   else if(a==='tdgo'){const wd=(new Date().getDay()+6)%7;if(v==='train'&&S.week!==0)wkGo(0);if(v==='train'&&wd<5)S.day=wd;const setup=v==='train'&&b.classList.contains('step');if(setup)trEdit=true;if(S.tab!==v)FX.view=true;S.tab=v;render();const w=!setup&&v==='train'&&wd<5&&document.getElementById('wkout');if(w){const y=w.getBoundingClientRect().top+window.scrollY-(document.querySelector('header.top')?.offsetHeight||0)-72;window.scrollTo(0,Math.max(0,y))}else window.scrollTo(0,0)}
@@ -1909,7 +1929,7 @@ S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
 if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey(S.week||0);
 S.week=wkOff(S.curKey);
 if(S.week<0)wkGo(0);
-S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
+S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
 S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1},S.squad.inc||{});
 S.sleep=S.sleep||{wake:'06:00',checks:{date:'',v:[]}};
 S.sleep.log=S.sleep.log||{};S.sleep.meta=S.sleep.meta||{};
@@ -2221,6 +2241,7 @@ function viewFM(){
       <li><b>50 m movement drill.</b> High crawl for 25 m, then 3 to 5 second rushes for 25 m.</li>
       <li><b>One-mile run.</b></li>
     </ol>
+    <div class="row"><button class="btn" data-a="cftpractice">Practice the CFT with a timer</button></div>
     <h3>Uniform</h3>
     <p>Army Combat Uniform, combat boots and brown T-shirt. No headgear.</p>
     <h3>Equipment the test names</h3>
@@ -3059,7 +3080,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
+const BK_KEYS=['cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 function openBackup(){
@@ -3115,6 +3136,7 @@ function cleanBackup(raw){
     out.nut={wt:s8(n.wt),unit:n.unit==='kg'?'kg':'lb',ht:s8(n.ht),hu:n.hu==='in'?'in':'cm',age:s8(n.age),sex:n.sex==='m'||n.sex==='f'?n.sex:'',act:['1.2','1.375','1.55','1.725'].includes(n.act)?n.act:'1.55',goal:n.goal==='l'||n.goal==='g'?n.goal:'m',meals:[],wlog:{}};
     if(Array.isArray(n.meals))out.nut.meals=n.meals.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)).slice(0,600).map(e=>({id:e.id,d:e.d,m:MEALS.includes(e.m)?e.m:'Snack',t:isStr(e.t)?e.t.slice(0,80):'',k:num(e.k,20000),p:num(e.p,2000),c:num(e.c,3000),f:num(e.f,2000)}));
     if(n.wlog&&typeof n.wlog==='object')Object.entries(n.wlog).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&Number.isFinite(v)&&v>=0&&v<=30).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,800).forEach(([k,v])=>{out.nut.wlog[k]=Math.round(v)})}
+  if(o.cft&&typeof o.cft==='object'&&Array.isArray(o.cft.hist))out.cft={hist:o.cft.hist.filter(h=>h&&Number.isFinite(h.ts)&&Number.isInteger(h.n)&&h.n>=1&&h.n<=7&&Array.isArray(h.sp)&&h.sp.length===h.n&&h.sp.every((v,k)=>Number.isFinite(v)&&v>=0&&v<=36e5&&(!k||v>=h.sp[k-1]))&&h.t===h.sp[h.n-1]).slice(0,50).map(h=>({ts:h.ts,sp:h.sp.slice(),t:h.t,n:h.n}))};
   if(o.aft&&typeof o.aft==='object'){const a=o.aft,s8=x=>isStr(x)?x.slice(0,8):'',i=a.in&&typeof a.in==='object'?a.in:{};
     out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};
     if(Array.isArray(a.hist))out.aft.hist=a.hist.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)&&Number.isInteger(e.age)&&e.age>=17&&e.age<=99&&Array.isArray(e.r)&&e.r.length===5&&e.r.every(x=>Number.isFinite(x)&&x>=0&&x<=3600)&&Array.isArray(e.p)&&e.p.length===5&&e.p.every(x=>Number.isInteger(x)&&x>=0&&x<=100)).slice(0,100).map(e=>({id:e.id,d:e.d,age:e.age,sex:e.sex==='f'?'f':'m',std:e.std==='c'?'c':'g',r:e.r.slice(),p:e.p.slice(),t:e.p.reduce((s,x)=>s+x,0)}))}
@@ -3144,6 +3166,7 @@ function applyBackup(c){
   if(c.dst)S.dst=c.dst;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
+  if(c.cft)S.cft={hist:c.cft.hist,run:null};
   if(c.squad)S.squad=c.squad;
   if(c.sleepWake)S.sleep.wake=c.sleepWake;
   if(c.sleepLog)S.sleep.log=c.sleepLog;
@@ -3239,11 +3262,41 @@ function pcResHtml(){
   <table class="ptable"><thead><tr><th>%</th><th>Weight</th><th>Typical use</th></tr></thead><tbody>${pcs.map(p=>`<tr><td>${p}%</td><td>${wRound(mx*p/100)} ${au()}</td><td>${p<=55?'Warm-up':p<=65?'Technique, 10 to 15 reps':p<=75?'Muscle building, 8 to 12 reps':p<=85?'Strength, 4 to 6 reps':p<=95?'Heavy, 1 to 3 reps':'Max attempt'}</td></tr>`).join('')}</tbody></table>`}
 function pcUpd(){const e=document.getElementById('pcRes');if(e)e.innerHTML=pcResHtml()}
 
+/* ---- Combat Field Test practice: seven events on one running clock, splits saved on the phone ---- */
+function cftNow(){const r=S.cft.run;return r?r.acc+(r.on?Date.now()-r.start:0):0}
+function cftBest(){return S.cft.hist.filter(h=>h.n===7).reduce((b,h)=>!b||h.t<b.t?h:b,null)}
+function cftClockTxt(){const t=cftNow(),left=CFT_CAP-t;return [fmtT(t),left>=0?fmtT(left)+' left of 30:00':'Over 30:00 by '+fmtT(-left)]}
+function cftPaint(){const c=document.getElementById('cftClock'),l=document.getElementById('cftLeft');if(!c){cftStopTick();return}const [a,b]=cftClockTxt();c.textContent=a;l.textContent=b;l.classList.toggle('over',cftNow()>CFT_CAP);
+  const r=S.cft.run;if(r&&r.on&&!cftBeeped&&cftNow()>=CFT_CAP){cftBeeped=true;beep()}}
+function cftStartTick(){if(!cftTick)cftTick=setInterval(cftPaint,250)}
+function cftStopTick(){clearInterval(cftTick);cftTick=0}
+function cftHtml(){const r=S.cft.run,best=cftBest(),i=r?r.sp.length:0,[clk,left]=r?cftClockTxt():['0:00','30:00 to finish all seven events'];
+  const dur=sp=>sp.map((t,k)=>t-(k?sp[k-1]:0));
+  const bd=best?dur(best.sp):null,cur=r?dur(r.sp):[];
+  const rows=CFT_EV.map(([n,d],k)=>{const done=k<i,now=r&&k===i,diff=done&&bd?cur[k]-bd[k]:null;
+    return `<li class="cftev${done?' done':''}${now?' now':''}"><span><b>${n}</b><small>${d}</small></span><span class="cftsp">${done?fmtT(cur[k])+(diff!==null?`<small class="${diff<=0?'up':'dn'}">${diff<=0?'−':'+'}${fmtT(Math.abs(diff))}</small>`:''):now?'Now':''}</span></li>`}).join('');
+  const btns=!r?`<button class="btn" data-a="cftgo">Start the clock</button>`
+    :`${r.on?`<button class="btn cftnext" data-a="cftnext">${i===6?'Finish':'Done: '+CFT_EV[i][0]}</button>`:''}<button class="btn ghost" data-a="cftgo">${r.on?'Pause':'Resume'}</button>${i?'<button class="btn ghost" data-a="cftundo">Undo last</button>':''}<button class="btn ghost" data-a="cftstop">Stop</button>`;
+  const hist=S.cft.hist.slice(0,5).map(h=>`<li><span>${esc(new Date(h.ts).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))}</span><span>${h.n===7?`<b>${fmtT(h.t)}</b> ${h.t<=CFT_CAP?'within 30:00':'over 30:00'}`:`stopped after ${h.n} of 7`}</span></li>`).join('');
+  return `<section class="cft" id="cft"><h3 style="margin-top:26px">Combat Field Test practice</h3>
+  <p class="tag">All seven events back to back on one clock. Tap after each event to record your split. ${best?`Your best: <b>${fmtT(best.t)}</b>. Splits show how each event compares with that run.`:'Your splits are saved so you can see which event costs you the most time.'}</p>
+  <div class="cftclock"><div id="cftClock" aria-live="off">${clk}</div><div id="cftLeft" class="${r&&cftNow()>CFT_CAP?'over':''}">${left}</div></div>
+  <div class="row cftbtns">${btns}</div>
+  <ol class="cftlist">${rows}</ol>
+  ${hist?`<h3 style="margin-top:16px">Recent attempts</h3><ul class="cfthist">${hist}</ul>`:''}
+  <div class="note">Practice timer only. Your graders run the record test under Army Directive 2026-07. Wear ACUs and boots in practice to match test conditions.</div></section>`}
+function cftAct(a){const C=S.cft;
+  if(a==='cftgo'){if(!C.run){C.run={start:Date.now(),acc:0,on:true,sp:[]};cftBeeped=false;lockScreen(true)}else if(C.run.on){C.run.acc+=Date.now()-C.run.start;C.run.on=false}else{C.run.start=Date.now();C.run.on=true;lockScreen(true)}}
+  else if(a==='cftnext'&&C.run&&C.run.on){C.run.sp.push(cftNow());if(C.run.sp.length===7){const t=C.run.sp[6];C.hist.unshift({ts:Date.now(),sp:C.run.sp.slice(),t,n:7});C.hist=C.hist.slice(0,50);C.run=null;if(!active())lockScreen(false)}}
+  else if(a==='cftundo'&&C.run&&C.run.sp.length)C.run.sp.pop();
+  else if(a==='cftstop'&&C.run){if(C.run.sp.length)C.hist.unshift({ts:Date.now(),sp:C.run.sp.slice(),t:C.run.sp[C.run.sp.length-1],n:C.run.sp.length});C.hist=C.hist.slice(0,50);C.run=null;if(!active())lockScreen(false)}
+  save();const y=window.scrollY;render();window.scrollTo(0,y);if(C.run&&C.run.on)cftStartTick();else cftStopTick()}
 function viewAssess(){
   const A=S.assess;
   return `<h2>Assessment</h2><p>Track your max efforts over time, estimate your one-rep max, and work out running pace and speed.</p>
   <div class="form"><label>Units<select data-f="asunit"><option value="lb"${A.unit==='lb'?' selected':''}>Pounds (lb), feet</option><option value="kg"${A.unit==='kg'?' selected':''}>Kilograms (kg), meters</option></select></label></div>
   ${aftHtml()}
+  ${cftHtml()}
   <h3 style="margin-top:26px">Progression table</h3>
   <p class="tag">Pick any exercise from the library as a max effort event, then log a result each time you test it. Your results stay saved.</p>
   ${A.ev.length?A.ev.map(aEvent).join(''):'<div class="empty">No events yet. Choose one to start tracking.</div>'}
