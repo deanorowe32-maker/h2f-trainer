@@ -21,7 +21,7 @@ Measured with Playwright, 390×844 viewport, logged-in, default data (E = evid.p
 - Spacing values rendered: up to 19 distinct per tab, including odd values 1, 3, 5, 7, 9, 11, 13 px (E).
 - Distinct colors referenced per tab: 8–17 (E).
 - Lowest real contrast: **3.23:1 for "7–9 h target" at 10.5 px on Readiness** (fails WCAG AA 4.5:1). Other low readings (1.01 on the selected day tile, 1.11 on the medal panel) are measurement artefacts of gradient backgrounds; visually they pass.
-- Tap targets under 44×44 px: 8 on Readiness, 0 elsewhere (E).
+- Tap targets under 44×44 px: 8 on Readiness, 0 elsewhere (E). Correction: these are the Tonight's checklist checkboxes, each inside a full-width label row ≥ 44 px tall, so the real tap area passes.
 - States: empty states present (exercise list "Nothing here yet", medal case, history); focus-visible rules: 10; disabled styling: 1 rule; dark mode: 7 `prefers-color-scheme` rules; reduced motion: 12 rules; `aria-live` regions: 12. Loading state: none needed (all local). Error states for photo upload not verified.
 
 ## Copy & honesty
