@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 40 220 147" role="img" aria-label="Forearm, rotate palm up"><rect x="40" y="286" width="400" height="8" rx="4" fill="#d9e3dc"/><rect x="150" y="150" width="180" height="40" rx="10" fill="#1d5038"/>
+<g transform="rotate(80 240 140)"><rect x="236" y="62" width="8" height="78" rx="3" fill="#8a6418"/><rect x="222" y="54" width="36" height="16" rx="3" fill="#3a4048"/></g>
+<ellipse cx="240" cy="140" rx="20" ry="18" fill="#e0a07a"/>
+<path d="M226 134 h28 M226 141 h28 M228 148 h24" stroke="#011B5C" stroke-width="1.2" stroke-linecap="round"/>
+<g fill="none" stroke="#c2462a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M200 90 Q240 60 272.8 84.6"/><path d="M269.2 89.4 L280 90 L276.4 79.8" fill="#c2462a"/></g></svg>
