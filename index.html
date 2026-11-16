@@ -989,6 +989,26 @@ shut|Shuttle Repeats|conditioning|M|Cones, 50 m lane|Sprint 50 m, touch the line
 abike|Assault Bike Intervals|conditioning|M|Assault bike|Pedal and push-pull the arms at maximum effort for the interval.;Recover at an easy pace.;Repeat for the planned rounds.|Stay tall and breathe.
 pend|Pendulum Swings|pt|M|None|Lean on a table with your good arm and let the other arm hang.;Gently swing it forward and back, then side to side.;Make small circles, relaxed.|Let gravity move the arm.
 wsl|Wall Slides|pt|M|Wall|Stand with forearms on a wall.;Slide your arms up as far as comfortable.;Return slowly.|Stay within a pain-free range.
+iir|Band Internal Rotation|pt|M|Light band|Stand side-on to the anchor, elbow at your side on a rolled towel, band in the hand nearest the anchor.;Pull your forearm in across your belly.;Return slowly.|Keep the elbow tucked. Stop if the shoulder pinches.
+slier|Side-Lying External Rotation|pt|M|Light dumbbell, or none to start|Lie on your good side, top elbow bent 90° and resting on a towel at your side.;Rotate the forearm up toward the ceiling.;Lower slowly over 3 counts.|Keep the elbow on your side. Start with no weight.
+caner|Cane External Rotation Stretch|pt|M|Stick or broom handle|Lie on your back, elbows bent 90° at your sides, holding a stick in both hands.;Use the good arm to push the stick so the sore forearm turns outward.;Hold 30 seconds at a gentle stretch.|You should feel a stretch, not pain.
+er90|Band External Rotation at 90°|pt|M|Light band|Upper arm out to the side at shoulder height, elbow bent 90°, forearm pointing forward.;Rotate the forearm up until it points at the ceiling.;Return slowly.|Return-to-training phase only. Keep the shoulder down, away from your ear.
+dnf|Chin Tuck Head Lift|pt|M|Mat|Lie on your back, knees bent.;Tuck your chin gently, as if nodding yes.;Lift your head about an inch and hold 10 seconds.;Lower and rest.|Stop if you feel dizzy or pain down the arm.
+wext|Wrist Extension Curl|pt|M|Light dumbbell|Rest your forearm on a table, hand over the edge, palm down.;Lift the back of your hand up.;Lower slowly over 3 counts.|A mild ache is fine. Sharp pain means a lighter weight.
+wflc|Wrist Flexion Curl|pt|M|Light dumbbell|Rest your forearm on a table, hand over the edge, palm up.;Curl the weight up.;Lower slowly over 3 counts.|Move only at the wrist.
+rudv|Radial and Ulnar Deviation|pt|M|Hammer or dumbbell held at one end|Rest your forearm on your thigh, thumb up, holding the handle.;Tip the weight up toward the ceiling, then lower.;Turn around, weight pointing down, and lift toward your little finger.|Short, slow arcs. Choke up on the handle to make it easier.
+fext|Finger Extension with Rubber Band|pt|M|Rubber band|Loop a rubber band around your fingers and thumb.;Spread your fingers open against the band.;Close slowly.|Do 10 to 15 easy reps.
+itbs|Standing IT Band Stretch|pt|M|Wall|Stand side-on to a wall, hand on it.;Cross the leg nearest the wall behind the other.;Lean your hips toward the wall until you feel a stretch on the outer hip.|Hold 30 seconds. Don’t bounce.
+sladd|Side-Lying Hip Adduction|pt|M|Mat|Lie on your side, top leg bent with the foot in front of the bottom knee.;Lift the straight bottom leg a few inches.;Lower slowly.|Keep the toes pointing forward.
+phe|Prone Hip Extension|pt|M|Mat|Lie face down, forehead on your hands.;Tighten your glute and lift one straight leg a few inches.;Lower slowly.|Don’t arch your low back.
+rclam|Reverse Clamshell|pt|M|Mat|Lie on your side, hips and knees bent, knees together.;Keep the knees together and lift the top foot.;Lower slowly.|Turn at the hip, not the back.
+wcs|Wall Calf Stretch|pt|M|Wall|Hands on a wall, sore leg straight behind, heel down.;Bend the front knee and lean in until you feel the calf stretch.;Hold 30 seconds.|Keep the back heel on the floor.
+wcsb|Bent-Knee Wall Calf Stretch|pt|M|Wall|Same stance as the wall calf stretch.;Bend the back knee, heel still down.;Lean in and hold 30 seconds.|You will feel it lower in the calf.
+gball|Golf Ball Roll|pt|M|Golf or massage ball|Sit with your foot on the ball.;Roll from heel to toes with gentle pressure.;Keep going 1 to 2 minutes.|Firm pressure, not painful.
+marb|Marble Pickup|pt|M|20 marbles and a cup|Sit with the marbles on the floor.;Pick each one up with your toes.;Drop it in the cup and do all 20.|Slow and controlled.
+bdpf|Band Ankle Pumps|pt|M|Light band|Sit with your leg straight, band around the ball of the foot, ends in your hands.;Point the toes down against the band.;Return slowly, then pull the toes up toward you.|Move only at the ankle.
+sbrch|Single-Leg Balance Reach|pt|M|Open floor|Stand on the sore leg, knee soft.;Reach the other foot forward, to the side and behind, tapping lightly.;Return to the middle each time.|Hold a wall at first.
+slhop|Single-Leg Hop and Stick|pt|M|Open floor|Stand on the sore leg.;Hop forward a short distance.;Land softly, knee over toes, and hold 2 seconds.|Return-to-training phase only. Stop if it hurts or the ankle feels unstable.
 ier|Band External Rotation|pt|M|Light band|Elbow at your side with a rolled towel under it.;Rotate your forearm outward against the band.;Return slowly.|Keep your elbow tucked.
 scap|Scapular Retraction|pt|M|None|Sit or stand tall with arms at your sides.;Pull shoulder blades back and down.;Hold briefly, then release.|Do not shrug.
 pty|Prone Y Raise|pt|M|None|Lie face down with arms in a Y.;Lift your arms slightly, thumbs up.;Lower slowly.|Small, controlled range.
@@ -1216,17 +1236,18 @@ const genDay=t=>TPL[t].map(([id,rx])=>({id,rx}));
 
 const AREAS={neck:'Neck',shoulder:'Shoulder',uback:'Upper back',elbow:'Elbow',wrist:'Wrist and forearm',back:'Low back',hip:'Hip',knee:'Knee',ankle:'Ankle'};
 const PTB={
- uback:{mob:['obook','thrn','thext','catcow'],str:['scap','prtr','bndrow','pty','bpa'],stab:['bird','scap','pty']},
- elbow:{mob:['elbrom','wextst','wflex','pronsu'],str:['isowe','ecwr','ecwf','bndcurl'],stab:['gripsq','isowe','pronsu']},
- shoulder:{mob:['pend','wsl','xbody'],str:['ier','pty','bpa','prtr','isoer'],stab:['scap','pty','serrws']},
- back:{mob:['ptilt','kts','catcow','thext'],str:['brdg','dbug','hthr','cobra'],stab:['bird','splank','dbug','mcgcu','pallof']},
- hip:{mob:['h9090','bhf','hfstr'],str:['clam','slr2','brdg','sthab','hydr'],stab:['sbal','clam','latbw','slbr']},
- knee:{mob:['hslide','bhs'],str:['qset','sarcq','slr','tke','chsq','stdn','wsit'],stab:['sbal','stdn','latbw']},
- ankle:{mob:['aabc','towelc','dorst'],str:['bev','calf','slcalf','tibr'],stab:['sbal','calf','hewalk']},
- neck:{mob:['chin','utrap','nrot'],str:['nisom','chin','levsc'],stab:['scap','pty']},
- wrist:{mob:['wflex','wextst','tgl'],str:['gripsq','pronsu','ecwr'],stab:['gripsq','scap','pronsu']}
+ uback:{mob:['obook','thrn','thext','catcow','chest'],str:['scap','prtr','bndrow','pty','bpa','bfp'],stab:['bird','scap','pty']},
+ elbow:{mob:['elbrom','wextst','wflex','pronsu'],str:['isowe','ecwr','wext','ecwf','bndcurl'],stab:['gripsq','isowe','pronsu','scap','bndrow','ier']},
+ shoulder:{mob:['pend','wsl','xbody','slpstr','caner'],str:['ier','iir','pty','bpa','prtr','isoer','bndrow','slier','er90'],stab:['scap','pty','serrws']},
+ back:{mob:['ptilt','kts','catcow','thext'],str:['brdg','dbug','hthr','cobra','hhdow'],stab:['bird','splank','dbug','mcgcu','pallof','plank']},
+ hip:{mob:['h9090','bhf','hfstr','itbs','bglu','kts','bhs'],str:['clam','slr2','brdg','sthab','hydr','phe','sladd','rclam'],stab:['sbal','clam','latbw','slbr']},
+ knee:{mob:['hslide','bhs','quad'],str:['qset','sarcq','slr','tke','chsq','stdn','wsit','bhcurl','stup'],stab:['sbal','stdn','latbw']},
+ ankle:{mob:['aabc','towelc','dorst','wcs','wcsb','gball'],str:['bev','calf','slcalf','tibr','bdpf','marb'],stab:['sbal','calf','hewalk','sbrch','slhop']},
+ neck:{mob:['chin','utrap','nrot'],str:['nisom','chin','dnf','levsc'],stab:['scap','pty','bndrow','bpa','plank']},
+ wrist:{mob:['wflex','wextst','tgl'],str:['gripsq','pronsu','ecwr','wext','wflc','rudv','fext'],stab:['gripsq','scap','pronsu']}
 };
 const PHASES=['Calm it down (early)','Rebuild','Return to training'];
+const PT_RET={er90:1,slhop:1};
 const FOCI={mobility:'Mobility',strength:'Strength',stability:'Stability',cardio:'Low-impact cardio',rest:'Rest'};
 const SIDES=['Left','Right','Both','Not applicable'];
 /* Foam rolling for the muscles around each injury area, never the injured joint itself. Added on mobility days from the Rebuild phase on. */
@@ -1249,6 +1270,8 @@ function genPT(p,focus){
     if(focus==='mobility')rows=[...(ph>0?(PTR[j.area]||[]).map(id=>[id,ph===1?'1×45 s each side, light pressure':'1×60 s each side']):[]),...b.mob.map(id=>[id,rx.mob])];
     else if(focus==='strength'){let n=[2,3,b.str.length][ph];if(multi)n=Math.min(n,inj.length>2?3:4);rows=[[b.mob[0],rx.mob],...b.str.slice(0,n).map(id=>[id,rx.str])]}
     else rows=[[b.mob[0],rx.mob],...b.stab.map(id=>[id,rx.stab])];
+    /* hops and 90° rotation only in the return-to-training phase */
+    rows=rows.filter(([id])=>!PT_RET[id]||ph===2);
     rows.forEach(([id,r])=>{
       const it=at[id];
       if(!it){const n={id,rx:r};at[id]={n,ph,ar:[j.area]};out.push(n)}
@@ -1721,7 +1744,7 @@ const ILL={
  lic:{a:[35,60,90,60,90,75,15,20,-5],b:[35,60,90,60,90,20,-5,75,15],prop:'bike'},
  prest:{a:[-90,90,90,90,90,90,90,90,90],b:[0,25,10,-25,-10,20,0,-20,-30]}
 };
-const ILL_LABEL={prest:['Rest','Easy walk'],chin:['Head forward','Chin tucked back'],ptilt:['Low back arched','Low back flat'],nisom:['Neutral head','Press into hand, hold'],qset:['Relaxed','Thigh tight, heel lifts']};
+const ILL_LABEL={iir:['Forearm out','Pull in to the belly'],slier:['Forearm across the belly','Rotate up'],caner:['Elbows bent, stick level','Push the sore arm out'],er90:['Arm at shoulder height','Rotate up'],dnf:['Chin tucked','Lift the head an inch'],wext:['Hand down, palm down','Lift the hand up'],wflc:['Hand down, palm up','Curl up'],rudv:['Thumb up, weight forward','Tip it up'],fext:['Fingers together','Spread open'],itbs:['Cross the leg behind','Lean the hips to the wall'],sladd:['Bottom leg on the mat','Lift the bottom leg'],phe:['Face down','Lift one straight leg'],rclam:['Knees and feet together','Lift the top foot'],wcs:['Back leg straight','Lean in'],wcsb:['Back heel down','Bend the back knee'],gball:['Ball under the arch','Roll heel to toes'],marb:['Toes over a marble','Pick up and drop in the cup'],bdpf:['Toes pointed down','Toes pulled up'],sbrch:['Reach forward','Reach behind'],slhop:['Ready on one leg','Land soft and hold'],prest:['Rest','Easy walk'],chin:['Head forward','Chin tucked back'],ptilt:['Low back arched','Low back flat'],nisom:['Neutral head','Press into hand, hold'],qset:['Relaxed','Thigh tight, heel lifts']};
 const RUN=[10,50,130,-45,-10,70,5,-35,-100],RUNB=[10,-45,-10,50,130,-35,-100,70,5],PLANK=[63,0,0,0,0,-63,-63,-63,-63],LUNGE=[0,5,5,5,5,90,0,-15,-80],LUNGEB=[0,5,5,5,5,-15,-80,90,0],WALK=[0,25,10,-25,-10,20,0,-20,-30],SQUAT=[45,10,10,10,10,100,-10,100,-10];
 Object.assign(ILL,{
  serrws:{a:[8,90,175,90,175,0,0,0,0],b:[8,140,175,140,175,0,0,0,0],anchor:'P',wall:['A1h',3],arr:{b:[['A1h',-9,12,-9,0]]}},
@@ -2074,7 +2097,7 @@ function illHtml(id){
 /* Built-in start and finish photos from Free Exercise DB (github.com/yuhonas/free-exercise-db, Unlicense), served from ph/<id>-a.jpg and ph/<id>-b.jpg */
 /* Built-in middle photos: id -> ['m1'] or ['m1','m2'], served from ph/<id>-m1.jpg and ph/<id>-m2.jpg */
 /* New flat illustrations (drawn with Meng To's flat-kit, MIT), served from ph/fig/<id>-a.svg and -b.svg */
-const FIGS={bird:1,pty:1,clam:1,lm_hack:1,hrpu:1,ptilt:1,slr:1,hslide:1,cobra:1,wsit:1,splank:1,pend:1,wsl:1,serrws:1,scap:1,sbal:1,stdn:1,slcalf:1,hewalk:1,dorst:1,tibr:1,hhdow:1,bndrow:1,bndcurl:1,bhcurl:1,tke:1,elbrom:1,prest:1,qset:1,towelc:1,sarcq:1,mcgcu:1,thext:1,thrn:1,chin:1,levsc:1,wflex:1,wextst:1,gripsq:1,isowe:1,tscr:1,lm_gsq:1,lm_grl:1,lm_rl:1,lm_curt:1,lm_skat:1,lm_l2p:1,lm_thr:1,lm_snat:1,lm_rdl:1,lm_slrdl:1,lm_pslrdl:1,lm_stag:1,lm_per:1,lm_hkp:1,lm_altp:1,lm_opsq:1,lm_apsq:1,lm_zp:1,lm_pp:1,lm_pj:1,lm_sj:1,lm_calf:1,lm_siss:1,lm_sup:1,lm_qkb:1,lm_slht:1,spr:1,ewalk:1,twomi:1,r400:1,fartl:1,tempo:1,hill:1,shut:1,ruck:1,ltuck:1,bcrawl:1,hknee:1,shtap:1,bb8:1,burp:1,suit:1,sbcar:1,sdcc:1,abike:1,pswim:1,kbdl:1,dbdl:1,kbamsw:1,kbcp:1,kbbup:1,kbrc:1,kbsc:1,kbcur:1,kbtx:1,kbhalo:1,kbpo:1,dbthr:1,bb_thr:1,bb_ss:1,bb_ohss:1,tbjs:1,bb_larsen:1,bb_spoto:1,bsd:1,blat:1,quad:1,pig:1,fr_hipf:1,fr_pec:1,jjack:1,lm_lr:1,lm_glat:1,lm_rsp:1,lm_rlp:1,lm_twl:1,lm_aro:1,lm_arhk:1,lm_arsq:1,lm_rt:1,kbatb:1,lungtw:1,mrot:1,isoer:1,hydr:1,prtr:1,kbarm:1,h9090:1,chest:1,bglu:1,slr2:1,obook:1,slpstr:1,nrot:1,tgl:1,bev:1,pronsu:1};
+const FIGS={bird:1,pty:1,clam:1,lm_hack:1,hrpu:1,ptilt:1,slr:1,hslide:1,cobra:1,wsit:1,splank:1,pend:1,wsl:1,serrws:1,scap:1,sbal:1,stdn:1,slcalf:1,hewalk:1,dorst:1,tibr:1,hhdow:1,bndrow:1,bndcurl:1,bhcurl:1,tke:1,elbrom:1,prest:1,qset:1,towelc:1,sarcq:1,mcgcu:1,thext:1,thrn:1,chin:1,levsc:1,wflex:1,wextst:1,gripsq:1,isowe:1,tscr:1,lm_gsq:1,lm_grl:1,lm_rl:1,lm_curt:1,lm_skat:1,lm_l2p:1,lm_thr:1,lm_snat:1,lm_rdl:1,lm_slrdl:1,lm_pslrdl:1,lm_stag:1,lm_per:1,lm_hkp:1,lm_altp:1,lm_opsq:1,lm_apsq:1,lm_zp:1,lm_pp:1,lm_pj:1,lm_sj:1,lm_calf:1,lm_siss:1,lm_sup:1,lm_qkb:1,lm_slht:1,spr:1,ewalk:1,twomi:1,r400:1,fartl:1,tempo:1,hill:1,shut:1,ruck:1,ltuck:1,bcrawl:1,hknee:1,shtap:1,bb8:1,burp:1,suit:1,sbcar:1,sdcc:1,abike:1,pswim:1,kbdl:1,dbdl:1,kbamsw:1,kbcp:1,kbbup:1,kbrc:1,kbsc:1,kbcur:1,kbtx:1,kbhalo:1,kbpo:1,dbthr:1,bb_thr:1,bb_ss:1,bb_ohss:1,tbjs:1,bb_larsen:1,bb_spoto:1,bsd:1,blat:1,quad:1,pig:1,fr_hipf:1,fr_pec:1,jjack:1,lm_lr:1,lm_glat:1,lm_rsp:1,lm_rlp:1,lm_twl:1,lm_aro:1,lm_arhk:1,lm_arsq:1,lm_rt:1,kbatb:1,lungtw:1,mrot:1,isoer:1,hydr:1,prtr:1,kbarm:1,h9090:1,chest:1,bglu:1,slr2:1,obook:1,slpstr:1,nrot:1,tgl:1,bev:1,pronsu:1,iir:1,slier:1,caner:1,er90:1,dnf:1,wext:1,wflc:1,rudv:1,fext:1,itbs:1,sladd:1,phe:1,rclam:1,wcs:1,wcsb:1,gball:1,marb:1,bdpf:1,sbrch:1,slhop:1};
 const BPM={ppress:['m1'],hpc:['m1'],kbcl:['m1'],kbpp:['m1']};
 const BPH={kbs:1,bfp:1,bhs:1,bhf:1,kbrt:1,kbrl:1,bb_rl:1,kbcar:1,lic:1,z2:1,ecwf:1,aabc:1,armc:1,bb_bss:1,bb_calf:1,bb_chain:1,bb_coss:1,bb_decbp:1,bb_floor:1,bb_flunge:1,bb_guil:1,bb_hack:1,bb_incbp:1,bb_kneel:1,bb_ohsq:1,bb_pausebp:1,bb_pinbp:1,bb_pull:1,bb_rackpull:1,bb_revgrip:1,bb_sldl:1,bb_stup:1,bb_sumo:1,bb_widebp:1,bb_wlunge:1,bench:1,bor:1,boxj:1,bpa:1,brdg:1,brdj:1,bsq:1,bss:1,bws:1,calf:1,catcow:1,chpo:1,chsq:1,dbcurl:1,dbfc:1,dbfly:1,dbicurl:1,dbinc:1,dblte:1,dbote:1,dbp:1,dbpo:1,dbrdl:1,dbrenrow:1,dbrfly:1,dbsp:1,dbug:1,dbwlunge:1,dl:1,ecwr:1,fltk:1,fr_add:1,fr_arm:1,fr_calf:1,fr_foot:1,fr_glute:1,fr_ham:1,fr_itb:1,fr_lat:1,fr_per:1,fr_quad:1,fr_shin:1,fr_uback:1,gsq:1,hfstr:1,hkskip:1,hpc:1,hthr:1,ier:1,inch:1,jsq:1,kbcl:1,kbf8:1,kbgsq:1,kbpp:1,kbrow:1,kbrsq:1,kbsdl:1,kbsn:1,kbsp:1,kbssw:1,kbthr:1,kbwin:1,kts:1,latb:1,latbw:1,latr:1,legsw:1,lm_oar:1,lm_press:1,lm_tbr:1,lm_twist:1,lnwlk:1,mslam:1,mtnc:1,nisom:1,ohp:1,pallof:1,plank:1,pplu:1,ppress:1,pu:1,pull:1,rdl:1,rlng:1,ropej:1,row:1,sarow:1,shcars:1,slbr:1,sldpsh:1,sldrg:1,slrdl:1,spth:1,stair:1,sthab:1,stup:1,tbdl:1,tgu:1,utrap:1,wgs:1,xbody:1};
 ;Object.assign(ILL,{
