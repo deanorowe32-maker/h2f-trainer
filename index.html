@@ -1656,7 +1656,7 @@ function bRegions(key){const back=key.endsWith('back'),o=[];
 function figSex(){return (S.fig&&S.fig.sex)==='f'?'f':'m'}
 const B3={view:'front',prev:null,busy:false,
  key(){return figSex()+'-'+this.view},
- src(v){return `ph/body-${figSex()}-${v||this.view}.webp`},
+ src(v){return `ph/body-${figSex()}-${v||this.view}.webp?v=2`},
  stageHtml(){return `<span class="bview" id="bview" aria-hidden="true">${this.view==='back'?'Back':'Front'}</span>
   <div class="bfig" id="bfig"><img id="bimg" src="${this.src()}" alt="" width="720" height="960" draggable="false"><div class="bspots" id="bspots">${this.spotsHtml()}</div></div>
   <button class="btn ghost bflip" data-a="bflip" aria-label="Turn the Soldier around to see the ${this.view==='back'?'front':'back'}">${FLIPIC}Turn</button>`},
@@ -1666,7 +1666,7 @@ const B3={view:'front',prev:null,busy:false,
    const lab=BCENTER[r.a]?AREAS[r.a]:(r.s==='L'?'Left ':'Right ')+AREAS[r.a].toLowerCase();
    return `<button class="bspot${on?' on':''}${on&&fresh.has(k)?' pop':''}" style="left:${(r.x/7.2).toFixed(2)}%;top:${(r.y/9.6).toFixed(2)}%" data-a="bspot" data-v="${r.a}" data-s="${r.s}" aria-pressed="${on}" aria-label="${lab}${on?', marked '+(i+1):''}">${on?`<span class="bn" aria-hidden="true">${i+1}</span>`:''}</button>`}).join('')},
  mount(host){
-  for(const s of ['m','f'])for(const v of ['front','back']){const im=new Image();im.src=`ph/body-${s}-${v}.webp`}
+  for(const s of ['m','f'])for(const v of ['front','back']){const im=new Image();im.src=`ph/body-${s}-${v}.webp?v=2`}
   this.prev=this.marked();
   const f=document.getElementById('bfig');if(!f)return;
   /* Swipe sideways to turn; tap anywhere near a joint to mark it */
