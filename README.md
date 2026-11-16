@@ -16,7 +16,7 @@ This is a static site with no build step. On Vercel: Add New → Project → imp
 
 ## Credits
 
-- Exercise photos: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain, Unlicense).
+- Exercise demo renders of the PT_MALE_01 model were made with Google Gemini. Remaining exercise photos: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain, Unlicense).
 - Exercise illustrations drawn with [Meng To's flat-kit](https://github.com/MengTo/Skills) (MIT License, Copyright (c) 2026 Meng To).
 
 *H2F Trainer is an independent tool and is not an official U.S. Army product.*
