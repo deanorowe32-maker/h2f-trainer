@@ -1750,6 +1750,32 @@ function ciRep(c,id){return c.reps[id]||10}
 function ciLine(c,n){return `${n} exercise${n===1?'':'s'} × ${c.rounds} round${c.rounds===1?'':'s'}, `+(c.mode==='t'?`${c.work}s work, ${c.rest}s rest`:'reps')+(c.rounds>1&&c.rrest?`, ${c.rrest}s between rounds`:'')}
 function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id,e)=>{ph.push({k:'w',id,r,e,s:c.mode==='t'?c.work:null,reps:c.mode==='r'?ciRep(c,id):null});if(c.mode==='t'&&c.rest&&e<ids.length-1)ph.push({k:'r',r,e,s:c.rest})});
   if(r<c.rounds-1&&c.rrest)ph.push({k:'R',r,s:c.rrest})}return ph}
+/* platoon program: an 8-week block (5 weekdays) a leader builds and pushes; separate from the Soldier's own plan.
+   Short keys travel in the share code. Must not use consts defined later (startup normalization calls prClean). */
+const PR_FOCUS=['anaerobic','upper','lower','stretch','aerobic'];
+const PR_PART={P:'Power/Plyo',M:'Main',A:'Accessory',C:'Conditioning'};
+function prBlank(name,start){return {v:1,n:String(name||'').slice(0,60),s:start,fr:'',w:Array.from({length:8},()=>({dl:false,d:PR_FOCUS.map(f=>({f,wu:{r:'',a:'',p:''},cd:'',off:false,r:[]}))}))}}
+function prClean(o,known){known=known||(id=>!!EX[id]);const t=(x,n)=>typeof x==='string'?x.replace(/[\u0000-\u001f]/g,' ').slice(0,n):'';
+  if(!o||typeof o!=='object'||!Array.isArray(o.w)||o.w.length!==8||typeof o.s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(o.s))return null;
+  const row=r=>{if(!r||typeof r!=='object'||typeof r.id!=='string'||!known(r.id))return null;const q={p:PR_PART[r.p]?r.p:'M',id:r.id,rx:t(r.rx,30),rs:t(r.rs,12)};
+    const e=parseInt(r.rpe,10);if(e>=1&&e<=10&&String(e)===String(r.rpe).trim())q.rpe=e;const pc=parseFloat(r.pct);if(pc>=1&&pc<=120)q.pct=Math.round(pc*10)/10;
+    if(r.g&&typeof r.g==='object'){const g={};['A','B','C'].forEach(k=>{const v=t(r.g[k],24).trim();if(v)g[k]=v});if(Object.keys(g).length)q.g=g}return q};
+  const day=(d,i)=>{d=d&&typeof d==='object'?d:{};const wu=d.wu&&typeof d.wu==='object'?d.wu:{};
+    return {f:DTYPES[d.f]?d.f:PR_FOCUS[i],wu:{r:t(wu.r,200),a:t(wu.a,200),p:t(wu.p,200)},cd:t(d.cd,200),off:d.off===true,r:(Array.isArray(d.r)?d.r:[]).map(row).filter(Boolean).slice(0,15)}};
+  const w=o.w.map(x=>{x=x&&typeof x==='object'?x:{};const d=Array.isArray(x.d)&&x.d.length===5?x.d:null;return d?{dl:x.dl===true,d:d.map(day)}:null});
+  if(w.some(x=>!x))return null;
+  return {v:1,n:t(o.n,60),s:o.s,fr:t(o.fr,40),w}}
+function grpClean(o){o=o&&typeof o==='object'?o:{};const w0={},src=o.w0&&typeof o.w0==='object'?o.w0:{};
+  ['sh','bp','dl','rk'].forEach(k=>{const v=parseFloat(src[k]);if(v>0&&v<=10000)w0[k]=v});return {g:['A','B','C'].includes(o.g)?o.g:'',w0}}
+function grpSuggest(w0){w0=w0||{};const lb=v=>au()==='kg'?v/0.45359237:v,e=v=>lb(v)*(1+5/30),n={A:0,B:0,C:0};
+  if(w0.sh>0)n[w0.sh<=60?'A':w0.sh<=66?'B':'C']++;
+  if(w0.bp>0)n[e(w0.bp)>=300?'A':e(w0.bp)>=225?'B':'C']++;
+  if(w0.dl>0)n[e(w0.dl)>=400?'A':e(w0.dl)>=315?'B':'C']++;
+  if(w0.rk>0)n[w0.rk<=810?'A':w0.rk<=855?'B':'C']++;
+  const top=Math.max(n.A,n.B,n.C);return top?['C','B','A'].find(k=>n[k]===top):''}
+function prWeekOf(k){if(!S.prog||typeof k!=='string')return -1;const d=Math.round((new Date(k+'T12:00:00')-new Date(S.prog.s+'T12:00:00'))/864e5);if(!(d>=0))return -1;const w=Math.floor(d/7);return w<8?w:-1}
+function prDayAt(k){const w=prWeekOf(k);if(w<0)return null;const wd=(new Date(k+'T12:00:00').getDay()+6)%7;if(wd>4)return null;const d=S.prog.w[w].d[wd];return d.off?null:d}
+function prLoad(r){if(r.pct){const w=pctW(r.id,r.pct);if(w!==null)return `${r.pct}% → ${w} ${au()}`}const g=S.grp&&S.grp.g;return g&&r.g&&r.g[g]?`${g} group: ${r.g[g]}`:''}
 function isStW(w,i){return w&&(w.types[i]==='upper'||w.types[i]==='lower')&&w.fmt&&w.fmt[i]==='s'}
 function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i);const c=w.dst&&w.dst[i];if(c&&Array.isArray(c.st)&&c.st.length)return c;
   const ids=(w.plan[i]||[]).filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)==='M').map(it=>it.id),n=Math.max(1,Math.min(10,Math.ceil(ids.length/3))),st=[];let k=0;
@@ -2168,6 +2194,8 @@ S.assess=S.assess||{ev:[],log:[],unit:'lb'};
 S.maxes=S.maxes&&typeof S.maxes==='object'&&!Array.isArray(S.maxes)?S.maxes:{};
 S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
 S.circuit=S.circuit?ciQClean(S.circuit):null;
+S.prog=S.prog?prClean(S.prog,id=>typeof id==='string'):null;
+S.grp=grpClean(S.grp);
 S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
 S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
@@ -3543,7 +3571,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -3599,6 +3627,8 @@ function cleanBackup(raw){
     out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,dcir:fm.map((f,i)=>f==='c'?ciClean(Array.isArray(w.dcir)?w.dcir[i]:null):null),from:null,note:w.note==='Lighter week'?w.note:undefined}})}
   if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'||x==='c'?x:'n');
   if(o.circuit&&typeof o.circuit==='object')out.circuit=ciQClean(o.circuit);
+  if(o.prog){const pg=prClean(o.prog,known);if(pg)out.prog=pg}
+  if(o.grp)out.grp=grpClean(o.grp);
   if(Array.isArray(o.dcir)&&o.dcir.length===5)out.dcir=o.dcir.map(d=>d?ciClean(d):null);
   if(Array.isArray(o.dst)&&o.dst.length===5)out.dst=o.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}});
   if(o.journal&&typeof o.journal==='object'&&Array.isArray(o.journal.entries)){
@@ -3640,6 +3670,8 @@ function applyBackup(c){
   if(c.dst)S.dst=c.dst;
   if(c.dcir)S.dcir=c.dcir;
   if(c.circuit)S.circuit=c.circuit;
+  if(c.prog)S.prog=c.prog;
+  if(c.grp)S.grp=c.grp;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
