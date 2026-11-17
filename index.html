@@ -1593,8 +1593,9 @@ function viewToday(){
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
-  ${startHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}
+  ${startHtml()}${schedHtml()}${streakHtml()}
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
+  ${chHtml()}${rbNextHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
