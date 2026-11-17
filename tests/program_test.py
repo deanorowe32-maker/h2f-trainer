@@ -173,6 +173,27 @@ with sync_playwright() as p:
             G("S.tab='today';render()"); C.wait_for_timeout(100)
             check('T5 outside block: normal today', 'Week 1 of 8' not in C.locator('#view').text_content())
         C.close()
+        # ---------- Final review fixes ----------
+        D = phone(); H = D.evaluate
+        H("(()=>{const P=prBlank('Next',mkey(1));P.w.forEach(w=>w.d.forEach(x=>x.r.push({p:'M',id:'bench',rx:'3 x 5',rs:''})));P.w[1].d[2].off=true;prApply(P,[])})()")
+        H("wkGo(1);render()")
+        check('F1 block starting next week marks days', H("S.fmt.join('')") == 'ppppp')
+        H("wkGo(2);render()")
+        check('F1 off day in week 2 not marked', H("S.fmt.join('')") == 'ppnpp')
+        H("wkGo(3);render()")
+        check('F1 day back on after off week', H("S.fmt.join('')") == 'ppppp')
+        H("wkGo(1);S.day=0;S.tab='train';render()"); D.wait_for_timeout(100)
+        check('F3 no own-plan buttons on program day', D.locator('#view [data-a=tmopen]').count() == 0 and D.locator('#view .actrow [data-a=add]').count() == 0)
+        H("prOpen();document.querySelector('#prBody [data-a=prdel]').click();document.querySelector('#prBody [data-a=prdel]').click()"); D.wait_for_timeout(100)
+        check('F2 undo offered after remove', H("S.prog") is None and D.locator('#prBody [data-a=prundo]').count() == 1)
+        H("document.querySelector('#prBody [data-a=prundo]').click()"); D.wait_for_timeout(100)
+        check('F2 undo restores removed program', H("S.prog&&S.prog.n") == 'Next')
+        D.close()
+        if wd < 5:
+            K = phone(); I = K.evaluate
+            I("(()=>{const P=prBlank('Now',mkey(0));P.w.forEach(w=>w.d.forEach(x=>x.r.push({p:'M',id:'bench',rx:'3 x 5',rs:''})));prApply(P,[]);S.tab='today';render()})()"); K.wait_for_timeout(150)
+            check('F3 no own timer on program today', K.locator('#view [data-a=tdtimer]').count() == 0 and 'Week 1 of 8' in K.locator('#view').text_content())
+            K.close()
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)
