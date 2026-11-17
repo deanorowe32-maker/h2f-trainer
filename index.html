@@ -218,6 +218,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .aftneed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.aftneed h4{margin:0 0 6px;font:700 16px var(--body)}
 .coach{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}.coach h3{margin:0 0 4px}.coachtip{padding:10px 0;border-top:1px solid var(--line)}.coachtip:first-of-type{border-top:0}.coachtip b{display:block;font:700 16px var(--body)}.coachtip p{margin:2px 0 8px}.coachtip .btn{min-height:40px}.coachnote{margin:4px 0 0}
 .heatflag.hf1[aria-pressed=true]{background:#fff;color:#13261c;border-color:#13261c}.heatflag.hf2[aria-pressed=true]{background:#2f7d3a;color:#fff}.heatflag.hf3[aria-pressed=true]{background:#e8c22a;color:#13261c}.heatflag.hf4[aria-pressed=true]{background:#b3261e;color:#fff}.heatflag.hf5[aria-pressed=true]{background:#111;color:#fff}
+.lsbox{margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r)}.lsbox h3{margin:0 0 6px}.lscode{font:700 20px var(--mono);letter-spacing:.08em}.lslive{display:inline-block;padding:0 6px;border-radius:6px;background:var(--gold);color:#13261c;font:700 11px var(--body);text-transform:uppercase;letter-spacing:.04em}
 .tdbk{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--gold);border-radius:var(--r);background:var(--surface)}.tdbk h3{margin:0 0 4px}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -1466,7 +1467,7 @@ function viewUnit(){const row=(a,ic,t,d,cls='')=>`<button type="button" class="u
   return `<h2>Unit</h2><p>Work with your squad, keep your data safe and set up the app.</p>
   ${rbCaseHtml()}
   <section class="grp"><h3>Squad</h3><div class="ulist">${row('sqopen','unit','Squad','Send your weekly summary, collect your Soldiers’ codes and share a PT plan.')}</div></section>
-  <section class="grp"><h3>Your data</h3><p class="tag">Everything you log stays on this phone. There is no account and no server, so nothing is sent anywhere unless you share it. Make a backup before you change phones.</p><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
+  <section class="grp"><h3>Your data</h3><p class="tag">Everything you log stays on this phone. There is no account. Nothing is sent anywhere unless you share it, and a live squad shares only what you choose, only with your leader. Make a backup before you change phones.</p><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
   <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('touropen','tour','App tour','A one-minute walk through every tab.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
 
 function moreShow(){document.getElementById('moreList').innerHTML=TABS.filter(t=>!PRIMARY.includes(t[0])).map(([id,n])=>`<button type="button" data-a="tab" data-v="${id}" aria-current="${S.tab===id?'page':'false'}">${ico(id)}${n}</button>`).join('');document.getElementById('moreSheet').hidden=false}
@@ -1649,7 +1650,7 @@ function viewToday(){
   <section class="tdcard"><h3>${ico('nut')}Fuel</h3><div class="tdbig">${t.k}<small>${tg?' of '+tg.kcal:''} kcal</small></div><p class="tag">Protein ${t.p}${tg?' of '+tg.p:''} g today.${tg?'':' Set targets under Readiness, Fuel.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="nut">Log a meal</button></section>
   <section class="tdcard"><h3>${ico('assess')}AFT</h3><div class="tdbig">${af?af.t:'–'}<small>${af?' points':''}</small></div><p class="tag">${af?(aftPass(af)?'Pass':'Fail')+', '+(af.std==='c'?'combat':'general')+' standard, '+esc(jrLabel(af.d))+'.':'No score saved yet.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="assess">${af?'Score again':'Score my AFT'}</button></section>
   </div>
-  <p class="privacy">Everything you log stays on this phone. No account, no ads, and nothing is sent anywhere unless you choose to share it.</p>`}
+  <p class="privacy">Everything you log stays on this phone. No account, no ads. Only what you choose to share goes to your leader.</p>`}
 
 /* ---- Readiness check: a short night or a low mood today suggests a lighter session ---- */
 function readyItems(wd){const W=wkData(0);return wd<5&&W&&W.plan&&!isStW(W,wd)?(W.plan[wd]||[]).filter(it=>EX[it.id]):[]}
@@ -2676,7 +2677,7 @@ function sqFlags(m){const f=[],age=sqAge(m.d);
   if(m.aft&&!m.aft.ok)f.push('AFT below standard');
   return f}
 function ruZero(){return {n:0,rep:0,tr:{n:0,s:0},sl:{n:0,s:0,lo:0},aft:{n:0,p:0,s:0},att:0,rbc:0}}
-function ruOwn(){const R=ruZero();S.squad.members.forEach(m=>{R.n++;
+function ruOwn(){const R=ruZero();sqMembersAll().forEach(m=>{R.n++;
   if(sqAge(m.d)<=7){R.rep++;if(m.tr){R.tr.n++;R.tr.s+=m.tr.c}if(m.sl&&m.sl.n){R.sl.n++;R.sl.s+=m.sl.a;if(m.sl.a<6)R.sl.lo++}}
   if(m.aft){R.aft.n++;R.aft.s+=m.aft.t;if(m.aft.ok)R.aft.p++}
   if(m.rb)R.rbc+=m.rb.length;
@@ -2785,27 +2786,93 @@ function ptBanner(){const f=S.ptFrom;if(!f)return '';const multi=S.ptPrev&&S.ptP
 
 function sqHtml(){
   const Q=S.squad;
-  const head=`<h2>Squad</h2><div class="chips cats" role="group" aria-label="Squad view"><button class="chip" aria-pressed="${sqMode==='me'}" data-a="sqmode" data-v="me">Share my week</button><button class="chip" aria-pressed="${sqMode==='sq'}" data-a="sqmode" data-v="sq">My squad (${Q.members.length})</button><button class="chip" aria-pressed="${sqMode==='pt'}" data-a="sqmode" data-v="pt">PT plan</button><button class="chip" aria-pressed="${sqMode==='db'}" data-a="sqmode" data-v="db">Dashboard</button></div>`;
+  const head=`<h2>Squad</h2><div class="chips cats" role="group" aria-label="Squad view"><button class="chip" aria-pressed="${sqMode==='me'}" data-a="sqmode" data-v="me">Share my week</button><button class="chip" aria-pressed="${sqMode==='sq'}" data-a="sqmode" data-v="sq">My squad (${sqMembersAll().length})</button><button class="chip" aria-pressed="${sqMode==='pt'}" data-a="sqmode" data-v="pt">PT plan</button><button class="chip" aria-pressed="${sqMode==='db'}" data-a="sqmode" data-v="db">Dashboard</button></div>`;
   if(sqMode==='db')return head+ruHtml();
   if(sqMode==='pt')return head+ptHtml();
-  if(sqMode==='me')return head+`<p>Sharing is your choice. Nothing leaves your phone unless you copy this code and send it to your leader yourself.</p>
+  if(sqMode==='me')return head+`<p>Sharing is your choice. Nothing leaves your phone unless you join your leader's live squad or copy this code and send it yourself.</p>
   <div class="form"><label class="wide">Your name or rank and name<input class="nin" type="text" maxlength="40" data-f="sqname" value="${esc(Q.name)}" placeholder="e.g. SPC Smith" autocomplete="off"></label></div>
   <div class="tag" style="margin-top:8px">Include in the summary</div>
   <div class="chips" role="group" aria-label="Include">${SQ_INC.map(([k,n])=>`<button class="chip" aria-pressed="${!!Q.inc[k]}" data-a="sqinc" data-v="${k}">${n}</button>`).join('')}</div>
   <h3 style="margin-top:14px">What your leader will see</h3>
   <div class="res" id="sqPrev">${sqMeInner()}</div>
+  ${lsMeHtml()}
+  <h3 style="margin-top:16px">Or send a code</h3>
   <textarea id="sqCode" readonly rows="4" style="width:100%;box-sizing:border-box;margin-top:10px;font:12px var(--mono)" aria-label="Summary code">${esc(sqCode())}</textarea>
   <div class="row"><button class="btn" data-a="sqcopy" data-v="sqCode">Copy message to send</button><button class="btn ghost" data-a="sqclose">Close</button></div><div class="note" id="sqSendMsg" hidden></div>
   <p class="tag">Copy the message, then paste it into a text or email to your leader. Your leader pastes it under My squad in their app. It covers the last 7 days and holds only what you selected. Journals are never included.</p>`;
-  const ms=Q.members.slice().sort((a,b)=>a.n.toLowerCase()<b.n.toLowerCase()?-1:1);
-  return head+`<p>Paste a summary code a Soldier sent you. A newer code from the same person replaces their old one.</p>
+  const ms=sqMembersAll().sort((a,b)=>a.n.toLowerCase()<b.n.toLowerCase()?-1:1);
+  return head+lsLeadHtml()+`<h3 style="margin-top:16px">Pasted codes</h3><p>Paste a summary code a Soldier sent you. A newer code from the same person replaces their old one.</p>
   <textarea id="sqIn" rows="3" style="width:100%;box-sizing:border-box;font:12px var(--mono)" placeholder="Paste a code that starts with H2FSQ1:" aria-label="Paste summary code"></textarea>
   ${sqMsg?`<div class="note warn">${esc(sqMsg)}</div>`:''}
   <div class="row"><button class="btn" data-a="sqadd">Add to my squad</button>${ms.length?'<button class="btn ghost" data-a="print" data-k="sq">Print roster</button>':''}<button class="btn ghost" data-a="sqclose">Close</button></div>
-  ${sqBoardHtml()}${ms.length?ms.map(m=>`<details class="cmx" open><summary><b>${esc(m.n)}${m.id?' · ID '+m.id:''}</b><small>Summary from ${esc(jrLabel(m.d))}</small></summary><div style="margin:6px 0 10px">${sqLines(m).filter(x=>!/^Ribbons:/.test(x)).map(esc).join('<br>')||(m.rb?'':'No details shared.')}${rbMini(m)}</div><div class="row" style="margin:0"><button class="btn ghost" data-a="sqrm" data-v="${esc(m.k)}">${sqArm===m.k?'Tap again to remove':'Remove'}</button></div></details>`).join(''):'<div class="empty">No Soldiers yet. Ask them to open Squad, copy their summary code, and send it to you.</div>'}
+  ${sqBoardHtml()}${ms.length?ms.map(m=>`<details class="cmx" open><summary><b>${esc(m.n)}${m.id?' · ID '+m.id:''}</b><small>${m.live?'<span class="lslive">Live</span> ':''}${m.isNew?'<span class="lslive">New</span> ':''}Summary from ${esc(jrLabel(m.d))}</small></summary><div style="margin:6px 0 10px">${sqLines(m).filter(x=>!/^Ribbons:/.test(x)).map(esc).join('<br>')||(m.rb?'':'No details shared.')}${rbMini(m)}</div><div class="row" style="margin:0">${m.live?`<button class="btn ghost" data-a="lsrm" data-v="${esc(m.lid)}">${lsArm==='rm'+m.lid?'Tap again to remove':'Remove'}</button>`:`<button class="btn ghost" data-a="sqrm" data-v="${esc(m.k)}">${sqArm===m.k?'Tap again to remove':'Remove'}</button>`}</div></details>`).join(''):'<div class="empty">No Soldiers yet. Ask them to open Squad, copy their summary code, and send it to you.</div>'}
   <div class="note">Keep this roster private. It holds personal health information that Soldiers chose to share with you.</div>`}
+/* ---- Live squad (Supabase): summaries reach the leader without codes. Keys live in their own storage key, never in S or backups. ---- */
+var CLOUD={url:'https://ensaxbeodtpdlcqplzhy.supabase.co',key:'sb_publishable_14PpYWw6-npA1FW08cMHKA_hT5LQqsH'};
+var lsMsg='',lsBusy=false,lsArm='';
+function lsKeyGen(){const b=new Uint8Array(32);crypto.getRandomValues(b);return [...b].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function lsGet(){let o=null;try{o=JSON.parse(localStorage.getItem('h2f.cloud')||'null')}catch(e){}o=o&&typeof o==='object'?o:{};const hx=k=>typeof k==='string'&&/^[0-9a-f]{64}$/.test(k);
+  let nk=false;if(!hx(o.mk)){o.mk=lsKeyGen();nk=true}if(!hx(o.lk)){o.lk=lsKeyGen();nk=true}if(nk)lsSet(o);/* keys are saved the moment they exist */o.mem=o.mem&&o.mem.sid?o.mem:null;o.lead=o.lead&&o.lead.sid?o.lead:null;o.cache=o.cache&&Array.isArray(o.cache.rows)?o.cache:{at:0,rows:[]};return o}
+function lsSet(o){try{localStorage.setItem('h2f.cloud',JSON.stringify(o))}catch(e){}}
+async function lsRpc(fn,args){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),20000);
+  try{const r=await fetch(CLOUD.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:CLOUD.key,'Content-Type':'application/json'},body:JSON.stringify(args),signal:ac.signal});
+    if(!r.ok)throw new Error('server '+r.status);const tx=await r.text();return tx?JSON.parse(tx):null}finally{clearTimeout(t)}}
+function lsAgo(ts){if(!ts)return 'never';const m=Math.round((Date.now()-ts)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago'}
+function lsFields(){return SQ_INC.filter(([k])=>S.squad.inc[k]).map(([,n])=>n)}
+async function lsPush(force){const o=lsGet();if(!o.mem)return;if(!force&&Date.now()-(o.mem.last||0)<3600e3)return;
+  const nm=(S.squad.name||'').trim();if(!nm)return;
+  try{const t=await lsRpc('push_summary',{p_squad:o.mem.sid,p_member_key:o.mk,p_name:nm,p_summary:sqMake()});const p=lsGet();
+    if(t===null){lsMsg=`You're no longer in ${p.mem?p.mem.sname:'the squad'}. Your leader removed you or deleted the squad.`;p.mem=null}else if(p.mem){p.mem.last=Date.now();if(force)lsMsg='Sent.'}
+    lsSet(p)}catch(e){if(force)lsMsg="Couldn't reach the squad server. It will try again next time you open the app."}
+  if(document.getElementById('sqSheet')&&!document.getElementById('sqSheet').hidden)sqShow()}
+function lsMeHtml(){const o=lsGet(),f=lsFields();
+  if(o.mem)return `<section class="lsbox"><h3>Live squad</h3><p><b>Shared with ${esc(o.mem.sname)}</b><br><span class="tag">Last sent ${lsAgo(o.mem.last)}. It sends again when you open the app, at most once an hour.</span></p>
+  <div class="row"><button class="btn ghost" data-a="lssend">Send now</button><button class="btn ghost" data-a="lsleave">${lsArm==='leave'?'Tap again to leave':'Leave squad'}</button></div>${lsMsg?`<div class="note">${esc(lsMsg)}</div>`:''}</section>`;
+  return `<section class="lsbox"><h3>Live squad</h3><p class="tag">Join your leader's squad and this summary is sent for you automatically, no codes to copy. Only your leader can read it.</p>
+  <div class="form"><label class="wide">Squad join code<input class="nin" id="lsCode" maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="e.g. K7QM-2PXD"></label></div>
+  <p class="tag">${f.length?`You'll share: ${esc(f.join(', '))}. Change this above any time.`:'Nothing is selected above, so only your name will be shared.'}${(S.squad.name||'').trim()?'':' Add your name above first.'}</p>
+  <div class="row"><button class="btn" data-a="lsjoin"${lsBusy?' disabled':''}>Join and share</button></div>${lsMsg?`<div class="note">${esc(lsMsg)}</div>`:''}</section>`}
+function lsLive(){const o=lsGet();if(!o.lead)return [];return o.cache.rows.map(r=>{const d=String(r.updated_at||r.joined_at||'').slice(0,10);
+  const c=sqClean(Object.assign({},r.summary&&typeof r.summary==='object'?r.summary:{},{v:1,n:String(r.name||'').slice(0,40),d:(r.summary&&r.summary.d)||d}))||{v:1,n:String(r.name||'Soldier').slice(0,40),id:'',d};
+  return Object.assign(c,{live:true,lid:String(r.id||''),k:'live-'+String(r.id||''),isNew:Date.now()-Date.parse(r.joined_at||0)<7*864e5})})}
+function sqMembersAll(){const by={};S.squad.members.concat(lsLive()).forEach(m=>{const k=String(m.n||'').toLowerCase(),o=by[k];if(!o||m.d>o.d||(m.d===o.d&&m.live))by[k]=m});return Object.values(by)}
+function lsLeadHtml(){const o=lsGet();
+  if(!o.lead)return `<section class="lsbox"><h3>Live squad</h3><p class="tag">Create a squad and give Soldiers the join code. Their summaries then arrive here on their own.</p>
+  <div class="form"><label class="wide">Squad name<input class="nin" id="lsName" maxlength="40" autocomplete="off" value="${esc((S.squad.unit||'').trim())}" placeholder="e.g. 2nd Squad, 1st Platoon"></label></div>
+  <div class="row"><button class="btn" data-a="lscreate"${lsBusy?' disabled':''}>Create squad</button></div>
+  <details class="cmx"><summary><b>Moving to a new phone?</b><small>Paste your leader key</small></summary><div class="form"><label class="wide">Leader key<input class="nin" id="lsKeyIn" autocomplete="off" spellcheck="false"></label></div><div class="row"><button class="btn ghost" data-a="lsadopt">Use this key</button></div></details>${lsMsg?`<div class="note">${esc(lsMsg)}</div>`:''}</section>`;
+  const c=o.lead.code||'',code=c.length===8?c.slice(0,4)+'-'+c.slice(4):c;
+  return `<section class="lsbox"><h3>Live squad: ${esc(o.lead.name)}</h3><p>Join code <b class="lscode">${esc(code)}</b></p><p class="tag">${o.cache.rows.length} Soldier${o.cache.rows.length===1?'':'s'} joined · updated ${lsAgo(o.cache.at)}</p>
+  <div class="row"><button class="btn ghost" data-a="lscopy">Copy join message</button><button class="btn ghost" data-a="lsrefresh"${lsBusy?' disabled':''}>Refresh</button></div>
+  <details class="cmx"><summary><b>Squad settings</b><small>Reset code, leader key, delete</small></summary><div class="row"><button class="btn ghost" data-a="lsreset">${lsArm==='reset'?'Tap again to reset':'Reset join code'}</button><button class="btn ghost" data-a="lskey">Copy leader key</button><button class="btn ghost" data-a="lsdel">${lsArm==='del'?'Tap again to delete':'Delete squad'}</button></div>
+  <p class="tag">Your leader key lets any phone run this squad and read its summaries. Keep it private. Deleting the squad removes every Soldier's data from the server.</p></details>${lsMsg?`<div class="note">${esc(lsMsg)}</div>`:''}</section>`}
+async function lsRefresh(){const o=lsGet();if(!o.lead)return;lsBusy=true;
+  try{const r=await lsRpc('leader_roster',{p_squad:o.lead.sid,p_leader_key:o.lk});const p=lsGet();if(r===null){p.lead=null;p.cache={at:0,rows:[]};lsMsg='This squad no longer exists on the server.'}else{p.cache={at:Date.now(),rows:Array.isArray(r)?r.slice(0,60):[]}}lsSet(p)}
+  catch(e){lsMsg="Couldn't reach the squad server. Showing the last roster saved on this phone."}
+  lsBusy=false;sqShow()}
+async function lsAct(a,v){const o=lsGet();lsMsg='';
+  try{
+  if(a==='lsjoin'){const code=(document.getElementById('lsCode')||{}).value||'',nm=(S.squad.name||'').trim();if(!nm){lsMsg='Add your name or rank and name first.';sqShow();return}
+    if(code.replace(/[^A-Za-z0-9]/g,'').length!==8){lsMsg='Join codes have 8 letters and numbers, like K7QM-2PXD.';sqShow();return}
+    lsBusy=true;sqShow();const r=await lsRpc('join_squad',{p_code:code,p_member_key:o.mk,p_name:nm});lsBusy=false;
+    if(!r){lsMsg="That code didn't work. Check it with your leader.";sqShow();return}
+    const p=lsGet();p.mem={sid:r.squad_id,sname:String(r.squad_name||'your squad').slice(0,40),last:0};lsSet(p);await lsPush(true);lsMsg='Joined '+p.mem.sname+'. Your summary was sent.';sqShow();return}
+  if(a==='lssend'){await lsPush(true);return}
+  if(a==='lsleave'&&o.mem){if(lsArm!=='leave'){lsArm='leave';sqShow();return}lsArm='';await lsRpc('leave_squad',{p_squad:o.mem.sid,p_member_key:o.mk});const p=lsGet();lsMsg='You left '+p.mem.sname+'. Your data was deleted from the server.';p.mem=null;lsSet(p);sqShow();return}
+  if(a==='lscreate'){const nm=((document.getElementById('lsName')||{}).value||'').trim();if(!nm){lsMsg='Give the squad a name.';sqShow();return}
+    lsBusy=true;sqShow();const r=await lsRpc('create_squad',{p_name:nm,p_leader_key:o.lk});lsBusy=false;const p=lsGet();p.lead={sid:r.squad_id,name:r.name,code:r.join_code};lsSet(p);lsMsg='Squad created. Share the join code with your Soldiers.';await lsRefresh();return}
+  if(a==='lsadopt'){const k=((document.getElementById('lsKeyIn')||{}).value||'').trim().toLowerCase();if(!/^[0-9a-f]{64}$/.test(k)){lsMsg='That is not a leader key. It has 64 letters and numbers.';sqShow();return}
+    const r=await lsRpc('my_squad',{p_leader_key:k});if(!r){lsMsg='No squad uses that key.';sqShow();return}const p=lsGet();p.lk=k;p.lead={sid:r.squad_id,name:r.name,code:r.join_code};lsSet(p);await lsRefresh();return}
+  if(!o.lead)return;
+  if(a==='lsrefresh'){await lsRefresh();return}
+  if(a==='lscopy'){const c=o.lead.code;gtCopy(`Join ${o.lead.name} in H2F Trainer: open Unit, Squad, Share my week, and enter join code ${c.slice(0,4)}-${c.slice(4)}`);return}
+  if(a==='lskey'){gtCopy(o.lk);lsMsg='Leader key copied. Anyone with it can run this squad, so keep it private.';sqShow();return}
+  if(a==='lsreset'){if(lsArm!=='reset'){lsArm='reset';sqShow();return}lsArm='';const c=await lsRpc('reset_code',{p_squad:o.lead.sid,p_leader_key:o.lk});const p=lsGet();if(c&&p.lead){p.lead.code=c;lsSet(p);lsMsg='New join code made. The old one no longer works.'}sqShow();return}
+  if(a==='lsdel'){if(lsArm!=='del'){lsArm='del';sqShow();return}lsArm='';await lsRpc('delete_squad',{p_squad:o.lead.sid,p_leader_key:o.lk});const p=lsGet();p.lead=null;p.cache={at:0,rows:[]};lsSet(p);lsMsg='Squad deleted from the server.';sqShow();return}
+  if(a==='lsrm'){if(lsArm!=='rm'+v){lsArm='rm'+v;sqShow();return}lsArm='';await lsRpc('remove_member',{p_squad:o.lead.sid,p_leader_key:o.lk,p_member:v});await lsRefresh();return}
+  }catch(e){lsBusy=false;lsMsg="Couldn't reach the squad server. Check your connection and try again.";sqShow()}}
 /* Squad challenge board: this week's summaries only, ranked by dailies done, then weekly level, then weekly total */
-function sqBoard(){const ws=chWeekStart(today());let old=0;const rows=S.squad.members.filter(m=>m.ch).filter(m=>{if(chWeekStart(m.d)!==ws){old++;return false}return true})
+function sqBoard(){const ws=chWeekStart(today());let old=0;const rows=sqMembersAll().filter(m=>m.ch).filter(m=>{if(chWeekStart(m.d)!==ws){old++;return false}return true})
   .sort((a,b)=>b.ch.dd-a.ch.dd||b.ch.wl-a.ch.wl||b.ch.wt-a.ch.wt||(a.n<b.n?-1:1));return {rows,old,ws}}
 function sqBoardText(){const B=sqBoard(),wk=CH_BY[chWeekKey(today())];return [`Squad challenge standings, week of ${jrLabel(B.ws)} (weekly: ${wk.name})`].concat(B.rows.map((m,i)=>`${i+1}. ${m.n}: ${m.ch.dd} of 7 dailies${m.ch.wl?', weekly '+CH_LV[m.ch.wl]:''}`)).join('\n')}
 function sqBoardHtml(){const B=sqBoard();if(!B.rows.length&&!B.old)return '';
@@ -3340,6 +3407,7 @@ function hashSync(){try{if(!TABS.some(t=>t[0]===S.tab)||/^#(ex|gt)=/.test(locati
   if(!hashReady){location.replace(want);hashReady=true}else location.hash=want}catch(e){}}
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==S.tab){document.querySelectorAll('.sheet:not([hidden])').forEach(x=>x.hidden=true);FX.view=true;S.tab=h;render();scrollTo(0,0)}});
 render();BOOTED=true;
+setTimeout(()=>lsPush(false),1500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')lsPush(false)});
 
 /* access code gate. Soft lock only: the check runs in the page. Change the code by replacing CODE_HASH (SHA-256 of the code, uppercase, no spaces). */
 const CODE_HASH="1747c2abe1eadcdea4b45504048cc40bbf661d06f5381c439efdcd436b0aad86";
@@ -4063,7 +4131,7 @@ document.addEventListener('click',ev=>{
   if(a==='aftdel'){if(aftArm!==v){aftArm=v;render()}else{S.aft.hist=S.aft.hist.filter(x=>x.id!==v);aftArm='';save();render()}return}
   if(a==='sqopen'){sqMsg='';sqArm='';ptMsg='';ptArm=false;if(v==='pt')sqMode='pt';sqShow();return}
   if(a==='sqclose'){document.getElementById('sqSheet').hidden=true;return}
-  if(a==='sqmode'){sqMode=v==='sq'?'sq':v==='pt'?'pt':v==='db'?'db':'me';ruMsg='';sqMsg='';sqArm='';ptMsg='';ptArm=false;sqShow();return}
+  if(a==='sqmode'){sqMode=v==='sq'?'sq':v==='pt'?'pt':v==='db'?'db':'me';ruMsg='';sqMsg='';sqArm='';ptMsg='';ptArm=false;lsMsg='';lsArm='';sqShow();if(sqMode!=='me'){const o=lsGet();if(o.lead&&Date.now()-o.cache.at>60000)lsRefresh()}return}
   if(a==='ptcheck'){const raw=(document.getElementById('ptIn').value||'').trim();let c=null;
     const js=sqCut(raw,'H2FPT1:');if(raw.length<=60000&&js){try{c=ptClean(JSON.parse(js))}catch(e){c=null}}
     if(!c){ptMsg=raw.indexOf('H2FSQ1:')>=0?'That is a weekly summary code, not a PT plan. Paste it under My squad.':'That is not a valid PT plan code. Ask your leader to copy it again in full.';sqShow();return}
@@ -4082,8 +4150,9 @@ document.addEventListener('click',ev=>{
     if(!curHit&&multi){const off=wkOff(c.k);if(off>=0){wkGo(off);S.ptPrev=null}}
     const wd=(new Date().getDay()+6)%7;S.day=wd<5?wd:0;S.tab='train';ptPend=null;ptArm=false;document.getElementById('sqSheet').hidden=true;save();render();window.scrollTo(0,0);return}
   if(a==='ptundo'){const pv=S.ptPrev;if(!pv)return;S.types=pv.types;S.plan=pv.plan.map(d=>d.filter(i=>EX[i.id]));if(pv.fmt)S.fmt=pv.fmt;if(pv.dst)S.dst=pv.dst;S.ptFrom=pv.from||null;if(pv.wk)Object.entries(pv.wk).forEach(([k,w])=>{if(w)S.weeks[k]=w;else delete S.weeks[k]});S.ptPrev=null;save();render();return}
+  if(/^ls(join|send|leave|create|adopt|refresh|copy|key|reset|del|rm)$/.test(a)){lsAct(a,v);return}
   if(a==='sqboardcopy'){gtCopy(sqBoardText());return}
-  if(a==='sqinc'){S.squad.inc[v]=S.squad.inc[v]?0:1;save();sqShow();return}
+  if(a==='sqinc'){S.squad.inc[v]=S.squad.inc[v]?0:1;save();sqShow();lsPush(true);return}
   if(a==='sqcopy'&&v!=='ptCode'){S.rb.tally.sq[today()]=1;save()}
   if(a==='sqcopy'){const pt=v==='ptCode',ta=document.getElementById(pt?'ptCode':'sqCode'),msg=document.getElementById('sqSendMsg');if(!ta)return;
     const say=t=>{if(msg){msg.textContent=t;msg.hidden=false}},sel=()=>{ta.focus();ta.select();say('Copying is blocked here. The code is selected: press and hold it, choose Copy, then paste it into a text or email.')};
