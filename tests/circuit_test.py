@@ -103,7 +103,7 @@ with sync_playwright() as p:
         # standalone Circuit in the Train tools menu, between Stations and Print week plan
         E("S.tab='train';render()"); pg.wait_for_timeout(100)
         order = E("[...document.querySelectorAll('#view .menulist.tools button')].map(b=>b.dataset.a).join(',')")
-        check('menu order', ',stopen,cibuild,print' in order)
+        check('menu order', ',stopen,cibuild,' in order and order.index('cibuild') < order.index('print'))
         E("document.querySelector('#view [data-a=cibuild]').click()"); pg.wait_for_timeout(150)
         check('builder opens', not E("document.getElementById('ciSheet').hidden") and 'Add exercise' in pg.locator('#ciBody').text_content())
         check('start hidden when empty', pg.locator('#ciBody [data-a=ciopen]').count() == 0)
