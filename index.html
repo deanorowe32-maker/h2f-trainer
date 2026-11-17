@@ -210,6 +210,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
 .chcard{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .chsum{margin:2px 0 0;font:500 14px var(--body);color:var(--muted)}
+.sgrow{margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r)}.sgtop{display:flex;gap:8px;align-items:center}.sgtop input{flex:1}
+.sggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.sggrid .nin{width:100%;min-width:0;box-sizing:border-box}.sgres{margin:8px 0 0;font:500 14px var(--body)}
+.sgpast{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}.sgpast span:first-child{display:flex;flex-direction:column}.sgpast .btn{min-height:40px;padding:0 12px;margin-left:4px}
+#sgPrint{display:none}
+@media print{body.sgp>*:not(#sgPrint){display:none!important}body.sgp>#sgPrint{display:block!important;color:#000;background:#fff;font:12px/1.4 sans-serif}#sgPrint table{width:100%;border-collapse:collapse}#sgPrint th,#sgPrint td{border:1px solid #000;padding:4px;text-align:left;vertical-align:top}}
 .aftneed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.aftneed h4{margin:0 0 6px;font:700 16px var(--body)}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -2115,7 +2120,7 @@ S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
 if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey(S.week||0);
 S.week=wkOff(S.curKey);
 if(S.week<0)wkGo(0);
-S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.goal=Object.assign({cur:null,past:[]},S.goal||{});S.ch=chClean(S.ch);S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
+S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.goal=Object.assign({cur:null,past:[]},S.goal||{});S.ch=chClean(S.ch);S.sg=sgClean(S.sg);S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
 S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1},S.squad.inc||{});
 S.sleep=S.sleep||{wake:'06:00',checks:{date:'',v:[]}};
 S.sleep.log=S.sleep.log||{};S.sleep.meta=S.sleep.meta||{};
@@ -2532,6 +2537,47 @@ function aftNeedHtml(s){if(s.p.every(x=>x===null))return '';const goal=S.aft.goa
   return `<div class="aftneed"><h4>What do I need?</h4><div class="chmd">${chips}</div>${pl.done?`<p class="tag">You're already at ${goal} or above. Pick a higher goal.</p>`:`
   <table class="ptable"><thead><tr><th>Event</th><th>Now</th><th>Need</th></tr></thead><tbody>${AFT_EV.map(([k,n],i)=>`<tr><td>${n}</td><td>${s.p[i]===null?'–':s.p[i]}</td><td>${pl.p[i]>(s.p[i]||0)?`<b>${pl.p[i]}</b><br><small>${aftShow(k,pl.r[i])}</small>`:'Keep it'}</td></tr>`).join('')}</tbody></table>
   <p class="tag">One way to reach ${goal}: every event at 60 or more, then extra points on your lowest events first. That's usually where points come cheapest.</p>`}</div>`}
+/* ---- Grade a squad: a leader's AFT scoresheet, same tables as the calculator; copy as a spreadsheet or print ---- */
+function sgClean(o){const out={cur:null,hist:[]};if(!o||typeof o!=='object')return out;const dOk=d=>typeof d==='string'&&/^\d{4}-\d\d-\d\d$/.test(d),str=(x,n)=>typeof x==='string'?x.replace(/[\u0000-\u001f]/g,' ').trim().slice(0,n):'';
+  const sess=x=>{if(!x||typeof x!=='object'||!dOk(x.d)||!Array.isArray(x.rows))return null;return {d:x.d,by:str(x.by,40),rows:x.rows.filter(r=>r&&typeof r==='object').slice(0,60).map(r=>{const i=r.in&&typeof r.in==='object'?r.in:{},inn={};AFT_EV.forEach(([k])=>{if(typeof i[k]==='string'&&i[k].trim())inn[k]=i[k].slice(0,8)});return {n:str(r.n,40),age:String(r.age||'').replace(/\D/g,'').slice(0,3),sex:r.sex==='m'||r.sex==='f'?r.sex:'',std:r.std==='c'?'c':'g',in:inn}})}};
+  out.cur=sess(o.cur);if(Array.isArray(o.hist))out.hist=o.hist.map(sess).filter(Boolean).slice(0,20);return out}
+function sgScore(r){const g=aftGroup(r.age);if(g<0||!(r.sex==='m'||r.sex==='f'||r.std==='c'))return null;const fem=r.std==='c'?false:r.sex==='f',p=[],v=[];let all=true;
+  AFT_EV.forEach(([k])=>{const x=aftVal(k,(r.in||{})[k]);if(isNaN(x)){p.push(null);v.push(null);all=false}else{v.push(x);p.push(aftPts(k,g,fem,x))}});
+  const t=p.reduce((a,b)=>a+(b||0),0),min=r.std==='c'?350:300;return {p,r:v,t,all,min,pass:all&&t>=min&&p.every(x=>x>=60)}}
+function sgVerdict(s){return !s?'Needs age and sex':!s.all?'Incomplete':s.pass?'Pass':'Fail'}
+function sgTSV(se){const c=x=>String(x==null?'':x).replace(/[\t\r\n]+/g,' ');
+  const head=['Name','Age','Sex','Standard'].concat(...AFT_EV.map(([,n])=>[n,n+' pts']),['Total','Result']);
+  return [head.join('\t')].concat(se.rows.map(r=>{const s=sgScore(r);return [c(r.n),r.age,r.sex==='m'?'M':r.sex==='f'?'F':'',r.std==='c'?'Combat':'General'].concat(...AFT_EV.map(([k],i)=>[c((r.in||{})[k]||''),s&&s.p[i]!==null?s.p[i]:''])).concat([s?s.t:'',sgVerdict(s)]).join('\t')})).join('\n')}
+function sgResLine(r){const s=sgScore(r);return s?`<b>${s.t}</b> points · <b style="color:var(--${s.all?(s.pass?'accent':'warn'):'muted'})">${sgVerdict(s).toUpperCase()}</b>${s.all?'':' so far'}`:'Enter age and sex to score.'}
+function sgRowHtml(r,i){const f=(t,v,ph,mode)=>`<input class="nin" data-f="sgf" data-t="${i}:${t}" value="${esc(v||'')}" placeholder="${ph}" inputmode="${mode||'text'}" autocomplete="off" aria-label="${ph}">`;
+  return `<div class="sgrow" data-sgrow="${i}"><div class="sgtop">${f('n',r.n,'Rank and name')}<button type="button" class="chfold" data-a="sgrm" data-v="${i}" aria-label="Remove row">Remove</button></div>
+  <div class="sggrid">${f('age',r.age,'Age','numeric')}<select class="nin" data-f="sgf" data-t="${i}:sex" aria-label="Sex"><option value="">Sex</option><option value="m"${r.sex==='m'?' selected':''}>M</option><option value="f"${r.sex==='f'?' selected':''}>F</option></select><select class="nin" data-f="sgf" data-t="${i}:std" aria-label="Standard"><option value="g"${r.std!=='c'?' selected':''}>General</option><option value="c"${r.std==='c'?' selected':''}>Combat</option></select>
+  ${AFT_EV.map(([k,n,u,ph])=>f(k,(r.in||{})[k],n.replace('3-Rep Max ','').replace('Hand-Release ','HR ')+' '+(u==='m:ss'?'m:ss':u),k==='mdl'||k==='hrp'?'numeric':'text')).join('')}</div>
+  <p class="sgres" id="sgres-${i}">${sgResLine(r)}</p></div>`}
+function sgHtml(){const G=S.sg,c=G.cur;
+  if(!c)return `<h3>Grade a squad</h3><p class="tag">Score several Soldiers on test day with the same tables, then copy the results as a spreadsheet or print a signed sheet for DA Form 705 or AFT Go entry.</p>
+  <div class="row"><button type="button" class="btn" data-a="sgnew">Grade a squad</button></div>
+  ${G.hist.length?`<h4 style="margin:14px 0 4px">Past score sheets</h4>`+G.hist.map((h,i)=>`<div class="sgpast"><span><b>${esc(jrLabel(h.d))}</b><small>${h.rows.length} Soldier${h.rows.length===1?'':'s'} · ${h.rows.filter(r=>{const s=sgScore(r);return s&&s.pass}).length} passed${h.by?' · '+esc(h.by):''}</small></span><span><button type="button" class="btn ghost" data-a="sgcopy" data-v="h${i}">Copy</button><button type="button" class="btn ghost" data-a="sgprint" data-v="h${i}">Print</button></span></div>`).join(''):''}`;
+  return `<h3>Grade a squad</h3><div class="form"><label>Test date<input class="nin" type="date" data-f="sgf" data-t="d" value="${esc(c.d)}"></label><label>Grader<input class="nin" data-f="sgf" data-t="by" value="${esc(c.by)}" placeholder="Rank and name" autocomplete="off"></label></div>
+  ${c.rows.map(sgRowHtml).join('')}
+  <div class="row"><button type="button" class="btn ghost" data-a="sgadd">Add Soldier</button></div>
+  <div class="row"><button type="button" class="btn" data-a="sgcopy" data-v="cur">Copy as spreadsheet</button><button type="button" class="btn ghost" data-a="sgprint" data-v="cur">Print</button><button type="button" class="btn ghost" data-a="sgdone">Finish</button></div>
+  <p class="tag">Unofficial estimate from the same tables as the calculator. Record scores follow your graders and official Army guidance.</p>`}
+function sgSess(v){return v==='cur'?S.sg.cur:S.sg.hist[+String(v).slice(1)]}
+function sgPrint(se){let el=document.getElementById('sgPrint');if(!el){el=document.createElement('div');el.id='sgPrint';document.body.appendChild(el)}
+  el.innerHTML=`<h2>AFT score sheet</h2><p>Date: ${esc(se.d)} · Grader: ${esc(se.by||'____________________')}</p><table><thead><tr><th>Name</th><th>Age</th><th>Sex</th><th>Std</th>${AFT_EV.map(([,n])=>`<th>${esc(n)}</th>`).join('')}<th>Total</th><th>Result</th></tr></thead><tbody>${se.rows.map(r=>{const s=sgScore(r);return `<tr><td>${esc(r.n)}</td><td>${esc(r.age)}</td><td>${r.sex.toUpperCase()}</td><td>${r.std==='c'?'C':'G'}</td>${AFT_EV.map(([k],i)=>`<td>${esc((r.in||{})[k]||'')}${s&&s.p[i]!==null?`<br><b>${s.p[i]}</b>`:''}</td>`).join('')}<td><b>${s?s.t:''}</b></td><td>${sgVerdict(s)}</td></tr>`}).join('')}</tbody></table>
+  <p>Unofficial estimate from H2F Trainer. Transfer results to DA Form 705 or AFT Go.</p><p>Grader signature: ______________________________ Date: __________</p>`;
+  document.body.classList.add('sgp');const off=()=>{document.body.classList.remove('sgp');window.removeEventListener('afterprint',off)};window.addEventListener('afterprint',off);window.print();setTimeout(off,60000)}
+function sgAct(a,v){const G=S.sg;
+  if(a==='sgnew'){G.cur={d:today(),by:(S.squad.name||'').trim().slice(0,40),rows:(S.squad.members||[]).slice(0,60).map(m=>({n:String(m.n||'').slice(0,40),age:'',sex:'',std:'g',in:{}}))};if(!G.cur.rows.length)G.cur.rows.push({n:'',age:'',sex:'',std:'g',in:{}});save();render();return}
+  if(a==='sgadd'&&G.cur&&G.cur.rows.length<60){G.cur.rows.push({n:'',age:'',sex:'',std:'g',in:{}});save();render();return}
+  if(a==='sgrm'&&G.cur){G.cur.rows.splice(+v,1);save();render();return}
+  if(a==='sgcopy'){const se=sgSess(v);if(se)gtCopy(sgTSV(se));return}
+  if(a==='sgprint'){const se=sgSess(v);if(se)sgPrint(se);return}
+  if(a==='sgdone'&&G.cur){G.hist.unshift(G.cur);G.hist=G.hist.slice(0,20);G.cur=null;save();render()}}
+function sgInput(t){const G=S.sg;if(!G.cur)return;const k=t.dataset.t;if(k==='d'){if(/^\d{4}-\d\d-\d\d$/.test(t.value))G.cur.d=t.value}else if(k==='by')G.cur.by=t.value.slice(0,40);
+  else{const [i,f]=k.split(':'),r=G.cur.rows[+i];if(!r)return;if(f==='n')r.n=t.value.slice(0,40);else if(f==='age')r.age=t.value.replace(/\D/g,'').slice(0,3);else if(f==='sex')r.sex=t.value==='m'||t.value==='f'?t.value:'';else if(f==='std')r.std=t.value==='c'?'c':'g';else if(AFT_EV.some(([x])=>x===f))r.in[f]=t.value.slice(0,8);
+    const el=document.getElementById('sgres-'+i);if(el)el.innerHTML=sgResLine(r)}save()}
 function aftPass(e){return e.t>=(e.std==='c'?350:300)&&e.p.every(x=>x>=60)}
 function aftResHtml(){
   const A=S.aft,s=aftScore();
@@ -3116,6 +3162,7 @@ document.addEventListener('input',ev=>{
   const t=ev.target,f=t.dataset&&t.dataset.f;if(!f)return;
   if(f==='wt'){S.nut.wt=t.value;document.getElementById('protRes').textContent=proteinRange();updTg();save()}
   else if(f==='nutf'){S.nut[t.dataset.t]=t.value.slice(0,8);updTg();save()}
+  else if(f==='sgf'&&t.tagName!=='SELECT'){sgInput(t)}
   else if(f==='aftf'){const k=t.dataset.t,v=t.value.slice(0,8);if(k==='age'||k==='sex'||k==='std')S.aft[k]=v;else S.aft.in[k]=v;aftUpd();save()}
   else if(f==='squnit'){S.squad.unit=t.value.slice(0,40);const c=document.getElementById('ruCode');if(c)c.value=ruCode();save()}
   else if(f==='sqname'){S.squad.name=t.value.slice(0,40);const c=document.getElementById('sqCode'),pv=document.getElementById('sqPrev'),pc=document.getElementById('ptCode');if(c)c.value=sqCode();if(pv)pv.innerHTML=sqMeInner();if(pc)pc.value=ptCode();sqLinkUpd();save()}
@@ -3129,6 +3176,7 @@ document.addEventListener('change',ev=>{
   const t=ev.target,f=t.dataset&&t.dataset.f;if(!f)return;
   if(f==='unit'){S.nut.unit=t.value;document.getElementById('protRes').textContent=proteinRange();updTg();save()}
   else if(f==='nutf'){S.nut[t.dataset.t]=t.value.slice(0,8);updTg();save()}
+  else if(f==='sgf'&&(t.tagName==='SELECT'||t.type==='date')){sgInput(t)}
   else if(f==='aftf'&&t.tagName==='SELECT'){const k=t.dataset.t,v=t.value.slice(0,8);if(k==='age'||k==='sex'||k==='std')S.aft[k]=v;else S.aft.in[k]=v;aftUpd();save()}
   else if(f==='nuday'){nuDay=t.value;nuArm='';render()}
   else if(f==='squnit'){S.squad.unit=t.value.slice(0,40);const c=document.getElementById('ruCode');if(c)c.value=ruCode();save()}
@@ -3310,7 +3358,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 function openBackup(){
@@ -3367,6 +3415,7 @@ function cleanBackup(raw){
     if(Array.isArray(n.meals))out.nut.meals=n.meals.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)).slice(0,600).map(e=>({id:e.id,d:e.d,m:MEALS.includes(e.m)?e.m:'Snack',t:isStr(e.t)?e.t.slice(0,80):'',k:num(e.k,20000),p:num(e.p,2000),c:num(e.c,3000),f:num(e.f,2000)}));
     if(n.wlog&&typeof n.wlog==='object')Object.entries(n.wlog).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&Number.isFinite(v)&&v>=0&&v<=30).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,800).forEach(([k,v])=>{out.nut.wlog[k]=Math.round(v)})}
   if(o.goal&&typeof o.goal==='object')out.goal=gtCleanStore(o.goal);
+  if(o.sg&&typeof o.sg==='object')out.sg=sgClean(o.sg);
   if(o.ch&&typeof o.ch==='object')out.ch=chClean(o.ch);
   if(o.cft&&typeof o.cft==='object'&&Array.isArray(o.cft.hist))out.cft={hist:o.cft.hist.filter(h=>h&&Number.isFinite(h.ts)&&Number.isInteger(h.n)&&h.n>=1&&h.n<=7&&Array.isArray(h.sp)&&h.sp.length===h.n&&h.sp.every((v,k)=>Number.isFinite(v)&&v>=0&&v<=36e5&&(!k||v>=h.sp[k-1]))&&h.t===h.sp[h.n-1]).slice(0,50).map(h=>({ts:h.ts,sp:h.sp.slice(),t:h.t,n:h.n}))};
   if(o.aft&&typeof o.aft==='object'){const a=o.aft,s8=x=>isStr(x)?x.slice(0,8):'',i=a.in&&typeof a.in==='object'?a.in:{};
@@ -3400,6 +3449,7 @@ function applyBackup(c){
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
   if(c.goal)S.goal=gtCleanStore(c.goal);
+  if(c.sg)S.sg=sgClean(c.sg);
   if(c.ch)S.ch=chClean(c.ch);
   if(c.squad)S.squad=c.squad;
   if(c.sleepWake)S.sleep.wake=c.sleepWake;
@@ -3632,6 +3682,7 @@ function viewAssess(){
   return `<h2>Assessment</h2><p>Track your max efforts over time, estimate your one-rep max, and work out running pace and speed.</p>
   <div class="form"><label>Units<select data-f="asunit"><option value="lb"${A.unit==='lb'?' selected':''}>Pounds (lb), feet</option><option value="kg"${A.unit==='kg'?' selected':''}>Kilograms (kg), meters</option></select></label></div>
   ${aftHtml()}
+  <section class="sgsec">${sgHtml()}</section>
   ${cftHtml()}
   ${gtHtml()}
   <h3 style="margin-top:26px">Progression table</h3>
@@ -3919,6 +3970,7 @@ document.addEventListener('click',ev=>{
     if(S.nut.meals.length>=600){er.textContent='You have 600 entries. Delete or print some old ones first.';er.hidden=false;return}
     S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m:MEALS.includes(m)?m:'Snack',t:txt,k:Math.round(k),p:Math.round(pp),c:Math.round(cc),f:Math.round(ff)});save();render();return}
   if(a==='nudel'){if(nuArm!==v){nuArm=v;render()}else{S.nut.meals=S.nut.meals.filter(x=>x.id!==v);nuArm='';save();render()}return}
+  if(/^sg(new|add|rm|copy|print|done)$/.test(a)){sgAct(a,v);return}
   if(a==='aftgoal'){S.aft.goal=+v;save();aftUpd();return}
   if(a==='aftsave'){const s=aftScore();if(!s||!s.all)return;S.aft.hist.unshift({id:'f'+Date.now().toString(36),d:today(),age:parseInt(S.aft.age,10),sex:S.aft.sex==='f'?'f':'m',std:S.aft.std==='c'?'c':'g',r:s.r,p:s.p,t:s.t});S.aft.hist=S.aft.hist.slice(0,100);save();render();return}
   if(a==='aftdel'){if(aftArm!==v){aftArm=v;render()}else{S.aft.hist=S.aft.hist.filter(x=>x.id!==v);aftArm='';save();render()}return}
