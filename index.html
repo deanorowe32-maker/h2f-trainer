@@ -1806,7 +1806,7 @@ function libList(q,cat){
 let libQ='',libC='';
 function viewLib(){
   return `<h2>Exercise Library</h2><p>Tap any exercise for steps and coaching cues, or add your own.</p>
-  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button><button class="btn ghost" data-a="cmopen">Add a shared exercise</button><label class="btn ghost" style="position:relative;overflow:hidden">Import photos<input class="vh" type="file" accept="image/*" multiple data-f="bulk"></label></div>
+  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button><label class="btn ghost" style="position:relative;overflow:hidden">Import photos<input class="vh" type="file" accept="image/*" multiple data-f="bulk"></label></div><div class="row" style="margin:6px 0"><button class="btn ghost" data-a="cmopen">Add a shared exercise</button></div>
   <details class="howto" id="bulkHelpD"><summary>How photo import works</summary><p class="tag" id="bulkHelp">Import many photos at once. Name each file after the exercise, ending in -start or -finish, for example back-squat-start.jpg and back-squat-finish.jpg. A file with no ending becomes the start photo.</p></details>
   <div class="note" id="bulkRes" aria-live="polite" style="display:none"></div>
   <input type="search" id="libQ" data-f="libq" placeholder="Search exercises or equipment" value="${esc(libQ)}" aria-label="Search exercises">
