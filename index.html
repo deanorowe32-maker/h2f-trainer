@@ -3345,15 +3345,16 @@ var GT_M={reps:'Reps',time:'Time',weight:'Weight',distance:'Distance'};
 function gtParse(m,text){const t=String(text==null?'':text).trim().replace(',','.');if(!t)return null;
   if(m==='time'){if(/^\d{1,3}(:[0-5]\d){1,2}$/.test(t)){const p=t.split(':').map(Number);return p.reduce((a,b)=>a*60+b,0)||null}
     if(!/^\d+(\.\d+)?$/.test(t))return null;const v=parseFloat(t);if(!(v>0))return null;return Math.round(v<60?v*60:v)}
-  if(!/^\d+(\.\d+)?$/.test(t))return null;const v=parseFloat(t);return v>0?v:null}
+  if(!/^\d+(\.\d+)?$/.test(t))return null;const v=parseFloat(t);return v>=0?v:null}
 function gtFmt(m,v,unit){if(v==null||!isFinite(v))return '–';if(m==='time'){v=Math.round(v);const h=Math.floor(v/3600),mm=Math.floor(v%3600/60),ss=v%60;return (h?h+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0')}
   const n=String(Math.round(v*100)/100);return m==='weight'?n+' '+au():m==='distance'?n+' '+(unit==='km'?'km':'mi'):n}
 function gtLatest(t,i){for(let k=t.log.length-1;k>=0;k--){const v=t.log[k].v[i];if(v!=null&&isFinite(v))return v}return t.ev[i].base}
 function gtPct(ev,v){const span=ev.goal-ev.base;if(!span)return v===ev.goal?100:0;const f=(v-ev.base)/span;return Math.max(0,Math.min(100,Math.round(f*100)))}
-function gtHit(ev,v){return ev.m==='time'?v<=ev.goal:v>=ev.goal}
-function gtMet(t){return !!(t&&t.ev&&t.ev.length&&t.ev.every((e,i)=>gtHit(e,gtLatest(t,i))))}
+/* direction comes from the goal: a goal below the baseline means lower is better (run times), above means higher is better (reps, holds) */
+function gtHit(ev,v){return ev.goal<ev.base?v<=ev.goal:v>=ev.goal}
+function gtMet(t){return !!(t&&t.ev&&t.ev.length&&t.log&&t.log.length&&t.ev.every((e,i)=>gtHit(e,gtLatest(t,i))))}
 /* ---- goal test sharing: the test travels inside the link (#gt=), no server ---- */
-function gtClean(t){if(!t||typeof t!=='object'||!Array.isArray(t.ev))return null;const str=(x,n)=>typeof x==='string'?x.slice(0,n):'',dt=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\d$/.test(x)?x:'',num=x=>Number.isFinite(x)&&x>0&&x<1e7?x:null;
+function gtClean(t){if(!t||typeof t!=='object'||!Array.isArray(t.ev))return null;const str=(x,n)=>typeof x==='string'?x.slice(0,n):'',dt=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\d$/.test(x)?x:'',num=x=>Number.isFinite(x)&&x>=0&&x<1e7?x:null;
   const ev=t.ev.slice(0,6).filter(e=>e&&typeof e==='object'&&GT_M[e.m]&&num(e.base)!==null&&num(e.goal)!==null&&str(e.name,60).trim()).map(e=>({name:str(e.name,60),exId:typeof e.exId==='string'&&EX[e.exId]?e.exId:null,m:e.m,unit:e.m==='distance'?(e.unit==='km'?'km':'mi'):'',note:str(e.note,60),base:e.base,goal:e.goal}));
   if(!ev.length||ev.length!==Math.min(6,t.ev.length))return null;
   const log=(Array.isArray(t.log)?t.log:[]).filter(l=>l&&dt(l.d)&&Array.isArray(l.v)).slice(-60).map(l=>({d:l.d,v:ev.map((e,i)=>num(l.v[i]))}));
@@ -3377,8 +3378,8 @@ function gtShareAct(a){const t=S.goal.cur;
   if(a==='gtshare'){if(navigator.share&&site)navigator.share({title:'Personal training goal: '+t.name,text}).catch(()=>{});else gtCopy(text,'Copied. Paste it into a message to your leader.')}
   else if(a==='gtcopy')gtCopy(gtText(t),'Copied as text.')}
 var gtDraft=null,gtLogOpen=false,gtLogErr={};
-function gtBlankEv(){return {name:'',m:'reps',unit:'mi',note:'',base:'',goal:''}}
-function gtToDraft(t){return t?{id:t.id,who:t.who||'',name:t.name,why:t.why,due:t.due,by:t.appr.by,bd:t.appr.d,ev:t.ev.map(e=>({name:e.name,m:e.m,unit:e.unit||'mi',note:e.note,base:gtFmt(e.m,e.base,'').replace(/\u00a0.*$/,''),goal:gtFmt(e.m,e.goal,'').replace(/\u00a0.*$/,'')})),err:{}}
+function gtBlankEv(){return {name:'',m:'reps',unit:'mi',note:'',base:'',goal:'',src:-1,m0:''}}
+function gtToDraft(t){return t?{id:t.id,who:t.who||'',name:t.name,why:t.why,due:t.due,by:t.appr.by,bd:t.appr.d,ev:t.ev.map((e,i)=>({src:i,m0:e.m,name:e.name,m:e.m,unit:e.unit||'mi',note:e.note,base:gtFmt(e.m,e.base,'').replace(/\u00a0.*$/,''),goal:gtFmt(e.m,e.goal,'').replace(/\u00a0.*$/,'')})),err:{}}
   :{id:'',who:(S.squad&&S.squad.name)||'',name:'',why:'',due:'',by:'',bd:'',ev:[gtBlankEv()],err:{}}}
 function gtReadForm(){const D=gtDraft,v=id=>{const e=document.getElementById(id);return e?e.value:''};if(!D)return;
   D.who=v('gtWho');D.name=v('gtName');D.why=v('gtWhy');D.due=v('gtDue');D.by=v('gtApprBy');D.bd=v('gtApprD');
@@ -3397,18 +3398,19 @@ function gtEditorHtml(){const D=gtDraft,bad=k=>D.err[k]?' aria-invalid="true"':'
   <label>Target date<input id="gtDue" type="date" value="${esc(D.due)}"></label>
   ${rows}${D.ev.length<6?'<button type="button" class="btn ghost" data-a="gtaddev">Add an event</button>':''}
   <div class="gtrow"><label>Approved by (optional)<input id="gtApprBy" maxlength="40" value="${esc(D.by)}" placeholder="e.g. SSG Smith"></label><label>On<input id="gtApprD" type="date" value="${esc(D.bd)}"></label></div>
-  ${Object.keys(D.err).length?'<p class="gterr" role="alert">Check the highlighted boxes. Times look like 8:30, other results are numbers.</p>':''}
+  ${Object.keys(D.err).length?'<p class="gterr" role="alert">Check the highlighted boxes. Times look like 8:30, other results are numbers, and each goal must differ from where you are now.</p>':''}
   <div class="row"><button class="btn" data-a="gtsave">Save goal test</button><button class="btn ghost" data-a="gtcancel">Cancel</button></div>
   <datalist id="gtExList">${Object.values(EX).map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist></div>`}
 function gtSave(){gtReadForm();const D=gtDraft;D.err={};const ev=[];
   D.ev.forEach((e,i)=>{if(!e.name.trim()&&!e.base.trim()&&!e.goal.trim())return;const b=gtParse(e.m,e.base),g=gtParse(e.m,e.goal);
     if(!e.name.trim())D.err['n'+i]=1;if(b===null)D.err['b'+i]=1;if(g===null)D.err['g'+i]=1;
     const ex=Object.values(EX).find(x=>x.name.toLowerCase()===e.name.trim().toLowerCase());
-    ev.push({name:e.name.trim().slice(0,60),exId:ex?ex.id:null,m:GT_M[e.m]?e.m:'reps',unit:e.m==='distance'?(e.unit==='km'?'km':'mi'):'',note:e.note.trim().slice(0,60),base:b,goal:g,_i:i})});
+    if(b!==null&&g!==null&&b===g)D.err['g'+i]=1;
+    ev.push({name:e.name.trim().slice(0,60),exId:ex?ex.id:null,m:GT_M[e.m]?e.m:'reps',unit:e.m==='distance'?(e.unit==='km'?'km':'mi'):'',note:e.note.trim().slice(0,60),base:b,goal:g,_s:e.src>=0&&e.m===e.m0?e.src:-1})});
   if(!ev.length)D.err.n0=1;if(Object.keys(D.err).length)return false;
   const old=S.goal.cur&&S.goal.cur.id===D.id?S.goal.cur:null;
   const t={id:old?old.id:'g'+Date.now().toString(36),who:D.who.trim().slice(0,40),name:(D.name.trim()||'My goal test').slice(0,50),why:D.why.trim().slice(0,200),due:/^\d{4}-\d\d-\d\d$/.test(D.due)?D.due:'',
-    appr:{by:D.by.trim().slice(0,40),d:/^\d{4}-\d\d-\d\d$/.test(D.bd)?D.bd:''},ev:ev.map(({_i,...e})=>e),log:old?old.log.map(l=>({d:l.d,v:ev.map(e=>l.v[e._i]!==undefined?l.v[e._i]:null)})):[],done:''};
+    appr:{by:D.by.trim().slice(0,40),d:/^\d{4}-\d\d-\d\d$/.test(D.bd)?D.bd:''},ev:ev.map(({_s,...e})=>e),log:old?old.log.map(l=>({d:l.d,v:ev.map(e=>e._s>=0&&l.v[e._s]!==undefined?l.v[e._s]:null)})).filter(l=>l.v.some(x=>x!==null)):[],done:''};
   if(S.goal.cur&&!old){S.goal.past.unshift(Object.assign(S.goal.cur,{done:S.goal.cur.done||today()}));S.goal.past=S.goal.past.slice(0,20)}
   S.goal.cur=t;if(t.who&&S.squad&&!S.squad.name)S.squad.name=t.who;gtDraft=null;return true}
 function gtSummaryHtml(t,ro){const met=gtMet(t),dd=d=>d?fmt(new Date(d+'T12:00:00')):'';

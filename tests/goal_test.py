@@ -91,6 +91,35 @@ with sync_playwright() as p:
         for t in ['today', 'train', 'pt', 'assess', 'unit']:
             E(f"S.tab='{t}';render()"); pg.wait_for_timeout(200)
 
+    if STAGE in ('all','fix'):
+        E("S.goal={cur:null,past:[]};S.tab='assess';render()")
+        # 1: removing an event keeps each remaining event's own retest values
+        E("S.goal.cur={id:'f1',who:'',name:'F',why:'',due:'',appr:{by:'',d:''},ev:[{name:'Pushups',exId:null,m:'reps',unit:'',note:'',base:30,goal:50},{name:'Run',exId:null,m:'time',unit:'',note:'',base:900,goal:780},{name:'Deadlift',exId:null,m:'weight',unit:'',note:'',base:225,goal:275}],log:[{d:'2026-11-10',v:[40,850,250]}],done:''};save();render()")
+        pg.evaluate("document.querySelector('[data-a=gtedit]').click()"); pg.wait_for_timeout(200)
+        pg.evaluate("document.querySelector('[data-a=gtrmev][data-i=\"0\"]').click()"); pg.wait_for_timeout(200)
+        pg.evaluate("document.querySelector('[data-a=gtsave]').click()"); pg.wait_for_timeout(200)
+        check('fix1 run keeps its value', E("[gtLatest(S.goal.cur,0),gtLatest(S.goal.cur,1)]") == [850, 250])
+        # 1b: changing an event's measure drops its old logged values
+        pg.evaluate("document.querySelector('[data-a=gtedit]').click()"); pg.wait_for_timeout(200)
+        pg.select_option('#gtEvM1', 'reps'); pg.wait_for_timeout(200); pg.fill('#gtEvBase1', '10'); pg.fill('#gtEvGoal1', '12')
+        pg.evaluate("document.querySelector('[data-a=gtsave]').click()"); pg.wait_for_timeout(200)
+        check('fix1b measure change clears old values', E("S.goal.cur.log[0].v[1]") is None)
+        # 2: not met without a retest; goal equal to baseline is rejected
+        T = "{id:'f2',who:'',name:'G',why:'',due:'',appr:{by:'',d:''},ev:[{name:'A',exId:null,m:'reps',unit:'',note:'',base:30,goal:30}],log:[],done:''}"
+        check('fix2 not met before a retest', E(f"gtMet({T})") is False)
+        E("gtDraft=gtToDraft(null);render()"); pg.wait_for_timeout(150)
+        pg.fill('#gtEvName0', 'A'); pg.fill('#gtEvBase0', '30'); pg.fill('#gtEvGoal0', '30')
+        pg.evaluate("document.querySelector('[data-a=gtsave]').click()"); pg.wait_for_timeout(200)
+        check('fix2 equal goal rejected', pg.locator('#gtEvGoal0[aria-invalid=true]').count() == 1)
+        E("gtDraft=null;render()")
+        # 3: zero baseline and zero retest allowed for reps
+        check('fix3 parse zero reps', E("gtParse('reps','0')") == 0)
+        check('fix3 clean keeps zero baseline', E("(gtClean({name:'P',ev:[{name:'Pull-ups',m:'reps',base:0,goal:5}],log:[{d:'2026-11-17',v:[0]}]})||{ev:[{}]}).ev[0].base") == 0)
+        # 4: hold time goal longer than baseline is higher-is-better
+        H = "{id:'f4',who:'',name:'H',why:'',due:'',appr:{by:'',d:''},ev:[{name:'Plank',exId:null,m:'time',unit:'',note:'',base:120,goal:210}],log:[{d:'2026-11-17',v:[150]}],done:''}"
+        check('fix4 plank 2:30 not met', E(f"gtMet({H})") is False)
+        check('fix4 plank 3:40 met', E(f"(()=>{{const t={H};t.log.push({{d:'2026-11-18',v:[220]}});return gtMet(t)}})()") is True)
+
     check('no page errors', not errs); 
     if errs: print(errs[:3])
     b.close()
