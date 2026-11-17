@@ -2153,6 +2153,11 @@ delete S.pid;
 S.journal.entries=S.journal.entries.filter(e=>e.k!=='sleep');
 var jrDraft={mind:'',spirit:''},jrEdit={mind:'',spirit:''},jrArm='';
 S.spirit=S.spirit||{values:[],log:{}};
+/* one spiritual journal: older daily reflection notes move into the journal as dated entries (runs on every load, so restored old backups move too) */
+function spMigrate(){if(!S.spirit||!S.spirit.log||!S.journal)return;Object.keys(S.spirit.log).sort().forEach(d=>{const v=S.spirit.log[d],t=typeof v==='string'?v.trim():'';
+  if(t&&/^\d{4}-\d\d-\d\d$/.test(d)&&!S.journal.entries.some(e=>e.k==='spirit'&&e.d===d&&e.t===t))S.journal.entries.push({id:'jm'+d.replace(/-/g,''),d,k:'spirit',t:t.slice(0,5000)})});S.spirit.log={}}
+function spDays(){const D=new Set();Object.entries((S.spirit&&S.spirit.log)||{}).forEach(([k,v])=>{if(v&&String(v).trim())D.add(k)});((S.journal&&S.journal.entries)||[]).forEach(e=>{if(e.k==='spirit'&&e.d)D.add(e.d)});return D}
+spMigrate();
 S.breath=S.breath||'box';
 /* ===== Ribbons ===== */
 /* Fictional ribbons earned from what the Soldier logs. Awards are saved once in S.rb.aw and never removed. */
@@ -2235,7 +2240,7 @@ function rbLiftUps(){const rows=[];const add=(plan,off)=>{if(!plan)return;const 
   Object.keys(S.weeks||{}).forEach(k=>{const W=S.weeks[k];if(W&&W.plan&&wkOff(k)!==S.week)add(W.plan,wkOff(k))});add(S.plan,S.week);
   rows.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);const last={};let n=0;rows.forEach(([d,id,w])=>{if(last[id]!==undefined&&w>last[id])n++;last[id]=w});return n}
 function rbLogDays(){const D=new Set(rbWorkDays());rbNights().forEach(([k])=>D.add(k));Object.entries(S.nut.wlog||{}).forEach(([k,v])=>{if(v>0)D.add(k)});(S.nut.meals||[]).forEach(e=>{if(e&&e.d)D.add(e.d)});
-  Object.entries(S.mind.log||{}).forEach(([k,v])=>{if(v&&v.mood>=0)D.add(k)});Object.entries((S.spirit&&S.spirit.log)||{}).forEach(([k,v])=>{if(v&&String(v).trim())D.add(k)});return [...D].filter(k=>/^\d{4}-\d\d-\d\d$/.test(k))}
+  Object.entries(S.mind.log||{}).forEach(([k,v])=>{if(v&&v.mood>=0)D.add(k)});spDays().forEach(k=>D.add(k));return [...D].filter(k=>/^\d{4}-\d\d-\d\d$/.test(k))}
 function rbCftFull(){return ((S.cft&&S.cft.hist)||[]).filter(h=>h.n===7).slice().sort((a,b)=>a.ts-b.ts)}
 /* count(id) -> how far along this ribbon is, in its own unit. Streak ribbons return {times, cur}. */
 /* totals by week start and by month, rebuilt only when the log changes */
@@ -2306,7 +2311,7 @@ function rbCount(id){const T=S.rb.tally,now=rbMon(Date.now()),tk=typeof today===
   case 'rf':return cnt(rbJournal('mind'));
   case 'rl':return cnt(rbJournal('spirit'));
   case 'tn':return cnt((S.spirit.values||[]).length?1:0);
-  case 'an':case 'sf':return cnt(Object.values(S.spirit.log||{}).filter(v=>v&&String(v).trim()).length);
+  case 'an':case 'sf':return cnt(spDays().size);
   case 'su':return cnt(Object.keys(T.sq).length);
   case 'sk':return cnt(T.sh);
   case 'wro':{const A=S.rb.aw;return cnt(['Training','Sleep','Fuel','Mind','Spirit'].filter(a=>RB.some(r=>r.area===a&&A[r.id])).length)}
@@ -3155,16 +3160,12 @@ function spiritHelpHtml(){
       <p style="margin:6px 0 0"><a href="https://www.veteranscrisisline.net/get-help-now/military-crisis-line/" target="_blank" rel="noopener">Online chat and numbers for other regions</a></p></div>
   </div>`}
 function viewSpirit(){
-  const v=S.spirit.values,j=S.spirit.log[today()]||'';
+  const v=S.spirit.values;
   return `<h2>Spirit</h2>
   <p>Spiritual readiness is about purpose, values and meaning. It is open to every belief system, including none.</p>
   <h3>My top three values</h3>
   <div class="chips" role="group" aria-label="Values">${VALUES.map(x=>`<button class="chip" aria-pressed="${v.includes(x)}" data-a="val" data-v="${x}">${x}</button>`).join('')}</div>
   <div class="tag">${v.length}/3 chosen</div>
-  <h3 style="margin-top:20px">Today's reflection</h3>
-  <p><b>${PROMPTS[dayOfYear()%PROMPTS.length]}</b></p>
-  <label class="tag" for="jrn">Your notes, saved on this device</label>
-  <textarea id="jrn" data-f="jrn">${esc(j)}</textarea>
   ${jrHtml('spirit')}
   ${huddleHtml()}
   ${spiritHelpHtml()}`}
@@ -3204,7 +3205,6 @@ document.addEventListener('input',ev=>{
   else if(f==='sqname'){S.squad.name=t.value.slice(0,40);const c=document.getElementById('sqCode'),pv=document.getElementById('sqPrev'),pc=document.getElementById('ptCode');if(c)c.value=sqCode();if(pv)pv.innerHTML=sqMeInner();if(pc)pc.value=ptCode();sqLinkUpd();save()}
   else if(f==='ptnote'){S.squad.note=t.value.slice(0,200);const pc=document.getElementById('ptCode');if(pc)pc.value=ptCode();sqLinkUpd();save()}
   else if(f==='gr'){const d=today();const e=S.mind.log[d]||(S.mind.log[d]={mood:-1,g:['','','']});e.g[+t.dataset.i]=t.value;save()}
-  else if(f==='jrn'){S.spirit.log[today()]=t.value;save()}
   else if(f==='sldate'){slDay=t.value;slArm='';slDraft=null;render()}
   else if(f==='wake'){S.sleep.wake=t.value;document.getElementById('times').innerHTML=timesHtml();save()}
 });
@@ -3499,6 +3499,7 @@ function applyBackup(c){
   if(c.sleepMeta)S.sleep.meta=c.sleepMeta;
   if(c.mind)S.mind=c.mind;
   if(c.spirit)S.spirit=c.spirit;
+  spMigrate();
   S.day=0;S.ptDay=0;
 }
 document.addEventListener('click',ev=>{
@@ -3991,11 +3992,12 @@ function jrHtml(k){
   const first=t=>{const l=t.split('\n').find(x=>x.trim())||'';return l.length>90?l.slice(0,90)+'…':l};
   return `<h3 style="margin-top:24px">My ${k==='mind'?'mind':'spiritual'} journal</h3>
   <p class="tag">A private place to keep writing over time. Only you can read it.${all.length?` ${all.length} entr${all.length===1?'y':'ies'}${st>1?` · ${st}-day streak`:''}`:''}</p>
+  ${k==='spirit'?`<div class="note"><span class="tag">Today's prompt</span><br><b>${PROMPTS[dayOfYear()%PROMPTS.length]}</b><div class="row" style="margin:8px 0 0"><button class="btn ghost" data-a="jrprompt" data-t="spirit">Answer this prompt</button></div></div>`:''}
   ${last&&!ed?`<div class="note"><b>Where you left off, ${esc(jrLabel(last.d))}:</b><br>${esc(first(last.t))}</div>`:''}
   <label class="tag" for="jr_${k}">${ed?'Editing an earlier entry':'New entry'}</label>
   <textarea id="jr_${k}" data-f="jrdraft" data-t="${k}" maxlength="5000" placeholder="Write what is on your mind. No one is grading it.">${esc(jrDraft[k])}</textarea>
   <div class="note warn" id="jrErr_${k}" hidden></div>
-  <div class="row"><button class="btn" data-a="jrsave" data-t="${k}">${ed?'Save changes':'Save entry'}</button><button class="btn ghost" data-a="jrprompt" data-t="${k}">Use a prompt</button>${ed?`<button class="btn ghost" data-a="jrcancel" data-t="${k}">Cancel edit</button>`:''}${all.length?`<button class="btn ghost" data-a="print" data-k="jr-${k}">Print journal</button>`:''}</div>
+  <div class="row"><button class="btn" data-a="jrsave" data-t="${k}">${ed?'Save changes':'Save entry'}</button>${k==='spirit'?'':`<button class="btn ghost" data-a="jrprompt" data-t="${k}">Use a prompt</button>`}${ed?`<button class="btn ghost" data-a="jrcancel" data-t="${k}">Cancel edit</button>`:''}${all.length?`<button class="btn ghost" data-a="print" data-k="jr-${k}">Print journal</button>`:''}</div>
   ${all.length?all.slice().reverse().map(e=>`<details class="cmx"><summary><b>${esc(jrLabel(e.d))}</b><small>${esc(first(e.t))}</small></summary><div style="white-space:pre-wrap;margin:6px 0 10px">${esc(e.t)}</div><div class="row" style="margin:0"><button class="btn ghost" data-a="jredit" data-v="${e.id}" data-t="${k}">Edit</button><button class="btn ghost" data-a="jrdel" data-v="${e.id}">${jrArm===e.id?'Tap again to delete':'Delete'}</button></div></details>`).join(''):'<div class="empty">No entries yet. Your first one will show up here.</div>'}`}
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,k=b.dataset.t,v=b.dataset.v;
