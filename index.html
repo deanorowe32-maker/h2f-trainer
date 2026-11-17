@@ -1448,6 +1448,7 @@ function moreShow(){document.getElementById('moreList').innerHTML=TABS.filter(t=
 const GROUPED=['assess','nut','sleep','mind','spirit','creator'];
 function groupView(v){if(!GROUPED.includes(S.tab))return;const kids=[...v.children];let g=null;
   kids.forEach(el=>{if(el.tagName==='H3'){g=document.createElement('section');g.className='grp';el.before(g)}
+    else if(el.tagName==='SECTION'&&el.querySelector(':scope>h3')){el.classList.add('grp');g=null;return}
     else if(el.tagName==='H2'||el.tagName==='FOOTER'||(el.classList&&el.classList.contains('foot'))){g=null}
     if(g)g.appendChild(el)})}
 function afterRender(){const v=document.getElementById('view');if(S.cft&&S.cft.run&&S.cft.run.on&&document.getElementById('cftClock'))cftStartTick();groupView(v);hashSync();try{if(S.rb)rbShow()}catch(e){}
