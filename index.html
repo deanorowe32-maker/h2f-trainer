@@ -1968,7 +1968,7 @@ S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
 if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey(S.week||0);
 S.week=wkOff(S.curKey);
 if(S.week<0)wkGo(0);
-S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
+S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.goal=Object.assign({cur:null,past:[]},S.goal||{});S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
 S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1},S.squad.inc||{});
 S.sleep=S.sleep||{wake:'06:00',checks:{date:'',v:[]}};
 S.sleep.log=S.sleep.log||{};S.sleep.meta=S.sleep.meta||{};
@@ -3319,6 +3319,19 @@ function pcResHtml(){
 function pcUpd(){const e=document.getElementById('pcRes');if(e)e.innerHTML=pcResHtml()}
 
 /* ---- Combat Field Test practice: seven events on one running clock, splits saved on the phone ---- */
+/* ---- My goal test: a Soldier-built training goal test (spec docs/superpowers/specs/2026-11-17-goal-test-design.md) ---- */
+var GT_M={reps:'Reps',time:'Time',weight:'Weight',distance:'Distance'};
+/* time: m:ss, h:mm:ss, decimal minutes (8.5) or seconds (510; plain numbers under 60 are minutes). Others: a number above 0. */
+function gtParse(m,text){const t=String(text==null?'':text).trim().replace(',','.');if(!t)return null;
+  if(m==='time'){if(/^\d{1,3}(:[0-5]\d){1,2}$/.test(t)){const p=t.split(':').map(Number);return p.reduce((a,b)=>a*60+b,0)||null}
+    if(!/^\d+(\.\d+)?$/.test(t))return null;const v=parseFloat(t);if(!(v>0))return null;return Math.round(v<60?v*60:v)}
+  if(!/^\d+(\.\d+)?$/.test(t))return null;const v=parseFloat(t);return v>0?v:null}
+function gtFmt(m,v,unit){if(v==null||!isFinite(v))return '–';if(m==='time'){v=Math.round(v);const h=Math.floor(v/3600),mm=Math.floor(v%3600/60),ss=v%60;return (h?h+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0')}
+  const n=String(Math.round(v*100)/100);return m==='weight'?n+' '+au():m==='distance'?n+' '+(unit==='km'?'km':'mi'):n}
+function gtLatest(t,i){for(let k=t.log.length-1;k>=0;k--){const v=t.log[k].v[i];if(v!=null&&isFinite(v))return v}return t.ev[i].base}
+function gtPct(ev,v){const span=ev.goal-ev.base;if(!span)return v===ev.goal?100:0;const f=(v-ev.base)/span;return Math.max(0,Math.min(100,Math.round(f*100)))}
+function gtHit(ev,v){return ev.m==='time'?v<=ev.goal:v>=ev.goal}
+function gtMet(t){return !!(t&&t.ev&&t.ev.length&&t.ev.every((e,i)=>gtHit(e,gtLatest(t,i))))}
 function cftNow(){const r=S.cft.run;return r?r.acc+(r.on?Date.now()-r.start:0):0}
 function cftBest(){return S.cft.hist.filter(h=>h.n===7).reduce((b,h)=>!b||h.t<b.t?h:b,null)}
 function cftClockTxt(){const t=cftNow(),left=CFT_CAP-t;return [fmtT(t),left>=0?fmtT(left)+' left of 30:00':'Over 30:00 by '+fmtT(-left)]}
