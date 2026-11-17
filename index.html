@@ -219,6 +219,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .coach{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}.coach h3{margin:0 0 4px}.coachtip{padding:10px 0;border-top:1px solid var(--line)}.coachtip:first-of-type{border-top:0}.coachtip b{display:block;font:700 16px var(--body)}.coachtip p{margin:2px 0 8px}.coachtip .btn{min-height:40px}.coachnote{margin:4px 0 0}
 .heatflag.hf1[aria-pressed=true]{background:#fff;color:#13261c;border-color:#13261c}.heatflag.hf2[aria-pressed=true]{background:#2f7d3a;color:#fff}.heatflag.hf3[aria-pressed=true]{background:#e8c22a;color:#13261c}.heatflag.hf4[aria-pressed=true]{background:#b3261e;color:#fff}.heatflag.hf5[aria-pressed=true]{background:#111;color:#fff}
 .lsbox{margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r)}.lsbox h3{margin:0 0 6px}.lscode{font:700 20px var(--mono);letter-spacing:.08em}.lslive{display:inline-block;padding:0 6px;border-radius:6px;background:var(--gold);color:#13261c;font:700 11px var(--body);text-transform:uppercase;letter-spacing:.04em}
+.xsrow{min-height:40px;padding:0 14px;flex:none}.linkbtn{padding:0;border:0;background:none;color:inherit;font:inherit;text-decoration:underline;cursor:pointer}
 .tdbk{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--gold);border-radius:var(--r);background:var(--surface)}.tdbk h3{margin:0 0 4px}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -973,7 +974,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="tourSheet" hidden style="z-index:78"><div class="panel" role="dialog" aria-label="App tour"><div id="tourBody"></div></div></div>
 <div class="sheet" id="hsSheet" hidden style="z-index:76"><div class="panel" role="dialog" aria-label="Help"><div id="hsBody"></div></div></div>
 <div class="sheet" id="stSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Stations"><div id="stBody"></div></div></div>
-<div class="sheet" id="cmSheet" hidden style="z-index:57"><div class="panel" role="dialog" aria-label="Shared exercises"><div id="cmBody"></div></div></div>
+<div class="sheet" id="cmSheet" hidden style="z-index:57"><div class="panel" role="dialog" aria-label="Share exercises"><div id="cmBody"></div></div></div>
 <div class="sheet" id="rbSheet" hidden style="z-index:80"><div class="panel" role="dialog" aria-label="Ribbon"><div id="rbBody"></div></div></div>
 <div class="sheet" id="bkSheet" hidden style="z-index:75"><div class="panel" role="dialog" aria-label="Backup"><div id="bkBody"></div></div></div>
 <div class="sheet" id="infoSheet" hidden style="z-index:60"><div class="panel" role="dialog" aria-label="Exercise detail"><div id="infoBody"></div></div></div>
@@ -1800,12 +1801,12 @@ function viewPT(){
   <div class="row"><button class="btn" data-a="ptdone" aria-pressed="${!!S.rb.tally.pt[today()]}">${S.rb.tally.pt[today()]?'PT done today ✓':'Done today\u2019s PT'}</button><button class="btn ghost" data-a="add" data-k="pt">Add exercise</button><button class="btn ghost" data-a="print" data-k="pt">Print PT plan</button></div>`}
 
 function libList(q,cat){
-  const rows=Object.values(EX).filter(e=>(!cat||e.cat===cat)&&(!q||(e.name+' '+e.eq+' '+CATS[e.cat]).toLowerCase().includes(q.toLowerCase())));
-  return rows.length?rows.map(e=>`<div class="item"><button class="nm" data-a="info" data-v="${e.id}">${esc(e.name)}<small>${CATS[e.cat]} · ${esc(e.eq)}${e.custom?' · Yours':''}</small></button></div>`).join(''):'<div class="empty">No exercises match.</div>'}
+  const rows=Object.values(EX).filter(e=>(!cat||(cat==='mine'?e.custom:e.cat===cat))&&(!q||(e.name+' '+e.eq+' '+CATS[e.cat]).toLowerCase().includes(q.toLowerCase())));
+  return rows.length?rows.map(e=>`<div class="item"><button class="nm" data-a="info" data-v="${e.id}">${esc(e.name)}<small>${CATS[e.cat]} · ${esc(e.eq)}${e.custom?' · Yours':''}</small></button>${e.custom?`<button class="btn ghost xsrow" data-a="cmshare" data-v="${e.id}" aria-label="Share ${esc(e.name)}">Share</button>`:''}</div>`).join(''):(cat==='mine'&&!q?'<div class="empty">Exercises you make with Add your exercise show up here, each with a Share button to send it to another Soldier.</div>':'<div class="empty">No exercises match.</div>')}
 let libQ='',libC='';
 function viewLib(){
   return `<h2>Exercise Library</h2><p>Tap any exercise for steps and coaching cues, or add your own.</p>
-  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button><button class="btn ghost" data-a="cmopen">Shared exercises</button><label class="btn ghost" style="position:relative;overflow:hidden">Import photos<input class="vh" type="file" accept="image/*" multiple data-f="bulk"></label></div>
+  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button><button class="btn ghost" data-a="cmopen">Add a shared exercise</button><label class="btn ghost" style="position:relative;overflow:hidden">Import photos<input class="vh" type="file" accept="image/*" multiple data-f="bulk"></label></div>
   <details class="howto" id="bulkHelpD"><summary>How photo import works</summary><p class="tag" id="bulkHelp">Import many photos at once. Name each file after the exercise, ending in -start or -finish, for example back-squat-start.jpg and back-squat-finish.jpg. A file with no ending becomes the start photo.</p></details>
   <div class="note" id="bulkRes" aria-live="polite" style="display:none"></div>
   <input type="search" id="libQ" data-f="libq" placeholder="Search exercises or equipment" value="${esc(libQ)}" aria-label="Search exercises">
@@ -1930,7 +1931,7 @@ const B3={view:'front',prev:null,busy:false,
  theme(){},go(){}
 };
 function chipSync(id,sel,act){const el=document.getElementById(id);if(!el)return;const x=el.scrollLeft;el.innerHTML=chipsHtml(sel,act);el.scrollLeft=x;const on=el.querySelector('[aria-pressed="true"]');if(on){const L=on.offsetLeft-el.offsetLeft,W=el.clientWidth;const t=Math.max(0,L-(W-on.offsetWidth)/2);el.scrollTo({left:t,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}}
-function chipsHtml(sel,act){return `<button class="chip" aria-pressed="${sel===''}" data-a="${act}" data-v="">All</button>`+Object.entries(CATS).map(([k,n])=>`<button class="chip" aria-pressed="${sel===k}" data-a="${act}" data-v="${k}">${n}</button>`).join('')}
+function chipsHtml(sel,act){return `<button class="chip" aria-pressed="${sel===''}" data-a="${act}" data-v="">All</button>`+(act==='libcat'?`<button class="chip" aria-pressed="${sel==='mine'}" data-a="libcat" data-v="mine">My exercises</button>`:'')+Object.entries(CATS).map(([k,n])=>`<button class="chip" aria-pressed="${sel===k}" data-a="${act}" data-v="${k}">${n}</button>`).join('')}
 
 function render(){
   stopBreath();
@@ -3378,6 +3379,7 @@ function saveEx(){
   document.getElementById('formSheet').hidden=true;
   const pl=document.getElementById('pickList');if(pl&&!document.getElementById('pickSheet').hidden)pl.innerHTML=pickList();
   render();
+  document.getElementById('cmBody').innerHTML=`<h2>Saved: ${esc(c.name)}</h2><p>Share it with another Soldier? They get a link that adds it to their library.</p><div class="row"><button class="btn" data-a="cmshare" data-v="${c.id}">Share</button><button class="btn ghost" data-a="cmclose">Not now</button></div>`;document.getElementById('cmSheet').hidden=false;
 }
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
@@ -4033,12 +4035,12 @@ function xsMine(){return (S.custom||[]).map(c=>EX[c.id]).filter(Boolean)}
 function xsMsg(list){const code=xsEnc(list,S.squad&&S.squad.name),site=xsSite(),one=list.length===1;
   const what=one?`the exercise "${list[0].name}"`:`${list.length} exercises`;
   const link=site&&code.length<7000?`\n\nTap to add ${one?'it':'them'}: ${site}#ex=${code}`:'';
-  return `H2F Trainer: ${what}.${link}\n\nOr open H2F Trainer, tap Library, then Shared exercises, and paste this whole message.\n\n${XS_TAG}${code}`}
+  return `H2F Trainer: ${what}.${link}\n\nOr open H2F Trainer, tap Library, then Add a shared exercise, and paste this whole message.\n\n${XS_TAG}${code}`}
 function xsSubj(list){return 'H2F Trainer: '+(list.length===1?list[0].name:list.length+' exercises')}
 function xsSendHtml(list){
   const msg=xsMsg(list),body=encodeURIComponent(msg),canShare=!!(navigator.share&&xsSite());
   return `<h2>Share ${list.length===1?esc(list[0].name):list.length+' exercises'}</h2>
-  <p class="tag">Send this to anyone. When they open it, H2F Trainer shows them the exercise${list.length===1?'':'s'} and asks before adding. Photos you added stay on your phone.</p>
+  <p class="tag">Send this to anyone. When they open it, H2F Trainer shows them the exercise${list.length===1?'':'s'} and asks before adding. Photos don't travel with it; they're too big for a message.</p>
   <ul class="xsl">${list.map(e=>`<li><b>${esc(e.name)}</b><small>${esc(CATS[e.cat])} · ${esc(e.eq)} · ${e.steps.length} steps</small></li>`).join('')}</ul>
   <textarea id="xsOut" class="xscode" rows="4" readonly aria-label="Message to send">${esc(msg)}</textarea>
   <div class="row">${canShare?'<button class="btn" data-a="xsnative">Share…</button>':''}<button class="btn${canShare?' ghost':''}" data-a="xscopy">Copy message</button>
@@ -4051,19 +4053,16 @@ function cmMsg(t,bad){const m=document.getElementById('cmMsg');if(!m)return;m.te
 function xsDupe(e){return Object.values(EX).some(x=>x.name.toLowerCase()===e.name.toLowerCase())}
 function xsRecvHtml(){
   const it=XS.items,mine=xsMine();
-  const prev=it.length?`<h3>${XS.src?'From '+esc(XS.src):'Ready to add'}</h3>
+  const prev=it.length?`<h3>${XS.src?esc(XS.src)+' sent you '+(it.length===1?'an exercise':it.length+' exercises'):'Ready to add'}</h3>
    ${it.map((x,k)=>{const dup=xsDupe(x);return `<details class="cmx"${it.length===1?' open':''}><summary><b>${esc(x.name)}</b><small>${esc(CATS[x.cat])} · ${esc(x.eq)}${dup?' · Already in your library':''}</small></summary>
     <ol class="tips">${x.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><div class="pr-cue" style="margin:2px 0 8px;font-style:italic">Cue: ${esc(x.cue)}</div></details>`}).join('')}
    <div class="row"><button class="btn" data-a="xsadd"${it.every(xsDupe)?' disabled':''}>${it.length===1?'Add to my library':'Add all '+it.filter(x=>!xsDupe(x)).length+' to my library'}</button><button class="btn ghost" data-a="xsclear">Clear</button></div>`:'';
-  return `<h2>Shared exercises</h2>
-  <p class="tag">Add exercises someone sent you, or send your own to your unit. Nothing is shared unless you send it.</p>
-  <h3>Add exercises someone sent you</h3>
+  return `<h2>Add a shared exercise</h2>
+  <p class="tag">Did another Soldier send you an exercise? Tap their link, or paste the whole message here.</p>
   <textarea id="xsIn" class="xscode" rows="3" data-f="xsin" placeholder="Paste the whole message here" aria-label="Paste a shared exercise message"></textarea>
   <div class="note" id="cmMsg" hidden aria-live="polite"></div>
   ${prev}
-  <h3 style="margin-top:20px">Send your exercises</h3>
-  ${mine.length?`<p class="tag">You have ${mine.length} exercise${mine.length===1?'':'s'} of your own. To send just one, open it in the library and tap Share.</p>
-   <div class="row"><button class="btn ghost" data-a="xsall">Share all ${mine.length}</button></div>`:'<div class="empty">Exercises you add with Add your exercise can be shared from here.</div>'}
+  <p class="tag" style="margin-top:16px">To send one of your own, tap My exercises in the Library, then Share.${mine.length>1?` Or <button type="button" class="linkbtn" data-a="xsall">send all ${mine.length} at once</button>.`:''}</p>
   <div class="row"><button class="btn ghost" data-a="cmclose">Close</button></div>`}
 function xsParse(raw){const s=String(raw||'');let i=s.indexOf(XS_TAG);let code='';
   if(i>=0)code=s.slice(i+XS_TAG.length).match(/^[A-Za-z0-9_-]+/)?.[0]||'';
