@@ -2154,6 +2154,7 @@ document.addEventListener('click',ev=>{
   else if(a==='closeinfo')document.getElementById('infoSheet').hidden=true;
   else if(a==='closepick')document.getElementById('pickSheet').hidden=true;
   else if(a==='pick'&&pickKind==='station'){const c=stCfg(),arr=c.st[stCtx.s];if(arr){arr[stCtx.i]=v;c.st[stCtx.s]=arr.filter(x=>x).slice(0,ST_MAXE)}save();document.getElementById('pickSheet').hidden=true;stBody()}
+  else if(a==='pick'&&pickKind==='prog'){const d=prEdDay();if(d&&d.r.length<15&&EX[v])d.r.push({p:prPart,id:v,rx:(RXC[EX[v].cat]||'').slice(0,30),rs:''});save();document.getElementById('pickSheet').hidden=true;prBody()}
   else if(a==='pick'&&pickKind==='circuit'){const c=ciCfgOf('q');if(c.ids.length<12&&EX[v])c.ids.push(v);save();document.getElementById('pickSheet').hidden=true;ciBuild()}
   else if(a==='pick'&&pickKind==='assess'){if(addEvent(v)){b.textContent='Added ✓';render()}else b.textContent='Already added'}
   else if(a==='pick'){const arr=pickKind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];arr.push(pickKind==='train'?{id:v,rx:RXC[EX[v].cat],s:pickSec}:{id:v,rx:RXC[EX[v].cat]});render();b.textContent='Added ✓'}
@@ -4092,7 +4093,7 @@ function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)r
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
   <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
-var prWk=0;
+var prWk=0,prEd=null,prPart='M',prArm='';
 function prSplit(v){return v>0?Math.floor(v/60)+':'+String(Math.round(v%60)).padStart(2,'0'):''}
 function prDayHtml(d){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
   return `${L.length?`<div class="tdsec">Warm-up (RAMP)</div>${L.map(x=>`<p class="tag" style="margin:2px 0"><b>${x[0]}:</b> ${esc(x[1])}</p>`).join('')}`:''}
@@ -4109,20 +4110,59 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
   if(!P){b.innerHTML=`<h2>Platoon program</h2><p class="tag">An 8-week training block your leader builds and sends to the platoon. It sits next to your own plan and never changes it.</p>
     <div class="row"><button class="btn" data-a="prpaste">Paste a program from your leader</button><button class="btn ghost" data-a="prnew">Build a program</button></div>${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`;return}
   const cw=prWeekOf(today()),W=P.w[prWk];
+  if(prEd!==null){b.innerHTML=prEdHtml(W.d[prEd]);return}
   b.innerHTML=`<h2>${esc(P.n||'Platoon program')}</h2><p class="tag">${P.fr?'From '+esc(P.fr)+' · ':''}${cw>=0?`This week is Week ${cw+1} of 8`:`Week 1 starts ${esc(fmt(new Date(P.s+'T12:00:00')))}`}</p>
   <div class="chips" role="group" aria-label="Week">${P.w.map((w,i)=>`<button class="chip" aria-pressed="${i===prWk}" data-a="prwk" data-v="${i}">W${i+1}${w.dl?' Deload':''}</button>`).join('')}</div>
   <h3>Week ${prWk+1} of 8${W.dl?' · Deload':''}</h3>
-  ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
+  <div class="row">${prWk?'<button class="btn ghost small" data-a="prcopy">Copy last week</button>':''}<button class="btn ghost small" data-a="prdl">${W.dl?'Unmark deload':'Mark deload'}</button></div>
+  <div class="chips" role="group" aria-label="Change every % this week">${[-3,1,2,3,5].map(n=>`<button class="chip" data-a="prbump" data-v="${n}">${n>0?'+':'−'}${Math.abs(n)}%</button>`).join('')}</div>
+  ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b><button class="btn ghost small" data-a="prday" data-v="${i}">Edit</button></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
   ${prDayAt(today())?`<div class="row"><button class="btn" data-a="prtoday">Start today's session</button></div>`:''}
+  <details class="howto"${P.n?"":" open"}><summary>Block settings</summary><div class="form"><label class="wide">Block name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Block 1 of 3"></label>
+  <label class="wide">Week 1 starts<select data-f="prf" data-k="s">${Array.from({length:13},(_,i)=>mkey(i-4)).concat(P.s).filter((k,i,a)=>a.indexOf(k)===i).sort().map(k=>`<option value="${k}"${k===P.s?' selected':''}>Week of ${esc(fmt(new Date(k+'T12:00:00')))}</option>`).join('')}</select></label></div>
+  <div class="row"><button class="btn ghost small" data-a="prnew">${prArm==='new'?'Tap again to start over':'Start a new program'}</button></div></details>
   ${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`}
-function prOpen(){prWk=Math.max(0,prWeekOf(today()));prBody();document.getElementById('pgSheet').hidden=false}
+function prEdHtml(d){const inp=(k,lab,v,n)=>`<label class="wide">${lab}<input type="text" data-f="prf" data-k="${k}" value="${esc(v)}" maxlength="${n}"></label>`,X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const rf=(i,k,lab,v,n,im)=>`<label>${lab}<input type="text" data-f="prr" data-i="${i}" data-k="${k}" value="${esc(v===undefined?'':v)}" maxlength="${n}"${im?` inputmode="${im}"`:''}></label>`;
+  return `<h2>${DN[prEd]} · Week ${prWk+1}</h2>
+  <div class="form"><label class="wide">Focus<select data-f="prf" data-k="f">${Object.entries(DTYPES).map(([k,n])=>`<option value="${k}"${k===d.f?' selected':''}>${n}</option>`).join('')}</select></label></div>
+  <div class="row"><button class="btn ghost small" data-a="proff">${d.off?'Turn this day back on':'No session this day'}</button></div>
+  ${d.off?'':`<h3>Warm-up (RAMP)</h3><div class="form">${inp('wur','Raise',d.wu.r,200)}${inp('wua','Activate/Mobilize',d.wu.a,200)}${inp('wup','Potentiate',d.wu.p,200)}</div>
+  ${['P','M','A','C'].map(k=>`<div class="sec"><div class="sechead"><h3>${PR_PART[k]}</h3>${d.r.length<15?`<button class="btn ghost small" data-a="pradd" data-sec="${k}">+ Add</button>`:''}</div>
+    ${d.r.map((r,i)=>({r,i})).filter(o=>o.r.p===k&&EX[o.r.id]).map(({r,i})=>`<div class="evcard"><div class="evhead"><b>${esc(EX[r.id].name)}</b>${i?`<button class="btn ghost small" data-a="prup" data-i="${i}" aria-label="Move up">↑</button>`:''}<button class="x" data-a="prrm" data-i="${i}" aria-label="Remove ${esc(EX[r.id].name)}">${X}</button></div>
+    <div class="form">${rf(i,'rx','Sets × reps or time',r.rx,30)}${rf(i,'rs','Rest',r.rs,12)}${rf(i,'rpe','RPE 1–10',r.rpe,2,'numeric')}${rf(i,'pct','% of max',r.pct,5,'decimal')}${['A','B','C'].map(g=>rf(i,'g'+g,g+' group',r.g&&r.g[g],24)).join('')}</div></div>`).join('')}</div>`).join('')}
+  <h3>Cool down</h3><div class="form">${inp('cd','Cool down',d.cd,200)}</div>`}
+  <div class="row"><button class="btn" data-a="prday" data-v="">Done</button></div>`}
+function prEdDay(){return S.prog&&prEd!==null?S.prog.w[prWk].d[prEd]:null}
+function prOpen(){prWk=Math.max(0,prWeekOf(today()));prEd=null;prArm='';prBody();document.getElementById('pgSheet').hidden=false}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,sh=document.getElementById('pgSheet');
   if(a==='propen')prOpen();
   else if(a==='pgclose')sh.hidden=true;
   else if(a==='prwk'){const n=+v;if(n>=0&&n<8){prWk=n;prBody()}}
   else if(a==='prgrp'){S.grp.g=['A','B','C'].includes(v)?v:'';save();prBody()}
   else if(a==='prtoday'){sh.hidden=true;S.tab='today';render()}
+  else if(a==='prnew'){if(S.prog&&prArm!=='new'){prArm='new';prBody();return}prArm='';S.prog=prBlank('',mkey(0));prWk=0;prEd=null;save();prBody()}
+  else if(!S.prog)return;
+  else if(a==='prday'){prEd=v===''||v===undefined?null:+v;prBody()}
+  else if(a==='pradd'){prPart=PR_PART[b.dataset.sec]?b.dataset.sec:'M';pickKind='prog';pickQ='';pickC='';
+    document.getElementById('pickBody').innerHTML=`<h2>Add to ${PR_PART[prPart]}</h2><input type="search" id="pickQ" data-f="pickq" placeholder="Search exercises" aria-label="Search exercises"><div class="chips cats" id="pickChips" role="group" aria-label="Filter by category">${chipsHtml('','pickcat')}</div><div id="pickList">${pickList()}</div><div class="row"><button class="btn ghost" data-a="closepick">Cancel</button></div>`;
+    document.getElementById('pickSheet').hidden=false}
+  else if(a==='prrm'||a==='prup'){const d=prEdDay(),i=+b.dataset.i;if(!d||!d.r[i])return;if(a==='prrm')d.r.splice(i,1);else if(i>0){const x=d.r[i];d.r[i]=d.r[i-1];d.r[i-1]=x}save();prBody()}
+  else if(a==='proff'){const d=prEdDay();if(d){d.off=!d.off;save();prBody()}}
+  else if(a==='prcopy'){if(prWk>0){S.prog.w[prWk].d=JSON.parse(JSON.stringify(S.prog.w[prWk-1].d));save();prBody()}}
+  else if(a==='prbump'){const n=parseInt(v,10);if(!n)return;S.prog.w[prWk].d.forEach(d=>d.r.forEach(r=>{if(r.pct)r.pct=Math.max(1,Math.min(120,Math.round((r.pct+n)*10)/10))}));save();prBody()}
+  else if(a==='prdl'){S.prog.w[prWk].dl=!S.prog.w[prWk].dl;save();prBody()}
 });
+document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if((f!=='prf'&&f!=='prr')||!S.prog)return;const k=t.dataset.k,cut=(x,n)=>x.replace(/[\u0000-\u001f]/g,' ').slice(0,n);
+  if(f==='prf'){if(k==='n'){S.prog.n=cut(t.value,60);save();return}if(k==='s'){if(/^\d{4}-\d\d-\d\d$/.test(t.value)){S.prog.s=t.value;save();prBody()}return}
+    const d=prEdDay();if(!d)return;if(k==='f'){if(DTYPES[t.value])d.f=t.value}else if(k==='cd')d.cd=cut(t.value,200);else if({wur:1,wua:1,wup:1}[k])d.wu[k[2]]=cut(t.value,200);save();return}
+  const d=prEdDay(),r=d&&d.r[+t.dataset.i];if(!r)return;const v=t.value.trim();
+  if(k==='rx')r.rx=cut(t.value,30);else if(k==='rs')r.rs=cut(t.value,12);
+  else if(k==='rpe'){const n=parseInt(v,10);if(!v)delete r.rpe;else if(n>=1&&n<=10&&String(n)===v)r.rpe=n;else return}
+  else if(k==='pct'){const n=parseFloat(v.replace(',','.'));if(!v)delete r.pct;else if(n>=1&&n<=120)r.pct=Math.round(n*10)/10;else return}
+  else if(/^g[ABC]$/.test(k)){r.g=r.g||{};const g=k[1],x=cut(v,24);if(x)r.g[g]=x;else delete r.g[g];if(!Object.keys(r.g).length)delete r.g}
+  save()});
+document.addEventListener('change',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prr')return;const d=prEdDay(),r=d&&d.r[+t.dataset.i],k=t.dataset.k;if(r&&(k==='rpe'||k==='pct'))t.value=r[k]===undefined?'':r[k]});
 document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prw0')return;const k=t.dataset.k,w=S.grp.w0,raw=t.value.trim();if(!['sh','bp','dl','rk'].includes(k))return;
   let v;if(k==='rk'){const m=/^(\d{1,2}):([0-5]\d)$/.exec(raw);v=m?+m[1]*60+ +m[2]:NaN}else v=parseFloat(raw.replace(',','.'));
   if(!raw)delete w[k];else if(v>0&&v<=10000){w[k]=v;if(k==='bp'||k==='dl')S.maxes[k==='bp'?'bench':'dl']={v:wRound(v*(1+5/30)),u:au(),d:today()}}else return;
