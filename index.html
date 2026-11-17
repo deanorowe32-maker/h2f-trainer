@@ -210,7 +210,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
 .gtbar{display:block;height:6px;margin-top:6px;border-radius:3px;background:color-mix(in srgb,var(--fg) 10%,transparent);overflow:hidden}.gtbar i{display:block;height:100%;background:var(--gold)}
 .gtwhy{margin:12px 0 0}.gtappr{margin:8px 0 0;font-weight:600}.gtmet{padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--gold) 20%,transparent)}
-.gtact{flex-wrap:wrap}.gtpast{margin-top:12px}.gtpast summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}.gtpast ul{list-style:none;margin:0;padding:0}.gtpast li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.gtact{flex-wrap:wrap}.gtcopy{width:100%;font:500 14px/1.4 var(--body);padding:10px;border:1px solid var(--line);border-radius:10px}
+.gtpast{margin-top:12px}.gtpast summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}.gtpast ul{list-style:none;margin:0;padding:0}.gtpast li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .cftclock{margin:12px 0;padding:16px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);text-align:center}
 #cftClock{font:800 48px/1 var(--display,var(--body));font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 #cftLeft{margin-top:6px;font:600 14px var(--body);opacity:.85}
@@ -941,6 +942,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="menuSheet" hidden style="z-index:74"><div class="panel" role="dialog" aria-label="Menu"><h2>H2F Trainer</h2><div class="menulist"><button type="button" data-a="hsopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/></svg>Add to Home Screen</button><button type="button" data-a="bkopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Backup</button><button type="button" data-a="sqopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c0-2.5 1.3-4.5 3-4.5s4 1.5 4 4.5"/></svg>Squad</button><button type="button" data-a="touropen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>App tour</button><button type="button" id="lockBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Lock app</button></div><div class="row"><button class="btn ghost" type="button" data-a="sheetclose">Close</button></div></div></div>
 <div class="sheet" id="moreSheet" hidden style="z-index:73"><div class="panel" role="dialog" aria-label="More"><h2>More</h2><div class="menulist" id="moreList"></div><div class="row"><button class="btn ghost" type="button" data-a="sheetclose">Close</button></div></div></div>
 
+<div class="sheet" id="gtShared" hidden style="z-index:72"><div class="panel" role="dialog" aria-label="Shared goal test"><div id="gtSharedBody"></div></div></div>
 <div class="sheet" id="pickSheet" hidden><div class="panel" role="dialog" aria-label="Add exercise"><div id="pickBody"></div></div></div>
 <div class="sheet" id="formSheet" hidden style="z-index:70"><div class="panel" role="dialog" aria-label="New exercise"><div id="formBody"></div></div></div>
 <div class="sheet" id="timerSheet" hidden style="z-index:55"><div class="panel" role="dialog" aria-label="Workout timer"><div id="timerBody"></div></div></div>
@@ -1914,6 +1916,7 @@ document.addEventListener('click',ev=>{
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
   else if(a==='focushide'){const f=focusPick();if(f){S.focus=S.focus||{};S.focus[mkey(S.week)+f.key]=1;save();render()}}
   else if(/^gt(new|edit|cancel|addev|rmev|save|logopen|log|done)$/.test(a)){gtAct(a,b)}
+  else if(a==='gtshare'||a==='gtcopy'||a==='gtadopt'){gtShareAct(a)}
   else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
@@ -3054,7 +3057,7 @@ document.addEventListener('click',ev=>{
 
 /* Keep the open tab in the address: Back goes to the previous tab instead of leaving the app */
 var hashReady=false;
-function hashSync(){try{if(!TABS.some(t=>t[0]===S.tab)||/^#ex=/.test(location.hash))return;const want='#'+S.tab;if(location.hash===want){hashReady=true;return}
+function hashSync(){try{if(!TABS.some(t=>t[0]===S.tab)||/^#(ex|gt)=/.test(location.hash))return;const want='#'+S.tab;if(location.hash===want){hashReady=true;return}
   if(!hashReady){location.replace(want);hashReady=true}else location.hash=want}catch(e){}}
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==S.tab){document.querySelectorAll('.sheet:not([hidden])').forEach(x=>x.hidden=true);FX.view=true;S.tab=h;render();scrollTo(0,0)}});
 render();
@@ -3346,6 +3349,30 @@ function gtLatest(t,i){for(let k=t.log.length-1;k>=0;k--){const v=t.log[k].v[i];
 function gtPct(ev,v){const span=ev.goal-ev.base;if(!span)return v===ev.goal?100:0;const f=(v-ev.base)/span;return Math.max(0,Math.min(100,Math.round(f*100)))}
 function gtHit(ev,v){return ev.m==='time'?v<=ev.goal:v>=ev.goal}
 function gtMet(t){return !!(t&&t.ev&&t.ev.length&&t.ev.every((e,i)=>gtHit(e,gtLatest(t,i))))}
+/* ---- goal test sharing: the test travels inside the link (#gt=), no server ---- */
+function gtClean(t){if(!t||typeof t!=='object'||!Array.isArray(t.ev))return null;const str=(x,n)=>typeof x==='string'?x.slice(0,n):'',dt=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\d$/.test(x)?x:'',num=x=>Number.isFinite(x)&&x>0&&x<1e7?x:null;
+  const ev=t.ev.slice(0,6).filter(e=>e&&typeof e==='object'&&GT_M[e.m]&&num(e.base)!==null&&num(e.goal)!==null&&str(e.name,60).trim()).map(e=>({name:str(e.name,60),exId:typeof e.exId==='string'&&EX[e.exId]?e.exId:null,m:e.m,unit:e.m==='distance'?(e.unit==='km'?'km':'mi'):'',note:str(e.note,60),base:e.base,goal:e.goal}));
+  if(!ev.length||ev.length!==Math.min(6,t.ev.length))return null;
+  const log=(Array.isArray(t.log)?t.log:[]).filter(l=>l&&dt(l.d)&&Array.isArray(l.v)).slice(-60).map(l=>({d:l.d,v:ev.map((e,i)=>num(l.v[i]))}));
+  return {id:str(t.id,24)||'g'+Date.now().toString(36),who:str(t.who,40),name:str(t.name,50)||'My goal test',why:str(t.why,200),due:dt(t.due),appr:{by:str(t.appr&&t.appr.by,40),d:dt(t.appr&&t.appr.d)},ev,log,done:dt(t.done)}}
+function gtCleanStore(o){const g={cur:null,past:[]};if(!o||typeof o!=='object')return g;g.cur=gtClean(o.cur);g.past=(Array.isArray(o.past)?o.past:[]).map(gtClean).filter(Boolean).slice(0,20);return g}
+function gtEnc(t){const b=new TextEncoder().encode(JSON.stringify({v:1,t:gtClean(t)}));let s='';b.forEach(c=>s+=String.fromCharCode(c));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function gtDec(code){try{const s=atob(code.replace(/-/g,'+').replace(/_/g,'/'));const o=JSON.parse(new TextDecoder().decode(Uint8Array.from(s,c=>c.charCodeAt(0))));return o&&o.v===1?gtClean(o.t):null}catch(e){return null}}
+function gtText(t){const dd=d=>d?fmt(new Date(d+'T12:00:00')):'';const L=[`Personal training goal: ${t.name}`];if(t.who)L.push(t.who);if(t.due)L.push('Target date: '+dd(t.due));L.push('');
+  t.ev.forEach((e,i)=>{const l=gtLatest(t,i);L.push(`${e.name}${e.note?' ('+e.note+')':''}: now ${gtFmt(e.m,e.base,e.unit)}, goal ${gtFmt(e.m,e.goal,e.unit)}${t.log.length?', latest '+gtFmt(e.m,l,e.unit)+(gtHit(e,l)?' (met)':''):''}`.replace(/ /g,' '))});
+  if(t.why)L.push('','Why: '+t.why);if(t.appr.by)L.push('Approved by '+t.appr.by+(t.appr.d?', '+dd(t.appr.d):''));return L.join('\n')}
+var gtShared=null;
+function gtFromLink(){try{const m=location.hash.match(/^#gt=([A-Za-z0-9_-]+)/);if(!m)return;const t=gtDec(m[1]);history.replaceState(null,'',location.pathname+location.search);if(!t)return;
+  gtShared=t;document.getElementById('gtSharedBody').innerHTML=`<h2>Shared goal test</h2>${gtSummaryHtml(t,true)}<p class="tag">${S.goal.cur?'Making this your goal test moves your current one to past goal tests.':'You can keep it as your own goal test and log retests against it.'}</p><div class="row"><button class="btn" data-a="gtadopt">Make this my goal test</button><button class="btn ghost" data-a="sheetclose">Close</button></div>`;
+  document.getElementById('gtShared').hidden=false}catch(e){}}
+function gtMsg(t){const m=document.getElementById('gtMsg');if(m){m.textContent=t;m.hidden=false}}
+function gtCopy(text,done){const fb=()=>{document.getElementById('gtSharedBody').innerHTML=`<h2>Copy this text</h2><textarea class="gtcopy" readonly rows="10">${esc(text)}</textarea><div class="row"><button class="btn ghost" data-a="sheetclose">Close</button></div>`;document.getElementById('gtShared').hidden=false;const ta=document.querySelector('.gtcopy');if(ta){ta.focus();ta.select()}};
+  try{navigator.clipboard.writeText(text).then(()=>gtMsg(done),fb)}catch(e){fb()}}
+function gtShareAct(a){const t=S.goal.cur;
+  if(a==='gtadopt'&&gtShared){if(S.goal.cur){S.goal.past.unshift(Object.assign(S.goal.cur,{done:S.goal.cur.done||today()}));S.goal.past=S.goal.past.slice(0,20)}S.goal.cur=Object.assign(gtShared,{id:'g'+Date.now().toString(36),done:''});gtShared=null;document.getElementById('gtShared').hidden=true;save();FX.view=true;S.tab='assess';render();const g=document.getElementById('gt');if(g)g.scrollIntoView({block:'center'});return}
+  if(!t)return;const site=xsSite(),link=site?`${site}#gt=${gtEnc(t)}`:'',text=gtText(t)+(link?`\n\nOpen it in H2F Trainer: ${link}`:'');
+  if(a==='gtshare'){if(navigator.share&&site)navigator.share({title:'Personal training goal: '+t.name,text}).catch(()=>{});else gtCopy(text,'Copied. Paste it into a message to your leader.')}
+  else if(a==='gtcopy')gtCopy(gtText(t),'Copied as text.')}
 var gtDraft=null,gtLogOpen=false,gtLogErr={};
 function gtBlankEv(){return {name:'',m:'reps',unit:'mi',note:'',base:'',goal:''}}
 function gtToDraft(t){return t?{id:t.id,who:t.who||'',name:t.name,why:t.why,due:t.due,by:t.appr.by,bd:t.appr.d,ev:t.ev.map(e=>({name:e.name,m:e.m,unit:e.unit||'mi',note:e.note,base:gtFmt(e.m,e.base,'').replace(/\u00a0.*$/,''),goal:gtFmt(e.m,e.goal,'').replace(/\u00a0.*$/,'')})),err:{}}
@@ -3393,7 +3420,7 @@ function gtLogHtml(){const t=S.goal.cur;return `<div class="gtlogf"><label>Retes
 function gtHtml(){const t=S.goal.cur,past=S.goal.past;let body;
   if(gtDraft)body=gtEditorHtml();
   else if(!t)body=`<p class="tag">Build your own test as a training goal: pick up to six events, write down where you are now and where you want to be, then show it to your leader and retest until you get there.</p><div class="row"><button class="btn" data-a="gtnew">Build my goal test</button></div>`;
-  else body=`${gtSummaryHtml(t)}${gtLogOpen?gtLogHtml():''}<div class="row gtact">${gtLogOpen?'':'<button class="btn" data-a="gtlogopen">Log a retest</button>'}<button class="btn ghost" data-a="gtshare">Share with my leader</button><button class="btn ghost" data-a="gtcopy">Copy as text</button><button class="btn ghost" data-a="gtedit">Edit</button><button class="btn ghost" data-a="gtdone">${gtMet(t)?'Finish':'End this goal test'}</button></div>`;
+  else body=`${gtSummaryHtml(t)}${gtLogOpen?gtLogHtml():''}<div class="row gtact">${gtLogOpen?'':'<button class="btn" data-a="gtlogopen">Log a retest</button>'}<button class="btn ghost" data-a="gtshare">Share with my leader</button><button class="btn ghost" data-a="gtcopy">Copy as text</button><button class="btn ghost" data-a="gtedit">Edit</button><button class="btn ghost" data-a="gtdone">${gtMet(t)?'Finish':'End this goal test'}</button></div><p class="tag" id="gtMsg" role="status" hidden></p>`;
   const ph=past.length?`<details class="gtpast"><summary>Past goal tests (${past.length})</summary><ul>${past.map(p=>`<li><b>${esc(p.name)}</b><span>${gtMet(p)?'Goal met':'Ended'}${p.done?', '+fmt(new Date(p.done+'T12:00:00')):''}</span></li>`).join('')}</ul></details>`:'';
   return `<section class="gt" id="gt"><h3 style="margin-top:26px">My goal test</h3>${body}${ph}</section>`}
 function gtAct(a,b){const T=S.goal;
@@ -3693,7 +3720,7 @@ document.addEventListener('click',ev=>{
 document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;
   if(f==='xsin'){const o=xsParse(t.value);if(o&&o.ex.length){XS.items=o.ex;XS.src=o.from;const val=t.value;document.getElementById('cmBody').innerHTML=xsRecvHtml();cmMsg(`Found ${o.ex.length} exercise${o.ex.length===1?'':'s'}. Check ${o.ex.length===1?'it':'them'} below, then add.`,false)}
     else if(t.value.trim().length>20)cmMsg('That does not look like a shared exercise. Paste the whole message, including the part that starts with H2FEX1.',true);else cmMsg('',false)}});
-addEventListener('hashchange',xsFromLink);setTimeout(xsFromLink,300);
+addEventListener('hashchange',xsFromLink);setTimeout(xsFromLink,300);addEventListener('hashchange',gtFromLink);setTimeout(gtFromLink,300);
 
 
 
