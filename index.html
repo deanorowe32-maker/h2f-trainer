@@ -974,6 +974,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="sqSheet" hidden style="z-index:77"><div class="panel" role="dialog" aria-label="Squad"><div id="sqBody"></div></div></div>
 <div class="sheet" id="tourSheet" hidden style="z-index:78"><div class="panel" role="dialog" aria-label="App tour"><div id="tourBody"></div></div></div>
 <div class="sheet" id="hsSheet" hidden style="z-index:76"><div class="panel" role="dialog" aria-label="Help"><div id="hsBody"></div></div></div>
+<div class="sheet" id="pgSheet" hidden style="z-index:48"><div class="panel" role="dialog" aria-label="Platoon program"><div id="prBody"></div></div></div>
 <div class="sheet" id="ciSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Circuit"><div id="ciBody" aria-live="polite"></div></div></div>
 <div class="sheet" id="stSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Stations"><div id="stBody"></div></div></div>
 <div class="sheet" id="cmSheet" hidden style="z-index:57"><div class="panel" role="dialog" aria-label="Share exercises"><div id="cmBody"></div></div></div>
@@ -1816,7 +1817,7 @@ function viewTrain(){
   </details>
   <div id="wkout">${listFor('train')}</div>
   <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
-  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
+  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="propen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg>Platoon program</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
 
 function injForm(j,q,n){
   const s=j||'';
@@ -4091,6 +4092,41 @@ function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)r
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
   <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
+var prWk=0;
+function prSplit(v){return v>0?Math.floor(v/60)+':'+String(Math.round(v%60)).padStart(2,'0'):''}
+function prDayHtml(d){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
+  return `${L.length?`<div class="tdsec">Warm-up (RAMP)</div>${L.map(x=>`<p class="tag" style="margin:2px 0"><b>${x[0]}:</b> ${esc(x[1])}</p>`).join('')}`:''}
+  ${['P','M','A','C'].map(k=>{const rs=d.r.filter(r=>r.p===k&&EX[r.id]);return rs.length?`<div class="tdsec">${PR_PART[k]}</div>`+rs.map(r=>{const ld=prLoad(r),bits=[r.rx,r.rs?'rest '+r.rs:'',r.rpe?'RPE '+r.rpe:''].filter(Boolean);
+    return `<div class="item"><button class="nm" data-a="info" data-v="${r.id}">${esc(EX[r.id].name)}<small>${esc(bits.join(' · '))}</small></button>${ld?`<span class="rxv">${esc(ld)}</span>`:''}</div>`}).join(''):''}).join('')}
+  ${d.cd?`<div class="tdsec">Cool down</div><p class="tag" style="margin:2px 0">${esc(d.cd)}</p>`:''}`}
+function prGrpHtml(){const g=S.grp,w=g.w0,sg=grpSuggest(w),f=(k,lab,v)=>`<label>${lab}<input type="text" inputmode="${k==='rk'?'text':'decimal'}" autocomplete="off" data-f="prw0" data-k="${k}" value="${esc(v)}" placeholder="${k==='rk'?'mm:ss':''}"></label>`;
+  return `<h3 style="margin-top:18px">My group</h3><p class="tag">Your leader's program lists weights or times for A, B and C groups. Pick yours, or enter your Week 0 results to get a suggestion.</p>
+  <div class="chips" role="group" aria-label="My group">${['A','B','C',''].map(k=>`<button class="chip" aria-pressed="${g.g===k}" data-a="prgrp" data-v="${k}">${k?k+' group':'None'}</button>`).join('')}</div>
+  <div class="form">${f('sh','300 yd shuttle, seconds',w.sh||'')}${f('bp','Bench 5RM, '+au(),w.bp||'')}${f('dl','Deadlift 5RM, '+au(),w.dl||'')}${f('rk','Ruck 1-mile split',prSplit(w.rk))}</div>
+  <div id="prSug">${prSugHtml(sg)}</div>`}
+function prSugHtml(sg){return sg?`<p class="tag">Suggested: ${sg} group${S.grp.g!==sg?` <button class="btn ghost small" data-a="prgrp" data-v="${sg}">Use ${sg}</button>`:''}</p>`:''}
+function prBody(){const b=document.getElementById('prBody');if(!b)return;const P=S.prog;
+  if(!P){b.innerHTML=`<h2>Platoon program</h2><p class="tag">An 8-week training block your leader builds and sends to the platoon. It sits next to your own plan and never changes it.</p>
+    <div class="row"><button class="btn" data-a="prpaste">Paste a program from your leader</button><button class="btn ghost" data-a="prnew">Build a program</button></div>${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`;return}
+  const cw=prWeekOf(today()),W=P.w[prWk];
+  b.innerHTML=`<h2>${esc(P.n||'Platoon program')}</h2><p class="tag">${P.fr?'From '+esc(P.fr)+' · ':''}${cw>=0?`This week is Week ${cw+1} of 8`:`Week 1 starts ${esc(fmt(new Date(P.s+'T12:00:00')))}`}</p>
+  <div class="chips" role="group" aria-label="Week">${P.w.map((w,i)=>`<button class="chip" aria-pressed="${i===prWk}" data-a="prwk" data-v="${i}">W${i+1}${w.dl?' Deload':''}</button>`).join('')}</div>
+  <h3>Week ${prWk+1} of 8${W.dl?' · Deload':''}</h3>
+  ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
+  ${prDayAt(today())?`<div class="row"><button class="btn" data-a="prtoday">Start today's session</button></div>`:''}
+  ${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`}
+function prOpen(){prWk=Math.max(0,prWeekOf(today()));prBody();document.getElementById('pgSheet').hidden=false}
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,sh=document.getElementById('pgSheet');
+  if(a==='propen')prOpen();
+  else if(a==='pgclose')sh.hidden=true;
+  else if(a==='prwk'){const n=+v;if(n>=0&&n<8){prWk=n;prBody()}}
+  else if(a==='prgrp'){S.grp.g=['A','B','C'].includes(v)?v:'';save();prBody()}
+  else if(a==='prtoday'){sh.hidden=true;S.tab='today';render()}
+});
+document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prw0')return;const k=t.dataset.k,w=S.grp.w0,raw=t.value.trim();if(!['sh','bp','dl','rk'].includes(k))return;
+  let v;if(k==='rk'){const m=/^(\d{1,2}):([0-5]\d)$/.exec(raw);v=m?+m[1]*60+ +m[2]:NaN}else v=parseFloat(raw.replace(',','.'));
+  if(!raw)delete w[k];else if(v>0&&v<=10000){w[k]=v;if(k==='bp'||k==='dl')S.maxes[k==='bp'?'bench':'dl']={v:wRound(v*(1+5/30)),u:au(),d:today()}}else return;
+  save();const sg=document.getElementById('prSug');if(sg)sg.innerHTML=prSugHtml(grpSuggest(w))});
 function ciBtn(){const b=document.getElementById('ciOpenBtn');if(b&&b.lastChild)b.lastChild.textContent=CI.started&&!CI.done?'Open circuit timer':'Circuit'}
 function ciBuild(){const b=document.getElementById('ciBody');if(!b)return;const c=ciCfgOf('q'),f=(k,lab)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="q" value="${c[k]}"></label>`;
   b.innerHTML=`<h2>Circuit</h2><p class="tag">Build a quick circuit: pick the exercises, choose timed or reps, and go. To plan a circuit on a training day, use Edit day, then Workout format.</p>

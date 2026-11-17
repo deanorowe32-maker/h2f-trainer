@@ -106,7 +106,7 @@
 
 **Files:**
 - Modify: `index.html`:
-  - a new `#prSheet` beside `#ciSheet`;
+  - a new `#pgSheet` beside `#ciSheet`;
   - a tools-list button after `#ciOpenBtn`;
   - a new click and input handler block after the circuit handlers.
 - Test: `tests/program_test.py` (Task 2 section).
@@ -120,7 +120,7 @@
   - `prDayHtml(day) -> string`, which shows the warm-up, rows grouped by part with `rx · rest · RPE n` and the `prLoad` line, and the cool down. Today reuses it in Task 5.
 - Actions:
   - `data-a="propen"`: the tools button, label "Platoon program".
-  - `prwk` (data-v week index), `prgrp` (data-v A/B/C/''), `prclose`.
+  - `prwk` (data-v week index), `prgrp` (data-v A/B/C/''), `pgclose`.
   - `prtoday`: "Start today's session". Closes the sheet and goes to Today. Shown only when `prDayAt(today())`.
 - Input `data-f="prw0"` with `data-k` in `sh|bp|dl|rk`:
   - updates `S.grp.w0`;
