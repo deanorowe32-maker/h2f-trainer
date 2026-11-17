@@ -1742,6 +1742,8 @@ var CI={started:false,done:false,on:false,ph:[],idx:0,acc:0,start:0,ctx:null,wk:
 function isCiW(w,i){return !!(w&&(w.types[i]==='upper'||w.types[i]==='lower')&&w.fmt&&w.fmt[i]==='c')}
 function isCi(i){return isCiW(S,i)}
 function ciIds(w,i){return (w.plan[i]||[]).filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)==='M').map(it=>it.id)}
+function ciQClean(o){const c=ciClean(o);c.ids=(o&&Array.isArray(o.ids)?o.ids:[]).filter(id=>typeof id==='string'&&EX[id]).slice(0,12);return c}
+function ciCfgOf(d){if(d==='q'){if(!S.circuit||!Array.isArray(S.circuit.ids))S.circuit=ciQClean(null);return S.circuit}return dayCiCfg(+d)}
 function dayCiCfg(i){if(!S.dcir[i])S.dcir[i]=ciClean(null);return S.dcir[i]}
 function ciW(w,i){return w.plan===S.plan?dayCiCfg(i):ciClean(w.dcir&&w.dcir[i])}
 function ciRep(c,id){return c.reps[id]||10}
@@ -1788,7 +1790,7 @@ function viewTrain(){
   </details>
   <div id="wkout">${listFor('train')}</div>
   <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
-  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
+  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
 
 function injForm(j,q,n){
   const s=j||'';
@@ -2125,6 +2127,7 @@ document.addEventListener('click',ev=>{
   else if(a==='closeinfo')document.getElementById('infoSheet').hidden=true;
   else if(a==='closepick')document.getElementById('pickSheet').hidden=true;
   else if(a==='pick'&&pickKind==='station'){const c=stCfg(),arr=c.st[stCtx.s];if(arr){arr[stCtx.i]=v;c.st[stCtx.s]=arr.filter(x=>x).slice(0,ST_MAXE)}save();document.getElementById('pickSheet').hidden=true;stBody()}
+  else if(a==='pick'&&pickKind==='circuit'){const c=ciCfgOf('q');if(c.ids.length<12&&EX[v])c.ids.push(v);save();document.getElementById('pickSheet').hidden=true;ciBuild()}
   else if(a==='pick'&&pickKind==='assess'){if(addEvent(v)){b.textContent='Added ✓';render()}else b.textContent='Already added'}
   else if(a==='pick'){const arr=pickKind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];arr.push(pickKind==='train'?{id:v,rx:RXC[EX[v].cat],s:pickSec}:{id:v,rx:RXC[EX[v].cat]});render();b.textContent='Added ✓'}
   else if(a==='barea')bodySel(v);
@@ -2164,6 +2167,7 @@ const LIFTS={bench:'Bench press',bsq:'Back squat',dl:'Deadlift'};
 S.assess=S.assess||{ev:[],log:[],unit:'lb'};
 S.maxes=S.maxes&&typeof S.maxes==='object'&&!Array.isArray(S.maxes)?S.maxes:{};
 S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
+S.circuit=S.circuit?ciQClean(S.circuit):null;
 S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
 S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
@@ -3539,7 +3543,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -3594,6 +3598,7 @@ function cleanBackup(raw){
     const ds=Array.isArray(w.dst)&&w.dst.length===5?w.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}}):[null,null,null,null,null];
     out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,dcir:fm.map((f,i)=>f==='c'?ciClean(Array.isArray(w.dcir)?w.dcir[i]:null):null),from:null,note:w.note==='Lighter week'?w.note:undefined}})}
   if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'||x==='c'?x:'n');
+  if(o.circuit&&typeof o.circuit==='object')out.circuit=ciQClean(o.circuit);
   if(Array.isArray(o.dcir)&&o.dcir.length===5)out.dcir=o.dcir.map(d=>d?ciClean(d):null);
   if(Array.isArray(o.dst)&&o.dst.length===5)out.dst=o.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}});
   if(o.journal&&typeof o.journal==='object'&&Array.isArray(o.journal.entries)){
@@ -3634,6 +3639,7 @@ function applyBackup(c){
   if(c.curKey){S.curKey=c.curKey;S.week=wkOff(c.curKey);if(S.week<0)wkGo(0)}
   if(c.dst)S.dst=c.dst;
   if(c.dcir)S.dcir=c.dcir;
+  if(c.circuit)S.circuit=c.circuit;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
@@ -4053,8 +4059,18 @@ function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)r
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
   <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
+function ciBtn(){const b=document.getElementById('ciOpenBtn');if(b&&b.lastChild)b.lastChild.textContent=CI.started&&!CI.done?'Open circuit timer':'Circuit'}
+function ciBuild(){const b=document.getElementById('ciBody');if(!b)return;const c=ciCfgOf('q'),f=(k,lab)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="q" value="${c[k]}"></label>`;
+  b.innerHTML=`<h2>Circuit</h2><p class="tag">Build a quick circuit: pick the exercises, choose timed or reps, and go. To plan a circuit on a training day, use Edit day, then Workout format.</p>
+  <div class="chips" role="group" aria-label="Circuit type"><button class="chip" aria-pressed="${c.mode==='t'}" data-a="cimode" data-v="t" data-d="q">Timed</button><button class="chip" aria-pressed="${c.mode==='r'}" data-a="cimode" data-v="r" data-d="q">Reps</button></div>
+  <div class="form">${c.mode==='t'?f('work','Work seconds')+f('rest','Rest seconds'):''}${f('rounds','Rounds')}${f('rrest','Rest between rounds, seconds')}</div>
+  <h3>Exercises, in order</h3>
+  ${c.ids.length?c.ids.map((id,i)=>`<div class="item"><button class="nm" data-a="info" data-v="${id}">${i+1}. ${esc(EX[id].name)}</button>${c.mode==='r'?`<label class="wtbox"><input type="text" inputmode="numeric" autocomplete="off" data-f="cirep" data-v="${id}" data-d="q" value="${ciRep(c,id)}" aria-label="Reps of ${esc(EX[id].name)}"><span>reps</span></label>`:''}<button class="x" data-a="cirm" data-i="${i}" aria-label="Remove ${esc(EX[id].name)}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`).join(''):'<div class="empty">No exercises yet. Add some or fill with random picks.</div>'}
+  <div class="row">${c.ids.length<12?'<button class="btn ghost" data-a="ciadd">+ Add exercise</button>':''}<button class="btn ghost" data-a="cishuf">Fill with random picks</button></div>
+  ${c.ids.length?`<p class="tag" id="ciSumq">${esc(ciLine(c,c.ids.length))}</p>`:''}
+  <div class="row">${c.ids.length?'<button class="btn" data-a="ciopen" data-d="q">Start circuit</button>':''}<button class="btn ghost" data-a="ciclose">Close</button></div>`}
 function ciNext(){CI.idx++;CI.acc=0;CI.start=Date.now();CI.arm=false;
-  if(CI.idx>=CI.ph.length){CI.idx=CI.ph.length-1;CI.done=true;CI.on=false;lockScreen(false);beep();setTimeout(beep,600);ciBuzz([200,100,200])}else{beep();ciBuzz(200)}
+  if(CI.idx>=CI.ph.length){CI.idx=CI.ph.length-1;CI.done=true;CI.on=false;lockScreen(false);ciBtn();beep();setTimeout(beep,600);ciBuzz([200,100,200])}else{beep();ciBuzz(200)}
   ciBody()}
 function ciTick(){if(!CI.started||CI.done||!CI.on)return;const p=CI.ph[CI.idx];if(p.s===null)return;
   if(ciEl()>=p.s*1000){ciNext();return}
@@ -4062,21 +4078,29 @@ function ciTick(){if(!CI.started||CI.done||!CI.on)return;const p=CI.ph[CI.idx];i
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,sh=document.getElementById('ciSheet');
-  if(a==='ciopen'){if(!(CI.started&&!CI.done)){const i=+b.dataset.d,w=b.dataset.w==='0'?wkData(0):S;if(!w||!(i>=0&&i<5))return;const ids=ciIds(w,i);if(!ids.length)return;const c=ciW(w,i);
+  if(a==='ciopen'){if(!(CI.started&&!CI.done)){const q=b.dataset.d==='q',i=q?null:+b.dataset.d,w=b.dataset.w==='0'?wkData(0):S;if(!q&&(!w||!(i>=0&&i<5)))return;const c=q?ciCfgOf('q'):ciW(w,i),ids=q?c.ids.filter(id=>EX[id]):ciIds(w,i);if(!ids.length)return;
       CI={started:true,done:false,on:true,ph:ciPhases(c,ids),idx:0,acc:0,start:Date.now(),ctx:i,wk:b.dataset.w==='0'?0:S.week,arm:false,tick:CI.tick,n:ids.length,rounds:c.rounds};
-      if(!CI.tick)CI.tick=setInterval(ciTick,250);lockScreen(true);beep()}
+      if(!CI.tick)CI.tick=setInterval(ciTick,250);lockScreen(true);beep();ciBtn()}
     sh.hidden=false;ciBody()}
-  else if(a==='cimode'){const c=dayCiCfg(+b.dataset.d);c.mode=b.dataset.v==='r'?'r':'t';save();render()}
+  else if(a==='cibuild'){if(CI.started&&!CI.done)ciBody();else{CI.started=false;ciBuild()}sh.hidden=false}
+  else if(a==='ciclose'){sh.hidden=true}
+  else if(a==='ciadd'){pickKind='circuit';pickQ='';pickC='';
+    document.getElementById('pickBody').innerHTML=`<h2>Add to circuit</h2><input type="search" id="pickQ" data-f="pickq" placeholder="Search exercises" aria-label="Search exercises"><div class="chips cats" id="pickChips" role="group" aria-label="Filter by category">${chipsHtml('','pickcat')}</div><div id="pickList">${pickList()}</div><div class="row"><button class="btn ghost" data-a="closepick">Cancel</button></div>`;
+    document.getElementById('pickSheet').hidden=false}
+  else if(a==='cirm'){ciCfgOf('q').ids.splice(+b.dataset.i,1);save();ciBuild()}
+  else if(a==='cishuf'){const pool=Object.values(EX).filter(e=>['bodyweight','dumbbell','kettlebell','plyo','unilateral','conditioning'].includes(e.cat)).map(e=>e.id);
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}ciCfgOf('q').ids=pool.slice(0,6);save();ciBuild()}
+  else if(a==='cimode'){const q=b.dataset.d==='q',c=ciCfgOf(b.dataset.d);c.mode=b.dataset.v==='r'?'r':'t';save();if(q)ciBuild();else render()}
   else if(a==='cigo'){if(CI.on){CI.acc+=Date.now()-CI.start;CI.on=false;lockScreen(false)}else{CI.start=Date.now();CI.on=true;lockScreen(true)}CI.arm=false;ciBody()}
   else if(a==='ciskip'||a==='cinext'){if(CI.started&&!CI.done)ciNext()}
   else if(a==='cistop'){if(CI.started&&!CI.done&&!CI.arm){CI.arm=true;ciBody();return}
-    CI.started=false;CI.on=false;CI.arm=false;lockScreen(false);sh.hidden=true;render()}
+    const q=CI.ctx===null;CI.started=false;CI.on=false;CI.arm=false;lockScreen(false);ciBtn();if(q){ciBuild()}else{sh.hidden=true;render()}}
   else if(a==='tddone'&&!sh.hidden){sh.hidden=true;CI.started=false}
 });
-document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if(f!=='ci'&&f!=='cirep')return;const d=+t.dataset.d;if(!(d>=0&&d<5))return;const c=dayCiCfg(d),v=parseInt(t.value,10);
+document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if(f!=='ci'&&f!=='cirep')return;const d=t.dataset.d==='q'?'q':+t.dataset.d;if(d!=='q'&&!(d>=0&&d<5))return;const c=ciCfgOf(d),v=parseInt(t.value,10);
   if(f==='ci'){const k=t.dataset.k;if(!['work','rest','rounds','rrest'].includes(k))return;if(ciClean(Object.assign({},c,{[k]:v}))[k]===v)c[k]=v}
   else if(v>=1&&v<=200)c.reps[t.dataset.v]=v;
-  save();const sm=document.getElementById('ciSum'+d);if(sm)sm.textContent=ciLine(c,ciIds(S,d).length)});
+  save();const sm=document.getElementById('ciSum'+d);if(sm)sm.textContent=ciLine(c,d==='q'?c.ids.length:ciIds(S,d).length)});
 document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset.f==='stmin'){const m=parseInt(t.value,10);if(m>=1&&m<=60){stCfg().mins=m;save();const bt=document.querySelector('[data-a=ststart]');if(bt)bt.textContent='Start · '+m*stN()+' min total'}}});
 
 
