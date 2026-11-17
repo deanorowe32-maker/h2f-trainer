@@ -2121,7 +2121,7 @@ if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey
 S.week=wkOff(S.curKey);
 if(S.week<0)wkGo(0);
 S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.goal=Object.assign({cur:null,past:[]},S.goal||{});S.ch=chClean(S.ch);S.sg=sgClean(S.sg);S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
-S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1},S.squad.inc||{});
+S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1,ch:1},S.squad.inc||{});
 S.sleep=S.sleep||{wake:'06:00',checks:{date:'',v:[]}};
 S.sleep.log=S.sleep.log||{};S.sleep.meta=S.sleep.meta||{};
 if(S.sleep.checks.date!==today())S.sleep.checks={date:today(),v:[]};
@@ -2604,7 +2604,7 @@ function aftUpd(){const e=document.getElementById('aftRes');if(e)e.innerHTML=aft
 
 /* Squad sharing: a Soldier makes a summary code and sends it; a leader pastes codes into a roster. Nothing leaves the phone unless the Soldier copies and sends the code. */
 var sqMode='me',sqArm='',sqMsg='';
-const SQ_INC=[['tr','Training'],['sl','Sleep'],['nu','Nutrition'],['aft','AFT score'],['rb','Ribbons']];
+const SQ_INC=[['tr','Training'],['sl','Sleep'],['nu','Nutrition'],['aft','AFT score'],['rb','Ribbons'],['ch','Challenges']];
 function sqMake(){
   const Q=S.squad,o={v:1,n:(Q.name||'').trim().slice(0,40),id:'',d:today()};
   if(Q.inc.tr){const lim=Date.now()-7*864e5,hs=(S.hist||[]).filter(x=>x.ts>=lim);o.tr={c:hs.length}}
@@ -2612,6 +2612,8 @@ function sqMake(){
   if(Q.inc.nu){const d=nuWeek(),lg=d.filter(x=>x.n),wl=d.filter(x=>x.w>0);o.nu={n:lg.length,k:lg.length?Math.round(lg.reduce((s,x)=>s+x.t.k,0)/lg.length):0,p:lg.length?Math.round(lg.reduce((s,x)=>s+x.t.p,0)/lg.length):0,w:wl.length?Math.round(wl.reduce((s,x)=>s+x.w,0)/wl.length*10)/10:0}}
   if(Q.inc.aft&&S.aft.hist.length){const e=S.aft.hist[0];o.aft={t:e.t,ok:aftPass(e)?1:0,s:e.std,d:e.d}}
   if(Q.inc.rb)o.rb=rbPack();
+  if(Q.inc.ch){const t=today(),st=chState(t);let dd=0;for(let i=0;i<7;i++){const d=chDk(chMs(t)-i*864e5),k=chDayKey(d);if(chLevel((S.ch.log[d]||{})[k]||0,CH_BY[k].d)>=1)dd++}
+    o.ch={dd,wk:st.week.k,wt:Math.round(st.week.total*10)/10,wl:st.week.lvl,ml:st.month.lvl}}
   return o}
 function sqClean(o){
   if(!o||typeof o!=='object'||o.v!==1)return null;
@@ -2622,6 +2624,7 @@ function sqClean(o){
   if(o.sl&&typeof o.sl==='object')c.sl={n:Math.round(num(o.sl.n,7)),a:num(o.sl.a,24),r:num(o.sl.r,5)};
   if(o.nu&&typeof o.nu==='object')c.nu={n:Math.round(num(o.nu.n,7)),k:Math.round(num(o.nu.k,20000)),p:Math.round(num(o.nu.p,2000)),w:num(o.nu.w,30)};
   {const r=rbCleanList(o.rb);if(r)c.rb=r}
+  if(o.ch&&typeof o.ch==='object'){const ch=o.ch,lv=x=>[0,1,2,3].includes(x)?x:0;c.ch={dd:Math.round(Math.min(7,num(ch.dd,1e9))),wk:typeof ch.wk==='string'&&CH.some(x=>x.k===ch.wk)?ch.wk:'',wt:num(ch.wt,100000),wl:lv(ch.wl),ml:lv(ch.ml)}}
   if(o.aft&&typeof o.aft==='object'&&dt(o.aft.d))c.aft={t:Math.round(num(o.aft.t,500)),ok:o.aft.ok?1:0,s:o.aft.s==='c'?'c':'g',d:dt(o.aft.d)};
   return c}
 function sqLines(m){const L=[];
@@ -2630,6 +2633,7 @@ function sqLines(m){const L=[];
   if(m.nu)L.push(m.nu.n?`Nutrition: ${m.nu.k} kcal and ${m.nu.p} g protein a day over ${m.nu.n} day${m.nu.n===1?'':'s'}${m.nu.w?', water '+m.nu.w+' cups':''}`:'Nutrition: nothing logged'+(m.nu.w?', water '+m.nu.w+' cups':''));
   if(m.aft)L.push(`AFT: ${m.aft.t} points, ${m.aft.ok?'pass':'fail'}, ${m.aft.s==='c'?'combat':'general'} standard (${jrLabel(m.aft.d)})`);
   if(m.rb)L.push(`Ribbons: ${m.rb.length} earned`);
+  if(m.ch)L.push(`Challenges: ${m.ch.dd} of 7 dailies done${m.ch.wk?`, weekly ${CH_BY[m.ch.wk].name} ${chNum(CH_BY[m.ch.wk].u,m.ch.wt)}${chUnit(CH_BY[m.ch.wk].u)}${m.ch.wl?' ('+CH_LV[m.ch.wl]+')':''}`:''}${m.ch.ml?', month at '+CH_LV[m.ch.ml]:''}`);
   return L}
 function sqCode(){return 'H2FSQ1:'+JSON.stringify(sqMake())}
 /* Roll-up dashboard: totals from the leader's own roster plus roll-up codes pasted from subordinate units. Roll-up codes carry counts and sums only, never names. */
@@ -2767,8 +2771,15 @@ function sqHtml(){
   <textarea id="sqIn" rows="3" style="width:100%;box-sizing:border-box;font:12px var(--mono)" placeholder="Paste a code that starts with H2FSQ1:" aria-label="Paste summary code"></textarea>
   ${sqMsg?`<div class="note warn">${esc(sqMsg)}</div>`:''}
   <div class="row"><button class="btn" data-a="sqadd">Add to my squad</button>${ms.length?'<button class="btn ghost" data-a="print" data-k="sq">Print roster</button>':''}<button class="btn ghost" data-a="sqclose">Close</button></div>
-  ${ms.length?ms.map(m=>`<details class="cmx" open><summary><b>${esc(m.n)}${m.id?' · ID '+m.id:''}</b><small>Summary from ${esc(jrLabel(m.d))}</small></summary><div style="margin:6px 0 10px">${sqLines(m).filter(x=>!/^Ribbons:/.test(x)).map(esc).join('<br>')||(m.rb?'':'No details shared.')}${rbMini(m)}</div><div class="row" style="margin:0"><button class="btn ghost" data-a="sqrm" data-v="${esc(m.k)}">${sqArm===m.k?'Tap again to remove':'Remove'}</button></div></details>`).join(''):'<div class="empty">No Soldiers yet. Ask them to open Squad, copy their summary code, and send it to you.</div>'}
+  ${sqBoardHtml()}${ms.length?ms.map(m=>`<details class="cmx" open><summary><b>${esc(m.n)}${m.id?' · ID '+m.id:''}</b><small>Summary from ${esc(jrLabel(m.d))}</small></summary><div style="margin:6px 0 10px">${sqLines(m).filter(x=>!/^Ribbons:/.test(x)).map(esc).join('<br>')||(m.rb?'':'No details shared.')}${rbMini(m)}</div><div class="row" style="margin:0"><button class="btn ghost" data-a="sqrm" data-v="${esc(m.k)}">${sqArm===m.k?'Tap again to remove':'Remove'}</button></div></details>`).join(''):'<div class="empty">No Soldiers yet. Ask them to open Squad, copy their summary code, and send it to you.</div>'}
   <div class="note">Keep this roster private. It holds personal health information that Soldiers chose to share with you.</div>`}
+/* Squad challenge board: this week's summaries only, ranked by dailies done, then weekly level, then weekly total */
+function sqBoard(){const ws=chWeekStart(today());let old=0;const rows=S.squad.members.filter(m=>m.ch).filter(m=>{if(chWeekStart(m.d)!==ws){old++;return false}return true})
+  .sort((a,b)=>b.ch.dd-a.ch.dd||b.ch.wl-a.ch.wl||b.ch.wt-a.ch.wt||(a.n<b.n?-1:1));return {rows,old,ws}}
+function sqBoardText(){const B=sqBoard(),wk=CH_BY[chWeekKey(today())];return [`Squad challenge standings, week of ${jrLabel(B.ws)} (weekly: ${wk.name})`].concat(B.rows.map((m,i)=>`${i+1}. ${m.n}: ${m.ch.dd} of 7 dailies${m.ch.wl?', weekly '+CH_LV[m.ch.wl]:''}`)).join('\n')}
+function sqBoardHtml(){const B=sqBoard();if(!B.rows.length&&!B.old)return '';
+  return `<section class="sqboard"><h3>Squad challenge board</h3>${B.rows.length?`<table class="ptable"><thead><tr><th>#</th><th>Soldier</th><th>Dailies</th><th>Weekly</th></tr></thead><tbody>${B.rows.map((m,i)=>`<tr><td>${i+1}</td><td>${esc(m.n)}</td><td>${m.ch.dd} of 7</td><td>${m.ch.wl?CH_LV[m.ch.wl]:'–'}</td></tr>`).join('')}</tbody></table>
+  <div class="row"><button type="button" class="btn ghost" data-a="sqboardcopy">Copy standings</button></div>`:'<p class="tag">No summaries from this week yet.</p>'}${B.old?`<p class="tag">${B.old} older summar${B.old===1?'y':'ies'} left out. Ask for this week's code.</p>`:''}</section>`}
 function sqCut(raw,tag){const i=raw.indexOf(tag);if(i<0)return '';const s=raw.slice(i+tag.length),a=s.indexOf('{'),z=s.lastIndexOf('}');return a===0&&z>0?s.slice(0,z+1):''}
 function sqMsgText(pt){const ta=document.getElementById(pt?'ptCode':'sqCode'),who=(S.squad.name||'').trim(),subj=sqSubj(pt);
   return subj+(pt?'. Open H2F Trainer, tap Squad, then PT plan, and paste this whole message:':'. In H2F Trainer, tap Squad, then My squad, and paste this whole message:')+'\n\n'+(ta?ta.value:'')}
@@ -3995,6 +4006,7 @@ document.addEventListener('click',ev=>{
     if(!curHit&&multi){const off=wkOff(c.k);if(off>=0){wkGo(off);S.ptPrev=null}}
     const wd=(new Date().getDay()+6)%7;S.day=wd<5?wd:0;S.tab='train';ptPend=null;ptArm=false;document.getElementById('sqSheet').hidden=true;save();render();window.scrollTo(0,0);return}
   if(a==='ptundo'){const pv=S.ptPrev;if(!pv)return;S.types=pv.types;S.plan=pv.plan.map(d=>d.filter(i=>EX[i.id]));if(pv.fmt)S.fmt=pv.fmt;if(pv.dst)S.dst=pv.dst;S.ptFrom=pv.from||null;if(pv.wk)Object.entries(pv.wk).forEach(([k,w])=>{if(w)S.weeks[k]=w;else delete S.weeks[k]});S.ptPrev=null;save();render();return}
+  if(a==='sqboardcopy'){gtCopy(sqBoardText());return}
   if(a==='sqinc'){S.squad.inc[v]=S.squad.inc[v]?0:1;save();sqShow();return}
   if(a==='sqcopy'&&v!=='ptCode'){S.rb.tally.sq[today()]=1;save()}
   if(a==='sqcopy'){const pt=v==='ptCode',ta=document.getElementById(pt?'ptCode':'sqCode'),msg=document.getElementById('sqSendMsg');if(!ta)return;
