@@ -7,9 +7,9 @@ Holistic Health and Fitness (H2F) trainer for Soldiers: weekly PT plans, AFT sco
 - **Readiness:** log sleep, meals, water, mood and reflections, with trends and evidence-based tips.
 - **Challenges:** a new exercise challenge every day, a weekly total, a monthly miles-and-lift challenge, plus 10 holiday workouts from New Year to Christmas, all on the Today screen.
 - **Ribbons:** earn 108 fictional ribbons for real habits, with stars each time you earn one again.
-- **Unit:** send a weekly summary code to your squad leader, and leaders can roll up their whole unit. No accounts and no server are needed.
+- **Unit:** join your leader's live squad with a join code and your weekly summary reaches them on its own, or send a summary code by hand. Leaders can roll up their whole unit. No accounts.
 
-Your data stays on your phone. It works offline, and it installs like an app from the browser.
+Your data stays on your phone. If you join a live squad, only the summary you choose is sent, and only your leader can read it. It works offline, and it installs like an app from the browser.
 
 ## Deploy
 
