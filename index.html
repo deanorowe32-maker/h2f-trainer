@@ -217,6 +217,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 @media print{body.sgp>*:not(#sgPrint){display:none!important}body.sgp>#sgPrint{display:block!important;color:#000;background:#fff;font:12px/1.4 sans-serif}#sgPrint table{width:100%;border-collapse:collapse}#sgPrint th,#sgPrint td{border:1px solid #000;padding:4px;text-align:left;vertical-align:top}}
 .aftneed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.aftneed h4{margin:0 0 6px;font:700 16px var(--body)}
 .coach{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}.coach h3{margin:0 0 4px}.coachtip{padding:10px 0;border-top:1px solid var(--line)}.coachtip:first-of-type{border-top:0}.coachtip b{display:block;font:700 16px var(--body)}.coachtip p{margin:2px 0 8px}.coachtip .btn{min-height:40px}.coachnote{margin:4px 0 0}
+.heatflag.hf1[aria-pressed=true]{background:#fff;color:#13261c;border-color:#13261c}.heatflag.hf2[aria-pressed=true]{background:#2f7d3a;color:#fff}.heatflag.hf3[aria-pressed=true]{background:#e8c22a;color:#13261c}.heatflag.hf4[aria-pressed=true]{background:#b3261e;color:#fff}.heatflag.hf5[aria-pressed=true]{background:#111;color:#fff}
 .tdbk{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--gold);border-radius:var(--r);background:var(--surface)}.tdbk h3{margin:0 0 4px}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -2156,7 +2157,7 @@ S.spirit=S.spirit||{values:[],log:{}};
 /* one spiritual journal: older daily reflection notes move into the journal as dated entries (runs on every load, so restored old backups move too) */
 function spMigrate(){if(!S.spirit||!S.spirit.log||!S.journal)return;Object.keys(S.spirit.log).sort().forEach(d=>{const v=S.spirit.log[d],t=typeof v==='string'?v.trim():'';
   if(t&&/^\d{4}-\d\d-\d\d$/.test(d)&&!S.journal.entries.some(e=>e.k==='spirit'&&e.d===d&&e.t===t))S.journal.entries.push({id:'jm'+d.replace(/-/g,''),d,k:'spirit',t:t.slice(0,5000)})});S.spirit.log={}}
-function spDays(){const D=new Set();Object.entries((S.spirit&&S.spirit.log)||{}).forEach(([k,v])=>{if(v&&String(v).trim())D.add(k)});((S.journal&&S.journal.entries)||[]).forEach(e=>{if(e.k==='spirit'&&e.d)D.add(e.d)});return D}
+function spDays(){const D=new Set();Object.entries((S.spirit&&S.spirit.log)||{}).forEach(([k,v])=>{if(v&&String(v).trim())D.add(k)});((S.journal&&S.journal.entries)||[]).forEach(e=>{if(e.k==='spirit'&&e.d)D.add(e.d)});const va=S.spirit&&S.spirit.va;if(va){(va.hist||[]).concat(va.cur?[va.cur]:[]).forEach(x=>{if(x&&x.done)D.add(x.done)})}return D}
 spMigrate();
 S.breath=S.breath||'box';
 /* ===== Ribbons ===== */
@@ -2976,6 +2977,20 @@ function nuWeekHtml(){
   ${days.some(x=>x.w>0)?nuChart(days.map(x=>[x.k,x.w]),mx([8,...days.map(x=>x.w)]),8,'Water (cups)','cups','Goal'):''}
   <h3 style="margin-top:16px">How to improve</h3>${nuTips(days).map(x=>`<p style="margin:6px 0">• ${esc(x)}</p>`).join('')}`}
 
+/* Heat category water guide: TB MED 507, 12 April 2022, Table 1 (training up to 4 continuous hours). w[i] = [work/rest minutes, water quarts per hour] for easy, moderate, heavy, very heavy work */
+var HEAT=[{flag:'White',wbgt:'78–81.9°F',w:[['NL','½'],['NL','¾'],['40/20','¾'],['20/40','1']]},{flag:'Green',wbgt:'82–84.9°F',w:[['NL','½'],['NL','¾'],['30/30','1'],['15/45','1']]},
+ {flag:'Yellow',wbgt:'85–87.9°F',w:[['NL','¾'],['NL','¾'],['30/30','1'],['10/50','1']]},{flag:'Red',wbgt:'88–89.9°F',w:[['NL','¾'],['50/10','¾'],['20/40','1'],['10/50','1']]},{flag:'Black',wbgt:'90°F and up',w:[['NL','1'],['20/40','1'],['15/45','1'],['10/50','1']]}];
+var HEAT_WORK=[['Easy','weapons maintenance, marksmanship, drill and ceremony'],['Moderate','patrolling with a 30 lb load, crawls, digging a fighting position'],['Heavy','patrolling with a 45 lb load, 4-person litter carry, jogging at 4 mph'],['Very heavy','2-person litter carry, moving under direct fire, obstacle course']];
+var HEAT_L={'½':'0.47','¾':'0.71','1':'0.95'};
+function heatHtml(){const H=S.heat||{c:0,w:0},h=HEAT[H.c-1],wk=HEAT_WORK[H.w]||HEAT_WORK[0];
+  const res=h?(()=>{const [wr,q]=h.w[H.w];return `<b>Drink ${q} quart (${HEAT_L[q]} L) an hour.</b><br>${wr==='NL'?'No limit on work time.':`Work ${wr.split('/')[0]} min, rest ${wr.split('/')[1]} min each hour.`}`})():'Pick the heat category flag that is flying.';
+  return `<div id="heatGuide"><h3 style="margin-top:20px">Heat category water guide</h3><p class="tag">For training in the heat, up to 4 hours. Pick the flag and how hard you're working.</p>
+  <div class="chips" role="group" aria-label="Heat category">${HEAT.map((x,i)=>`<button class="chip heatflag hf${i+1}" data-a="heatcat" data-v="${i+1}" aria-pressed="${H.c===i+1}">${i+1} ${x.flag}</button>`).join('')}</div>
+  <div class="chips" role="group" aria-label="Work level" style="margin-top:6px">${HEAT_WORK.map((x,i)=>`<button class="chip" data-a="heatwork" data-v="${i}" aria-pressed="${H.w===i}">${x[0]}</button>`).join('')}</div>
+  <p class="tag" style="margin:6px 0 0">${esc(wk[0])} work: ${esc(wk[1])}.</p>
+  <div class="res" id="heatRes" aria-live="polite" style="margin-top:8px">${h?`<span class="tag">Category ${H.c}, ${h.flag} flag (WBGT ${h.wbgt})</span><br>`:''}${res}</div>
+  <ul class="tips"><li>Never more than 1½ quarts an hour or 12 quarts a day. Too much water is dangerous too.</li><li>MOPP 4: add 10°F to the WBGT for easy work, 20°F for moderate and heavy. Body armor: add 5°F.</li><li>Eat your meals: they replace the salt you sweat out.</li><li>Headache, nausea, dizziness, cramps or clumsiness: stop, get to shade and tell your leader or medic. Confusion is an emergency.</li><li>Your unit's posted guidance and your leaders' instructions come first.</li></ul>
+  <p class="tag">Source: <a href="https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43608-TB_MED_507-001-WEB-2.pdf" target="_blank" rel="noopener">TB MED 507, Heat Stress Control and Heat Casualty Management (12 April 2022)</a>, Table 1.</p></div>`}
 function viewNut(){
   const t=S.types[S.day],f=FUEL[t],n=S.hyd.n,goal=8;
   return `<h2>Nutrition</h2>
@@ -2986,6 +3001,7 @@ function viewNut(){
   <div class="counter"><button class="iconbtn" data-a="hyd" data-v="-1" aria-label="Remove one cup"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button><div class="big" id="hydN">${n}</div><button class="iconbtn" data-a="hyd" data-v="1" aria-label="Add one cup"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span class="tag">cups · goal ${goal}</span></div>
   <div class="cups" id="cups">${Array.from({length:Math.max(goal,n)},(_,i)=>`<i class="cup${i<n?' on':''}${i===FX.cup?' pop':''}"></i>`).join('')}</div>
   <div class="note">One cup is 8 oz (about 240 ml). Eight cups is a starting point: drink more in heat, at altitude and on long sessions, but no more than 1.5 quarts (6 cups) an hour or 12 quarts a day. Pale yellow urine means you are drinking enough.</div>
+  ${heatHtml()}
   <h3 style="margin-top:20px">Daily protein range</h3>
   <div class="form"><label>Body weight<input type="text" inputmode="decimal" id="nutWt" data-f="wt" value="${esc(S.nut.wt)}" placeholder="e.g. 180" autocomplete="off"></label>
   <label>Unit<select id="nutUnit" data-f="unit"><option value="lb"${S.nut.unit==='lb'?' selected':''}>lb</option><option value="kg"${S.nut.unit==='kg'?' selected':''}>kg</option></select></label></div>
@@ -3114,6 +3130,7 @@ function viewMind(){
   <p>A two-minute check-in to build a positive, steady mindset.</p>
   <h3>How are you today?</h3>
   <div class="chips mood5" role="group" aria-label="Mood">${MOODS.map((m,i)=>`<button class="chip" aria-pressed="${e.mood===i}" data-a="mood" data-v="${i}">${m}</button>`).join('')}</div>
+  ${e.mood>=0&&e.mood<=1?`<p class="tag" style="margin-top:10px">Rough day. You don't have to handle it alone.</p>${supportHtml('Talk to someone')}`:''}
   <h3 style="margin-top:16px">Three good things from today</h3>
   <p class="tag">Write down three things that went well and why. In a well-known study, doing this nightly for one week lifted happiness for six months.</p>
   <div class="form">${[0,1,2].map(i=>`<label class="wide">${i+1}<input type="text" id="gr${i}" data-f="gr" data-i="${i}" value="${esc(e.g[i]||'')}" maxlength="120" autocomplete="off"></label>`).join('')}</div>
@@ -3125,7 +3142,7 @@ function viewMind(){
   <h3 style="margin-top:12px">When a thought is stuck</h3>
   <ul class="tips">${REFRAME.map(x=>`<li>${x}</li>`).join('')}</ul>
   ${jrHtml('mind')}
-  <div class="note">If low mood or stress is affecting your life, talk to a chaplain, behavioral health provider or someone you trust. In the US, call 988 and press 1 for the Veterans and Military Crisis Line, or text 838255. Someone answers 24/7.</div>
+  ${e.mood>=0&&e.mood<=1?'':supportHtml('Talk to someone')}
   ${srcHtml([['Three good things','https://ggia.berkeley.edu/practice/three-good-things','Greater Good Science Center, based on Seligman et al., 2005'],
     ['Box breathing and long-exhale breathing under stress','https://www.psypost.org/brief-breathing-exercises-blunt-the-body-s-physical-reaction-to-acute-stress/','Summary of a randomized study'],
     ['Veterans and Military Crisis Line: 988, press 1','https://www.veteranscrisisline.net/about/988','Department of Veterans Affairs']])}`}
@@ -3150,15 +3167,35 @@ function huddleHtml(){
     </ul>
     <div class="row" style="margin-bottom:0"><button class="btn ghost" id="hudNext" data-a="hudnext">Show another question</button></div>
   </div>`}
-function spiritHelpHtml(){
-  return `<h3 style="margin-top:22px">Support</h3>
+function spiritHelpHtml(){return supportHtml('Support')}
+function supportHtml(head){
+  return `<h3 style="margin-top:22px">${head}</h3>
   <div class="cards">
     <div class="evcard" style="margin:0"><b>Unit chaplain</b><p style="margin:4px 0 0">Confidential spiritual support for Soldiers of every belief, including none. Ask your chain of command or staff duty for the duty chaplain after hours.</p></div>
+    <div class="evcard" style="margin:0"><b>Behavioral health</b><p style="margin:4px 0 0">Ask your unit medic, PA or primary care team for a behavioral health appointment. Many installations offer walk-in care.</p></div>
     <div class="evcard" style="margin:0"><b>Military OneSource</b><p style="margin:4px 0 0">Confidential counseling and help with everyday problems, 24 hours a day.</p><p class="res" style="margin:6px 0 0">800-342-9647</p><p style="margin:6px 0 0"><a href="https://www.militaryonesource.mil/resources/tools/international-calling-options/" target="_blank" rel="noopener">How to dial from overseas</a></p></div>
     <div class="evcard" style="margin:0;border-color:var(--warn);background:var(--warn-bg)"><b>Military Crisis Line</b><p style="margin:4px 0 0">Free and confidential, 24 hours a day, for any service member or Veteran.</p>
-      <p class="res" style="margin:6px 0 0">In the US: dial 988, then press 1<br>Text: 838255<br>Europe, off base: +1 844-702-5495<br>Pacific, off base: +1 844-702-5493<br>On base overseas: DSN 988</p>
+      <p class="res" style="margin:6px 0 0">In the US: dial 988, then press 1<br>Text: 838255<br>Europe, off base: +1 844-702-5495<br>Pacific, off base: +1 844-702-5493<br>Southwest Asia, off base: +1 855-422-7719<br>On base overseas: DSN 988</p><p style="margin:6px 0 0">In an emergency, call 911 or the local emergency number (112 in Europe).</p>
       <p style="margin:6px 0 0"><a href="https://www.veteranscrisisline.net/get-help-now/military-crisis-line/" target="_blank" rel="noopener">Online chat and numbers for other regions</a></p></div>
   </div>`}
+/* Live a value this week: turn one chosen value into a small action, tick it off; a done week counts as a spirit check-in */
+var VA_IDEAS={Faith:'Set aside ten quiet minutes for prayer, reading or reflection',Family:'Call or video chat with family without your phone in your other hand',Service:'Do one task for the team that nobody asked you to do',Integrity:'Own a mistake out loud before anyone else finds it',Courage:'Have the hard conversation you have been putting off',Loyalty:'Check in on a teammate who is having a rough stretch',Gratitude:'Thank someone by name for something specific',Discipline:'Keep one promise to yourself every day this week',Humility:'Ask a junior Soldier for their advice and use it',Compassion:'Notice someone struggling and offer real help',Honor:'Do the right thing when no one is watching, and do it all week',Growth:'Learn one new skill or read one chapter on your craft',Community:'Show up for a unit, chapel or local event',Peace:'Step away from one argument and come back calm',Purpose:'Write one sentence on why you serve and read it every morning',Respect:'Thank someone by name and listen without interrupting'};
+let vaPick='';
+function vaRoll(){const A=S.spirit.va=S.spirit.va||{cur:null,hist:[]};if(A.cur&&A.cur.wk!==chWeekStart(today())){A.hist.unshift(A.cur);A.hist=A.hist.slice(0,104);A.cur=null}return A}
+function vaHtml(){const v=S.spirit.values,A=vaRoll(),done=A.hist.filter(x=>x.done).length+(A.cur&&A.cur.done?1:0);
+  let body;
+  if(!v.length)body='<p class="tag">Pick up to three values above, then turn one into an action this week.</p>';
+  else if(A.cur)body=`<div class="res"><span class="tag">This week · ${esc(A.cur.v)}</span><br><b>${esc(A.cur.t)}</b></div>${A.cur.done?`<p class="tag"><b>✓ Done on ${esc(jrLabel(A.cur.done))}.</b> A new value comes up Monday.</p>`:`<div class="row"><button type="button" class="btn" data-a="vadone">Done</button><button type="button" class="btn ghost" data-a="vaclear">Change it</button></div>`}`;
+  else{const pk=v.includes(vaPick)?vaPick:v[0];body=`<p class="tag">Pick one of your values and one small action you'll do this week.</p><div class="chips" role="group" aria-label="Value for this week">${v.map(x=>`<button class="chip" data-a="vapick" data-v="${esc(x)}" aria-pressed="${x===pk}">${esc(x)}</button>`).join('')}</div>
+    <div class="form"><label class="wide">This week I will<input class="nin" id="vaTxt" maxlength="120" autocomplete="off" placeholder="${esc(VA_IDEAS[pk]||'')}"></label></div><div class="row"><button type="button" class="btn" data-a="vaset">Commit</button></div>`}
+  return `<section id="vaSec"><h3 style="margin-top:20px">Live a value this week</h3>${body}${done?`<p class="tag">${done} week${done===1?'':'s'} lived so far.</p>`:''}</section>`}
+function vaAct(a,v){const A=vaRoll();
+  if(a==='vapick'){vaPick=v;render();return}
+  if(a==='vaset'){const pk=S.spirit.values.includes(vaPick)?vaPick:S.spirit.values[0];if(!pk)return;const el=document.getElementById('vaTxt'),t=(el&&el.value.trim())||VA_IDEAS[pk]||'';A.cur={wk:chWeekStart(today()),v:pk,t:t.slice(0,120),done:''};save();render();return}
+  if(a==='vadone'&&A.cur){A.cur.done=today();save();render();return}
+  if(a==='vaclear'&&A.cur&&!A.cur.done){vaPick=A.cur.v;A.cur=null;save();render()}}
+function vaClean(o){const ok=x=>x&&typeof x==='object'&&/^\d{4}-\d\d-\d\d$/.test(x.wk)&&VALUES.includes(x.v)&&typeof x.t==='string',m=x=>({wk:x.wk,v:x.v,t:x.t.slice(0,120),done:typeof x.done==='string'&&/^\d{4}-\d\d-\d\d$/.test(x.done)?x.done:''});
+  if(!o||typeof o!=='object')return {cur:null,hist:[]};return {cur:ok(o.cur)?m(o.cur):null,hist:(Array.isArray(o.hist)?o.hist:[]).filter(ok).map(m).slice(0,104)}}
 function viewSpirit(){
   const v=S.spirit.values;
   return `<h2>Spirit</h2>
@@ -3166,6 +3203,7 @@ function viewSpirit(){
   <h3>My top three values</h3>
   <div class="chips" role="group" aria-label="Values">${VALUES.map(x=>`<button class="chip" aria-pressed="${v.includes(x)}" data-a="val" data-v="${x}">${x}</button>`).join('')}</div>
   <div class="tag">${v.length}/3 chosen</div>
+  ${vaHtml()}
   ${jrHtml('spirit')}
   ${huddleHtml()}
   ${spiritHelpHtml()}`}
@@ -3471,7 +3509,7 @@ function cleanBackup(raw){
   if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object')mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s}});out.sleepMeta=mt}
   if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg}}
   out.rb=rbClean(o.rb);
-  if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg}}
+  if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)}}
   return out;
 }
 function applyBackup(c){
@@ -4014,6 +4052,8 @@ document.addEventListener('click',ev=>{
     if(S.nut.meals.length>=600){er.textContent='You have 600 entries. Delete or print some old ones first.';er.hidden=false;return}
     S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m:MEALS.includes(m)?m:'Snack',t:txt,k:Math.round(k),p:Math.round(pp),c:Math.round(cc),f:Math.round(ff)});save();render();return}
   if(a==='nudel'){if(nuArm!==v){nuArm=v;render()}else{S.nut.meals=S.nut.meals.filter(x=>x.id!==v);nuArm='';save();render()}return}
+  if(/^va(pick|set|done|clear)$/.test(a)){vaAct(a,v);return}
+  if(a==='heatcat'||a==='heatwork'){S.heat=S.heat||{c:0,w:0};S.heat[a==='heatcat'?'c':'w']=+v;save();render();return}
   if(a==='bknow'){bkMark();const txt=makeBackup(),card=document.getElementById('bkRemind'),ok=()=>{if(card)card.innerHTML='<h3>Backup code copied ✓</h3><p class="tag">Paste it into a note or an email to yourself now. To restore, open Unit, Backup, then Restore.</p>'};
     try{navigator.clipboard.writeText(txt).then(ok,()=>{gtCopy(txt);if(card)card.remove()})}catch(e){gtCopy(txt);if(card)card.remove()}return}
   if(a==='bklater'){try{localStorage.setItem('h2f.bkLater',today())}catch(e){}render();return}
