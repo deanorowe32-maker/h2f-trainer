@@ -210,6 +210,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
 .chcard{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .chsum{margin:2px 0 0;font:500 14px var(--body);color:var(--muted)}
+.aftneed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.aftneed h4{margin:0 0 6px;font:700 16px var(--body)}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .chtop small{font:700 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.chtop b,.chlink{font:700 16px var(--body);color:var(--fg)}
@@ -2519,6 +2520,18 @@ function aftScore(){
   AFT_EV.forEach(([k])=>{const v=aftVal(k,A.in[k]);if(isNaN(v)){r.push(null);p.push(null);all=false}else{r.push(v);p.push(aftPts(k,g,fem,v))}});
   const t=p.reduce((s,x)=>s+(x||0),0),min=A.std==='c'?350:300;
   return {g,fem,r,p,t,all,min,pass:all&&t>=min&&p.every(x=>x>=60)}}
+/* "What do I need?": lift every event to 60, then raise the lowest event one table step at a time until the total reaches the goal */
+function aftPlan(s,goal){const p=s.p.map(x=>x||0),cols=AFT_EV.map(([k])=>aftCol(k,s.g,s.fem)),up=(i,v)=>{let n=null;for(let j=0;j<cols[i].length;j+=2){const q=cols[i][j];if(q>v&&(n===null||q<n))n=q}return n};
+  const t0=p.reduce((a,b)=>a+b,0);if(t0>=goal&&p.every(x=>x>=60)&&s.all)return {p,r:s.r,t:t0,done:true};
+  p.forEach((x,i)=>{if(x<60){let v=x;while(v<60){const n=up(i,v);if(n===null)break;v=n}p[i]=v}});
+  let t=p.reduce((a,b)=>a+b,0);
+  while(t<goal){let best=-1;p.forEach((x,i)=>{if(up(i,x)!==null&&(best<0||x<p[best]))best=i});if(best<0)break;const n=up(best,p[best]);t+=n-p[best];p[best]=n}
+  const r=AFT_EV.map(([k],i)=>s.r[i]!==null&&s.p[i]>=p[i]?s.r[i]:aftNeed(k,s.g,s.fem,p[i]));return {p,r,t,done:false}}
+function aftNeedHtml(s){if(s.p.every(x=>x===null))return '';const goal=S.aft.goal||s.min,pl=aftPlan(s,goal);
+  const chips=[300,350,400,450,500].map(v=>`<button type="button" class="chip" data-a="aftgoal" data-v="${v}" aria-pressed="${v===goal}">${v}</button>`).join('');
+  return `<div class="aftneed"><h4>What do I need?</h4><div class="chmd">${chips}</div>${pl.done?`<p class="tag">You're already at ${goal} or above. Pick a higher goal.</p>`:`
+  <table class="ptable"><thead><tr><th>Event</th><th>Now</th><th>Need</th></tr></thead><tbody>${AFT_EV.map(([k,n],i)=>`<tr><td>${n}</td><td>${s.p[i]===null?'–':s.p[i]}</td><td>${pl.p[i]>(s.p[i]||0)?`<b>${pl.p[i]}</b><br><small>${aftShow(k,pl.r[i])}</small>`:'Keep it'}</td></tr>`).join('')}</tbody></table>
+  <p class="tag">One way to reach ${goal}: every event at 60 or more, then extra points on your lowest events first. That's usually where points come cheapest.</p>`}</div>`}
 function aftPass(e){return e.t>=(e.std==='c'?350:300)&&e.p.every(x=>x>=60)}
 function aftResHtml(){
   const A=S.aft,s=aftScore();
@@ -2529,7 +2542,7 @@ function aftResHtml(){
   const verdict=!s.all?`<span class="tag">Enter all five events for a pass or fail result.</span>`:s.pass?`<b style="color:var(--accent)">PASS</b> <span class="tag">${s.t} of ${s.min} needed, every event at 60 or more</span>`:`<b style="color:var(--warn)">FAIL</b> <span class="tag">${s.t<s.min?`${s.min-s.t} points short of ${s.min}`:''}${s.t<s.min&&s.p.some(x=>x<60)?' and ':''}${s.p.some(x=>x<60)?'an event is under 60':''}</span>`;
   return `<div class="res"><b style="font:700 34px var(--display)">${s.t}</b> <span class="tag">of 500 points${s.all?'':' so far'}</span><br>${verdict}</div>
   <table class="ptable"><thead><tr><th>Event</th><th>Result</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table>
-  ${s.all?'<div class="row"><button class="btn ghost" data-a="aftsave">Save to AFT history</button></div>':''}`}
+  ${s.all?'<div class="row"><button class="btn ghost" data-a="aftsave">Save to AFT history</button></div>':''}${aftNeedHtml(s)}`}
 function aftHtml(){
   const A=S.aft;
   return `<h3>AFT score calculator</h3>
@@ -3906,6 +3919,7 @@ document.addEventListener('click',ev=>{
     if(S.nut.meals.length>=600){er.textContent='You have 600 entries. Delete or print some old ones first.';er.hidden=false;return}
     S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m:MEALS.includes(m)?m:'Snack',t:txt,k:Math.round(k),p:Math.round(pp),c:Math.round(cc),f:Math.round(ff)});save();render();return}
   if(a==='nudel'){if(nuArm!==v){nuArm=v;render()}else{S.nut.meals=S.nut.meals.filter(x=>x.id!==v);nuArm='';save();render()}return}
+  if(a==='aftgoal'){S.aft.goal=+v;save();aftUpd();return}
   if(a==='aftsave'){const s=aftScore();if(!s||!s.all)return;S.aft.hist.unshift({id:'f'+Date.now().toString(36),d:today(),age:parseInt(S.aft.age,10),sex:S.aft.sex==='f'?'f':'m',std:S.aft.std==='c'?'c':'g',r:s.r,p:s.p,t:s.t});S.aft.hist=S.aft.hist.slice(0,100);save();render();return}
   if(a==='aftdel'){if(aftArm!==v){aftArm=v;render()}else{S.aft.hist=S.aft.hist.filter(x=>x.id!==v);aftArm='';save();render()}return}
   if(a==='sqopen'){sqMsg='';sqArm='';ptMsg='';ptArm=false;if(v==='pt')sqMode='pt';sqShow();return}
