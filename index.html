@@ -376,6 +376,7 @@ ol.steps li::marker{font-weight:700;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;margin:8px 0 8px}
 .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:8px;vertical-align:-1px}
 .stclock{font:700 72px/1 var(--display);text-align:center;margin:8px 0}
+.ciph{font:700 28px/1.1 var(--display);text-align:center;margin-top:10px;text-transform:uppercase;letter-spacing:.04em}.ciph.rest{opacity:.7}.cinm{text-align:center;margin:6px 0 0}
 .stbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 12px}
 .stbar i{display:block;height:100%;background:var(--sage-text);transition:width .3s linear}
 .tmbig{font:700 78px/1 var(--display);text-align:center;letter-spacing:-.01em;margin:8px 0 4px}
@@ -973,6 +974,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="sqSheet" hidden style="z-index:77"><div class="panel" role="dialog" aria-label="Squad"><div id="sqBody"></div></div></div>
 <div class="sheet" id="tourSheet" hidden style="z-index:78"><div class="panel" role="dialog" aria-label="App tour"><div id="tourBody"></div></div></div>
 <div class="sheet" id="hsSheet" hidden style="z-index:76"><div class="panel" role="dialog" aria-label="Help"><div id="hsBody"></div></div></div>
+<div class="sheet" id="ciSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Circuit"><div id="ciBody" aria-live="polite"></div></div></div>
 <div class="sheet" id="stSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Stations"><div id="stBody"></div></div></div>
 <div class="sheet" id="cmSheet" hidden style="z-index:57"><div class="panel" role="dialog" aria-label="Share exercises"><div id="cmBody"></div></div></div>
 <div class="sheet" id="rbSheet" hidden style="z-index:80"><div class="panel" role="dialog" aria-label="Ribbon"><div id="rbBody"></div></div></div>
@@ -1632,6 +1634,7 @@ function viewToday(){
   const W=wkData(0);
   if(wd<5&&!W)work=`<div class="tdbig">Not planned</div><p>This week has no plan yet.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Plan this week</button></div>`;
   else if(wd<5){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),done=items.filter(it=>it.done).length,names=items.filter(it=>(it.s||EX[it.id].sec)==='M').slice(0,3).map(it=>EX[it.id].name);
+    if(isCiW(W,wd)){const c=ciW(W,wd),n=ciIds(W,wd).length;work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} circuit</div><p>Circuit: ${esc(ciLine(c,n))}.</p><div class="row">${n?`<button class="btn" data-a="ciopen" data-d="${wd}" data-w="0">${CI.started&&!CI.done?'Open circuit':'Start circuit'}</button>`:''}<button class="btn${n?' ghost':''}" data-a="tdgo" data-v="train">Open today's workout</button></div>`}else
     if(isStW(W,wd)){const c=dstW(W,wd);work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} stations</div><p>${c.st.length} station${c.st.length===1?'':'s'} of ${c.mins} minutes, ${c.st.length*c.mins} minutes total.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}else
     work=`<div class="tdbig">${esc(DTYPES[W.types[wd]]||'Training')}</div><p>${items.length} exercise${items.length===1?'':'s'}${done?`, ${done} done`:''}${names.length?'. Main work: '+names.map(esc).join(', ')+(items.filter(it=>(it.s||EX[it.id].sec)==='M').length>3?' and more':''):''}.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}
   else work=`<div class="tdbig">Rest day</div><p>No session is planned for the weekend. Recover, stretch, or open your week to plan ahead.</p><div class="row"><button class="btn ghost" data-a="tdgo" data-v="train">Open my week</button></div>`;
@@ -1696,8 +1699,15 @@ function listFor(kind){
   const arr=kind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];
   if(!arr.length&&kind==='pt')return '<div class="empty">No exercises on this day yet. Add one below.</div>';
   if(kind==='pt')return arr.map((it,i)=>itemRow(kind,it,i)).join('');
-  const stDayOn=isSt(S.day);
-  return ['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`}).join('')}
+  const stDayOn=isSt(S.day),ciOn=isCi(S.day);
+  return ['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')}
+function dayCiHtml(i){const c=dayCiCfg(i),ids=ciIds(S,i),f=(k,lab,u)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="${i}" value="${c[k]}" aria-label="${lab} in ${u}"></label>`;
+  return `<div class="sec cicard"><div class="sechead"><h3>Circuit</h3></div>
+  <p class="tag">Do the main exercises above in order, one after another, then repeat for each round.</p>
+  <div class="chips" role="group" aria-label="Circuit type"><button class="chip" aria-pressed="${c.mode==='t'}" data-a="cimode" data-v="t" data-d="${i}">Timed</button><button class="chip" aria-pressed="${c.mode==='r'}" data-a="cimode" data-v="r" data-d="${i}">Reps</button></div>
+  <div class="form">${c.mode==='t'?f('work','Work seconds','seconds')+f('rest','Rest seconds','seconds'):''}${f('rounds','Rounds','rounds')}${f('rrest','Rest between rounds, seconds','seconds')}</div>
+  ${c.mode==='r'?(ids.length?ids.map(id=>`<div class="item"><button class="nm" data-a="info" data-v="${id}">${esc(EX[id].name)}</button><label class="wtbox"><input type="text" inputmode="numeric" autocomplete="off" data-f="cirep" data-v="${id}" data-d="${i}" value="${ciRep(c,id)}" aria-label="Reps of ${esc(EX[id].name)}"><span>reps</span></label></div>`).join(''):''):''}
+  ${ids.length?`<p class="tag" id="ciSum${i}">${esc(ciLine(c,ids.length))}</p><div class="row"><button class="btn" data-a="ciopen" data-d="${i}">${CI.started&&!CI.done?'Open circuit':'Start circuit'}</button></div>`:'<div class="empty">Add main exercises above to build the circuit.</div>'}</div>`}
 
 
 let histArm=false;
@@ -1715,15 +1725,29 @@ function histHtml(){
 const DSHORT={aerobic:'Aero',anaerobic:'Anaer',upper:'Upper',lower:'Lower',stretch:'Stretch'};
 function mkey(off){const d=monday(off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function wkOff(k){return Math.round((new Date(k+'T12:00:00')-monday(0))/6048e5)}
-function wkPack(){return {types:S.types.slice(),plan:JSON.parse(JSON.stringify(S.plan)),fmt:S.fmt.slice(),dst:JSON.parse(JSON.stringify(S.dst)),from:S.ptFrom||null}}
-function wkUnpack(w){S.types=w.types.slice();S.plan=w.plan.map(d=>(d||[]).filter(i=>EX[i.id]));S.fmt=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.slice():['n','n','n','n','n'];S.dst=Array.isArray(w.dst)&&w.dst.length===5?w.dst:[null,null,null,null,null];S.ptFrom=w.from||null}
-function wkData(off){if(off===S.week)return {types:S.types,plan:S.plan,fmt:S.fmt,dst:S.dst};return S.weeks[mkey(off)]||null}
+function wkPack(){return {types:S.types.slice(),plan:JSON.parse(JSON.stringify(S.plan)),fmt:S.fmt.slice(),dst:JSON.parse(JSON.stringify(S.dst)),dcir:JSON.parse(JSON.stringify(S.dcir)),from:S.ptFrom||null}}
+function wkUnpack(w){S.types=w.types.slice();S.plan=w.plan.map(d=>(d||[]).filter(i=>EX[i.id]));S.fmt=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.slice():['n','n','n','n','n'];S.dst=Array.isArray(w.dst)&&w.dst.length===5?w.dst:[null,null,null,null,null];S.dcir=Array.isArray(w.dcir)&&w.dcir.length===5?w.dcir:[null,null,null,null,null];S.ptFrom=w.from||null}
+function wkData(off){if(off===S.week)return {types:S.types,plan:S.plan,fmt:S.fmt,dst:S.dst,dcir:S.dcir};return S.weeks[mkey(off)]||null}
 function wkCopy(){const w=wkPack();w.plan.forEach(d=>d.forEach(i=>{delete i.done}));w.from=null;return w}
 function wkGo(to){S.weeks[S.curKey]=wkPack();const k=mkey(to),w=S.weeks[k];
   if(w){wkUnpack(w);delete S.weeks[k]}else{S.plan.forEach(d=>d.forEach(i=>{delete i.done}));S.ptFrom=null}
   S.week=to;S.curKey=k;S.ptPrev=null;
   const keep=Object.keys(S.weeks).filter(x=>wkOff(x)>=-8).sort();Object.keys(S.weeks).forEach(x=>{if(!keep.includes(x))delete S.weeks[x]});
   keep.slice(0,Math.max(0,keep.length-30)).forEach(x=>delete S.weeks[x])}
+/* circuit: day's main exercises in order, timed (work/rest) or reps (tap Next), rounds with rest between */
+function ciClean(c){c=c&&typeof c==='object'?c:{};const n=(v,lo,hi,d)=>{v=parseInt(v,10);return v>=lo&&v<=hi?v:d},reps={};
+  if(c.reps&&typeof c.reps==='object')Object.keys(c.reps).slice(0,40).forEach(k=>{const r=n(c.reps[k],1,200,0);if(r&&/^[\w-]{1,40}$/.test(k))reps[k]=r});
+  return {mode:c.mode==='r'?'r':'t',work:n(c.work,10,300,40),rest:n(c.rest,0,180,20),rounds:n(c.rounds,1,10,3),rrest:n(c.rrest,0,600,90),reps}}
+var CI={started:false,done:false,on:false,ph:[],idx:0,acc:0,start:0,ctx:null,wk:0,arm:false,tick:null,n:0,rounds:0};
+function isCiW(w,i){return !!(w&&(w.types[i]==='upper'||w.types[i]==='lower')&&w.fmt&&w.fmt[i]==='c')}
+function isCi(i){return isCiW(S,i)}
+function ciIds(w,i){return (w.plan[i]||[]).filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)==='M').map(it=>it.id)}
+function dayCiCfg(i){if(!S.dcir[i])S.dcir[i]=ciClean(null);return S.dcir[i]}
+function ciW(w,i){return w.plan===S.plan?dayCiCfg(i):ciClean(w.dcir&&w.dcir[i])}
+function ciRep(c,id){return c.reps[id]||10}
+function ciLine(c,n){return `${n} exercise${n===1?'':'s'} × ${c.rounds} round${c.rounds===1?'':'s'}, `+(c.mode==='t'?`${c.work}s work, ${c.rest}s rest`:'reps')+(c.rounds>1&&c.rrest?`, ${c.rrest}s between rounds`:'')}
+function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id,e)=>{ph.push({k:'w',id,r,e,s:c.mode==='t'?c.work:null,reps:c.mode==='r'?ciRep(c,id):null});if(c.mode==='t'&&c.rest&&e<ids.length-1)ph.push({k:'r',r,e,s:c.rest})});
+  if(r<c.rounds-1&&c.rrest)ph.push({k:'R',r,s:c.rrest})}return ph}
 function isStW(w,i){return w&&(w.types[i]==='upper'||w.types[i]==='lower')&&w.fmt&&w.fmt[i]==='s'}
 function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i);const c=w.dst&&w.dst[i];if(c&&Array.isArray(c.st)&&c.st.length)return c;
   const ids=(w.plan[i]||[]).filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)==='M').map(it=>it.id),n=Math.max(1,Math.min(10,Math.ceil(ids.length/3))),st=[];let k=0;
@@ -1731,10 +1755,10 @@ function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i)
 function wkRange(off){const a=monday(off),b=new Date(a);b.setDate(b.getDate()+4);return fmt(a)+' – '+fmt(b)}
 function monthHtml(){
   const rows=[0,1,2,3].map(n=>{const off=S.week+n,w=wkData(off),cur=n===0;
-    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}" aria-label="Week of ${esc(wkRange(off))}${w?'':', not planned'}"><span class="mrng">${esc(wkRange(off))}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isStW(w,i)?'<i>St</i>':''):'–'}</span>`).join('')}</button>`}).join('');
+    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}" aria-label="Week of ${esc(wkRange(off))}${w?'':', not planned'}"><span class="mrng">${esc(wkRange(off))}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isStW(w,i)?'<i>St</i>':isCiW(w,i)?'<i>Ci</i>':''):'–'}</span>`).join('')}</button>`}).join('');
   const empty=[1,2,3].filter(n=>!wkData(S.week+n)).length;
   return `<h3 style="margin-top:24px">4-week plan</h3>
-  <p class="tag">Starts with the week shown above. Tap a week to open and edit it. "St" marks a stations day.</p>
+  <p class="tag">Starts with the week shown above. Tap a week to open and edit it. "St" marks a stations day and "Ci" a circuit day.</p>
   <div class="mgrid"><div class="mhead"><span></span>${DN.map(d=>`<span>${d}</span>`).join('')}</div>${rows}</div>
   <div class="row">${empty?`<button class="btn ghost" data-a="wkfill" data-v="0">Copy this week into the ${empty} empty week${empty===1?'':'s'}</button><button class="btn ghost" data-a="wkfill" data-v="1">Copy, with week 4 lighter</button>`:''}<button class="btn ghost" data-a="print" data-k="mo">Print 4-week plan</button></div>`}
 function wkLight(w){w.plan.forEach(d=>d.forEach(i=>{if(typeof i.rx==='string')i.rx=i.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>2?+a-1:+a)+b)}));w.note='Lighter week';return w}
@@ -1756,11 +1780,11 @@ function viewTrain(){
   const t=S.types[S.day];
   return `${ptBanner()}
   ${weekBar()}${strip('train')}${focusHtml()}
-  <details class="editday"${trEdit?' open':''} ontoggle="trEdit=this.open"><summary>Edit ${DN[S.day]}: ${esc(DTYPES[t]||'not planned')}${(t==='upper'||t==='lower')&&S.fmt[S.day]==='s'?', stations':''}</summary>
+  <details class="editday"${trEdit?' open':''} ontoggle="trEdit=this.open"><summary>Edit ${DN[S.day]}: ${esc(DTYPES[t]||'not planned')}${(t==='upper'||t==='lower')&&S.fmt[S.day]==='s'?', stations':isCi(S.day)?', circuit':''}</summary>
   <h3 style="margin-top:10px">${DN[S.day]} focus</h3>
   <div class="chips" role="group" aria-label="Day focus">${Object.entries(DTYPES).map(([k,n])=>`<button class="chip" aria-pressed="${t===k}" data-a="type" data-v="${k}">${n}</button>`).join('')}</div>
   <details class="howto"><summary>How this works</summary><p>Use + Add in each part to add exercises, and × to remove one. Changing the focus rebuilds this day. Aerobic and anaerobic days use conditioning; upper and lower days add power, barbell, dumbbell, kettlebell, plyometric and unilateral work. This is a sample week.</p></details>
-  ${(t==='upper'||t==='lower')?`<h3 style="margin-top:14px">Workout format</h3><div class="chips" role="group" aria-label="Workout format"><button class="chip" aria-pressed="${S.fmt[S.day]!=='s'}" data-a="fmt" data-v="n">Normal</button><button class="chip" aria-pressed="${S.fmt[S.day]==='s'}" data-a="fmt" data-v="s">Stations</button></div>`:''}
+  ${(t==='upper'||t==='lower')?`<h3 style="margin-top:14px">Workout format</h3><div class="chips" role="group" aria-label="Workout format"><button class="chip" aria-pressed="${S.fmt[S.day]==='n'}" data-a="fmt" data-v="n">Normal</button><button class="chip" aria-pressed="${S.fmt[S.day]==='s'}" data-a="fmt" data-v="s">Stations</button><button class="chip" aria-pressed="${S.fmt[S.day]==='c'}" data-a="fmt" data-v="c">Circuit</button></div>`:''}
   </details>
   <div id="wkout">${listFor('train')}</div>
   <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
@@ -2069,7 +2093,7 @@ document.addEventListener('click',ev=>{
   if(a==='tab'){if(S.tab!==v)FX.view=true;S.tab=v;render();window.scrollTo(0,0)}
   else if(a==='tdday'){if(S.week!==0)wkGo(0);S.day=+v;S.tab='train';FX.view=true;render();window.scrollTo(0,0)}
   else if(a==='pctset'){pcId=EX[v]?v:'bsq';S.tab='assess';render();setTimeout(()=>{const e=document.getElementById('pcEx');if(e)e.scrollIntoView({block:'center'});const m=document.getElementById('pcMax');if(m)m.focus()},50)}
-  else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
+  else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':isCiW(W,wd)?' circuit':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
   else if(a==='readylite'){const wd=(new Date().getDay()+6)%7;if(S.rb){S.rb.tally.lt=S.rb.tally.lt||{};S.rb.tally.lt[today()]=1}readyItems(wd).forEach(it=>{if(typeof it.rx!=='string'||typeof it.rx0==='string')return;const r=it.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>1?+a-1:+a)+b);if(r!==it.rx){it.rx0=it.rx;it.rx=r}});save();render()}
   else if(a==='readyfull'){const wd=(new Date().getDay()+6)%7;readyItems(wd).forEach(it=>{if(typeof it.rx0==='string'){it.rx=it.rx0;delete it.rx0}});save();render()}
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
@@ -2088,7 +2112,7 @@ document.addEventListener('click',ev=>{
   else if(a==='wkgo'){const to=+v;if(to!==S.week){wkGo(to);render();window.scrollTo(0,0)}}
   else if(a==='wkfill'){const base=wkCopy();[1,2,3].forEach(n=>{const k=mkey(S.week+n);if(!S.weeks[k]){const w=JSON.parse(JSON.stringify(base));S.weeks[k]=v==='1'&&n===3?wkLight(w):w}});render()}
   else if(a==='type'){S.types[S.day]=v;S.plan[S.day]=genDay(v);S.dst[S.day]=null;render()}
-  else if(a==='fmt'){S.fmt[S.day]=v==='s'?'s':'n';if(v==='s')dayStCfg(S.day);render()}
+  else if(a==='fmt'){S.fmt[S.day]=v==='s'||v==='c'?v:'n';if(v==='s')dayStCfg(S.day);if(v==='c')dayCiCfg(S.day);render()}
   else if(a==='fmtre'){S.dst[S.day]=dayStFrom(S.day);render()}
   else if(a==='genweek'){S.plan=S.types.map(genDay);S.dst=[null,null,null,null,null];S.ptFrom=null;S.ptPrev=null;render()}
   else if(a==='hudnext'){hudOff++;render()}
@@ -2139,7 +2163,8 @@ var asArm='',runMode='pace',rmLift='bench';
 const LIFTS={bench:'Bench press',bsq:'Back squat',dl:'Deadlift'};
 S.assess=S.assess||{ev:[],log:[],unit:'lb'};
 S.maxes=S.maxes&&typeof S.maxes==='object'&&!Array.isArray(S.maxes)?S.maxes:{};
-S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'?'s':'n'):['n','n','n','n','n'];
+S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
+S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
 S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
 if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey(S.week||0);
@@ -2738,8 +2763,8 @@ var ptPend=null,ptArm=false,ptMsg='';
 var ptSpan=1;
 function ptWeekOut(w,used,isCur){const str=x=>typeof x==='string';
   const plan=w.plan.map(d=>(d||[]).filter(i=>EX[i.id]).map(i=>{used.add(i.id);const o={id:i.id,rx:str(i.rx)?i.rx:''};if(i.s)o.s=i.s;if(str(i.w)&&i.w&&!i.pct)o.w=i.w;if(str(i.pct)&&i.pct)o.pct=i.pct;return o}));
-  const fmt=w.types.map((t,i)=>isStW(w,i)?'s':'n'),dst=fmt.map((f,i)=>{if(f!=='s')return null;const c=isCur?dayStCfg(i):dstW(w,i);c.st.forEach(a=>a.forEach(id=>used.add(id)));return {mins:c.mins,st:c.st.map(a=>a.filter(id=>EX[id]))}});
-  return {types:w.types.slice(),plan,fmt,dst}}
+  const fmt=w.types.map((t,i)=>isStW(w,i)?'s':isCiW(w,i)?'c':'n'),dcir=fmt.map((f,i)=>f==='c'?ciW(w,i):null),dst=fmt.map((f,i)=>{if(f!=='s')return null;const c=isCur?dayStCfg(i):dstW(w,i);c.st.forEach(a=>a.forEach(id=>used.add(id)));return {mins:c.mins,st:c.st.map(a=>a.filter(id=>EX[id]))}});
+  return {types:w.types.slice(),plan,fmt,dst,dcir}}
 function ptMake(){const used=new Set();
   const o=Object.assign({v:1,from:(S.squad.name||'').trim().slice(0,40),d:today(),note:(S.squad.note||'').trim().slice(0,200),k:S.curKey},ptWeekOut(wkData(S.week),used,true));
   if(ptSpan===4){o.more=[];for(let n=1;n<4;n++){const w=wkData(S.week+n);if(w)o.more.push(Object.assign({k:mkey(S.week+n)},ptWeekOut(w,used,false)))}}
@@ -2757,15 +2782,16 @@ function ptClean(o){
   const day=d=>(Array.isArray(d)?d:[]).filter(i=>i&&str(i.id)&&known(i.id)).slice(0,40).map(i=>{const q={id:i.id,rx:str(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))q.s=i.s;if(str(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))q.w=i.w;if(str(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)q.pct=i.pct;return q});
   const wk=x=>{if(!x||typeof x!=='object'||!Array.isArray(x.plan)||x.plan.length!==5||!Array.isArray(x.types)||x.types.length!==5||!x.types.every(t=>DTYPES[t]))return null;
     const plan=x.plan.map(day);
-    const fmt=Array.isArray(x.fmt)&&x.fmt.length===5?x.fmt.map((f,i)=>f==='s'&&(x.types[i]==='upper'||x.types[i]==='lower')?'s':'n'):['n','n','n','n','n'];
+    const fmt=Array.isArray(x.fmt)&&x.fmt.length===5?x.fmt.map((f,i)=>(f==='s'||f==='c')&&(x.types[i]==='upper'||x.types[i]==='lower')?f:'n'):['n','n','n','n','n'];
     const dst=fmt.map((f,i)=>{const d=Array.isArray(x.dst)?x.dst[i]:null;if(f!=='s'||!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>str(id)&&known(id)).slice(0,8))}});
-    return {types:x.types.slice(),plan,fmt,dst}};
+    const dcir=fmt.map((f,i)=>f==='c'?ciClean(Array.isArray(x.dcir)?x.dcir[i]:null):null);
+    return {types:x.types.slice(),plan,fmt,dst,dcir}};
   const first=wk(o);if(!first||!first.plan.some(d=>d.length))return null;
   const dk=x=>str(x)&&/^\d{4}-\d\d-\d\d$/.test(x)?x:'';
   const more=(Array.isArray(o.more)?o.more:[]).slice(0,3).map(x=>{const w=wk(x),k=dk(x&&x.k);return w&&k?Object.assign({k},w):null}).filter(Boolean);
   return Object.assign({from:txt(o.from,40),d:o.d,note:txt(o.note,200),k:dk(o.k),more,custom},first)}
-function ptWkLine(w){return DN.map((n,i)=>n+' '+DSHORT[w.types[i]]+(w.fmt&&w.fmt[i]==='s'?' (stations)':'')).join(', ')}
-function ptSummary(c){if(c.more&&c.more.length)return [(c.k?'Week of '+wkRange(wkOff(c.k))+': ':'Week 1: ')+ptWkLine(c)].concat(c.more.map(w=>'Week of '+wkRange(wkOff(w.k))+': '+ptWkLine(w)));return DN.map((n,i)=>c.fmt&&c.fmt[i]==='s'&&c.dst&&c.dst[i]?`${n}: ${DTYPES[c.types[i]]}, ${c.dst[i].st.length} stations × ${c.dst[i].mins} min`:`${n}: ${DTYPES[c.types[i]]}, ${c.plan[i].length} exercise${c.plan[i].length===1?'':'s'}`)}
+function ptWkLine(w){return DN.map((n,i)=>n+' '+DSHORT[w.types[i]]+(w.fmt&&w.fmt[i]==='s'?' (stations)':w.fmt&&w.fmt[i]==='c'?' (circuit)':'')).join(', ')}
+function ptSummary(c){if(c.more&&c.more.length)return [(c.k?'Week of '+wkRange(wkOff(c.k))+': ':'Week 1: ')+ptWkLine(c)].concat(c.more.map(w=>'Week of '+wkRange(wkOff(w.k))+': '+ptWkLine(w)));return DN.map((n,i)=>c.fmt&&c.fmt[i]==='c'&&c.dcir&&c.dcir[i]?`${n}: ${DTYPES[c.types[i]]} circuit, ${ciLine(c.dcir[i],ciIds(c,i).length)}`:c.fmt&&c.fmt[i]==='s'&&c.dst&&c.dst[i]?`${n}: ${DTYPES[c.types[i]]}, ${c.dst[i].st.length} stations × ${c.dst[i].mins} min`:`${n}: ${DTYPES[c.types[i]]}, ${c.plan[i].length} exercise${c.plan[i].length===1?'':'s'}`)}
 function ptHtml(){
   const m=ptMake();
   const planned=[1,2,3].filter(n=>wkData(S.week+n)).length;
@@ -3513,7 +3539,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -3564,10 +3590,11 @@ function cleanBackup(raw){
   if(o.weeks&&typeof o.weeks==='object'&&!Array.isArray(o.weeks)){out.weeks={};Object.entries(o.weeks).slice(0,40).forEach(([k,w])=>{
     if(!/^\d{4}-\d\d-\d\d$/.test(k)||!w||typeof w!=='object'||!Array.isArray(w.types)||w.types.length!==5||!w.types.every(t=>DTYPES[t])||!Array.isArray(w.plan)||w.plan.length!==5)return;
     const plan=w.plan.map(d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).slice(0,40).map(i=>{const q={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))q.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))q.w=i.w;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)q.pct=i.pct;return q}));
-    const fm=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.map(x=>x==='s'?'s':'n'):['n','n','n','n','n'];
+    const fm=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
     const ds=Array.isArray(w.dst)&&w.dst.length===5?w.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}}):[null,null,null,null,null];
-    out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,from:null,note:w.note==='Lighter week'?w.note:undefined}})}
-  if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'?'s':'n');
+    out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,dcir:fm.map((f,i)=>f==='c'?ciClean(Array.isArray(w.dcir)?w.dcir[i]:null):null),from:null,note:w.note==='Lighter week'?w.note:undefined}})}
+  if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'||x==='c'?x:'n');
+  if(Array.isArray(o.dcir)&&o.dcir.length===5)out.dcir=o.dcir.map(d=>d?ciClean(d):null);
   if(Array.isArray(o.dst)&&o.dst.length===5)out.dst=o.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}});
   if(o.journal&&typeof o.journal==='object'&&Array.isArray(o.journal.entries)){
     out.journal={entries:o.journal.entries.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)&&['mind','spirit'].includes(e.k)&&isStr(e.t)&&e.t.trim()).slice(0,500).map(e=>({id:e.id,d:e.d,k:e.k,t:e.t.slice(0,5000)}))}}
@@ -3606,6 +3633,7 @@ function applyBackup(c){
   if(c.maxes)S.maxes=c.maxes;
   if(c.curKey){S.curKey=c.curKey;S.week=wkOff(c.curKey);if(S.week<0)wkGo(0)}
   if(c.dst)S.dst=c.dst;
+  if(c.dcir)S.dcir=c.dcir;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
@@ -4010,6 +4038,45 @@ document.addEventListener('click',ev=>{
     else{ST.on=false;ST.done=true;ST.acc=ss*stN()*1000;lockScreen(false);stBody();stBtn()}}
   else if(a==='streset'){if(stArm){ST.on=false;ST.started=false;ST.done=false;ST.acc=0;ST.idx=0;stArm=false;lockScreen(false);stBody();stBtn()}else{stArm=true;stBody()}}
 });
+/* circuit runner: a snapshot of phases taken at start; timed phases auto-advance, reps phases wait for Next */
+function ciEl(){return CI.acc+(CI.on?Date.now()-CI.start:0)}
+function ciNm(id){return EX[id]?esc(EX[id].name):'Exercise'}
+function ciBuzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)return;const P=CI.ph,p=P[CI.idx];
+  if(CI.done){const wd=(new Date().getDay()+6)%7,mine=CI.wk===0&&CI.ctx===wd&&wd<5,dn=mine&&doneOn(today()).length;
+    b.innerHTML=`<h2>Circuit done</h2><p>${CI.n} exercise${CI.n===1?'':'s'} × ${CI.rounds} round${CI.rounds===1?'':'s'} finished. Nice work.</p><div class="row">${mine?(dn?`<span class="tddone">${TICK}Done today</span>`:`<button class="btn" data-a="tddone">Mark today's workout done</button>`):''}<button class="btn ghost" data-a="cistop">Close</button></div>`;return}
+  const nx=P.slice(CI.idx+1).find(x=>x.k==='w');
+  b.innerHTML=`<div class="tag">Round ${p.r+1} of ${CI.rounds}${p.k==='w'?` · Exercise ${p.e+1} of ${CI.n}`:''}</div>
+  <div class="ciph ${p.k==='w'?'work':'rest'}">${p.k==='w'?'Work':p.k==='r'?'Rest':'Round rest'}</div>
+  ${p.k==='w'?`<h2 class="cinm">${ciNm(p.id)}</h2>`:''}
+  ${p.s===null?`<div class="stclock">${p.reps} reps</div>`:`<div class="stclock" id="ciClock" role="timer">${fmtHMS(Math.max(0,Math.ceil(p.s-ciEl()/1000)))}</div>`}
+  <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
+  <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
+  <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
+function ciNext(){CI.idx++;CI.acc=0;CI.start=Date.now();CI.arm=false;
+  if(CI.idx>=CI.ph.length){CI.idx=CI.ph.length-1;CI.done=true;CI.on=false;lockScreen(false);beep();setTimeout(beep,600);ciBuzz([200,100,200])}else{beep();ciBuzz(200)}
+  ciBody()}
+function ciTick(){if(!CI.started||CI.done||!CI.on)return;const p=CI.ph[CI.idx];if(p.s===null)return;
+  if(ciEl()>=p.s*1000){ciNext();return}
+  const c=document.getElementById('ciClock');if(c)c.textContent=fmtHMS(Math.max(0,Math.ceil(p.s-ciEl()/1000)))}
+document.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,sh=document.getElementById('ciSheet');
+  if(a==='ciopen'){if(!(CI.started&&!CI.done)){const i=+b.dataset.d,w=b.dataset.w==='0'?wkData(0):S;if(!w||!(i>=0&&i<5))return;const ids=ciIds(w,i);if(!ids.length)return;const c=ciW(w,i);
+      CI={started:true,done:false,on:true,ph:ciPhases(c,ids),idx:0,acc:0,start:Date.now(),ctx:i,wk:b.dataset.w==='0'?0:S.week,arm:false,tick:CI.tick,n:ids.length,rounds:c.rounds};
+      if(!CI.tick)CI.tick=setInterval(ciTick,250);lockScreen(true);beep()}
+    sh.hidden=false;ciBody()}
+  else if(a==='cimode'){const c=dayCiCfg(+b.dataset.d);c.mode=b.dataset.v==='r'?'r':'t';save();render()}
+  else if(a==='cigo'){if(CI.on){CI.acc+=Date.now()-CI.start;CI.on=false;lockScreen(false)}else{CI.start=Date.now();CI.on=true;lockScreen(true)}CI.arm=false;ciBody()}
+  else if(a==='ciskip'||a==='cinext'){if(CI.started&&!CI.done)ciNext()}
+  else if(a==='cistop'){if(CI.started&&!CI.done&&!CI.arm){CI.arm=true;ciBody();return}
+    CI.started=false;CI.on=false;CI.arm=false;lockScreen(false);sh.hidden=true;render()}
+  else if(a==='tddone'&&!sh.hidden){sh.hidden=true;CI.started=false}
+});
+document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if(f!=='ci'&&f!=='cirep')return;const d=+t.dataset.d;if(!(d>=0&&d<5))return;const c=dayCiCfg(d),v=parseInt(t.value,10);
+  if(f==='ci'){const k=t.dataset.k;if(!['work','rest','rounds','rrest'].includes(k))return;if(ciClean(Object.assign({},c,{[k]:v}))[k]===v)c[k]=v}
+  else if(v>=1&&v<=200)c.reps[t.dataset.v]=v;
+  save();const sm=document.getElementById('ciSum'+d);if(sm)sm.textContent=ciLine(c,ciIds(S,d).length)});
 document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset.f==='stmin'){const m=parseInt(t.value,10);if(m>=1&&m<=60){stCfg().mins=m;save();const bt=document.querySelector('[data-a=ststart]');if(bt)bt.textContent='Start · '+m*stN()+' min total'}}});
 
 
@@ -4151,15 +4218,15 @@ document.addEventListener('click',ev=>{
   if(a==='ptapply'){if(!ptPend)return;if(!ptArm){ptArm=true;sqShow();return}
     const c=ptPend,from={from:c.from,d:c.d,note:c.note},multi=c.more&&c.more.length&&c.k;
     S.custom=S.custom||[];c.custom.forEach(x=>{if(!S.custom.some(y=>y.id===x.id)&&S.custom.length<200){S.custom.push(x);EX[x.id]=Object.assign({},x,{custom:true})}});
-    const toPack=w=>({types:w.types.slice(),plan:w.plan.map(d=>d.filter(i=>EX[i.id])),fmt:w.fmt.slice(),dst:w.dst.map(d=>d?{mins:d.mins,st:d.st.map(a=>a.filter(id=>EX[id]))}:null),from});
+    const toPack=w=>({types:w.types.slice(),plan:w.plan.map(d=>d.filter(i=>EX[i.id])),fmt:w.fmt.slice(),dst:w.dst.map(d=>d?{mins:d.mins,st:d.st.map(a=>a.filter(id=>EX[id]))}:null),dcir:(w.dcir||[null,null,null,null,null]).slice(),from});
     const weeks=multi?[Object.assign({k:c.k},c)].concat(c.more):[Object.assign({k:S.curKey},c)];
     if(!multi)weeks[0].k=S.curKey;
     const prevW={};let curHit=false;
-    S.ptPrev={types:S.types.slice(),plan:JSON.parse(JSON.stringify(S.plan)),fmt:S.fmt.slice(),dst:JSON.parse(JSON.stringify(S.dst)),from:S.ptFrom||null,wk:prevW};
+    S.ptPrev={types:S.types.slice(),plan:JSON.parse(JSON.stringify(S.plan)),fmt:S.fmt.slice(),dst:JSON.parse(JSON.stringify(S.dst)),dcir:JSON.parse(JSON.stringify(S.dcir)),from:S.ptFrom||null,wk:prevW};
     weeks.forEach(w=>{const pk=toPack(w);if(w.k===S.curKey){curHit=true;wkUnpack(pk)}else{prevW[w.k]=S.weeks[w.k]?JSON.parse(JSON.stringify(S.weeks[w.k])):null;S.weeks[w.k]=pk}});
     if(!curHit&&multi){const off=wkOff(c.k);if(off>=0){wkGo(off);S.ptPrev=null}}
     const wd=(new Date().getDay()+6)%7;S.day=wd<5?wd:0;S.tab='train';ptPend=null;ptArm=false;document.getElementById('sqSheet').hidden=true;save();render();window.scrollTo(0,0);return}
-  if(a==='ptundo'){const pv=S.ptPrev;if(!pv)return;S.types=pv.types;S.plan=pv.plan.map(d=>d.filter(i=>EX[i.id]));if(pv.fmt)S.fmt=pv.fmt;if(pv.dst)S.dst=pv.dst;S.ptFrom=pv.from||null;if(pv.wk)Object.entries(pv.wk).forEach(([k,w])=>{if(w)S.weeks[k]=w;else delete S.weeks[k]});S.ptPrev=null;save();render();return}
+  if(a==='ptundo'){const pv=S.ptPrev;if(!pv)return;S.types=pv.types;S.plan=pv.plan.map(d=>d.filter(i=>EX[i.id]));if(pv.fmt)S.fmt=pv.fmt;if(pv.dst)S.dst=pv.dst;if(pv.dcir)S.dcir=pv.dcir;S.ptFrom=pv.from||null;if(pv.wk)Object.entries(pv.wk).forEach(([k,w])=>{if(w)S.weeks[k]=w;else delete S.weeks[k]});S.ptPrev=null;save();render();return}
   if(/^ls(join|share|cancel|send|leave|create|adopt|refresh|copy|key|reset|del|rm)$/.test(a)){lsAct(a,v);return}
   if(a==='sqboardcopy'){gtCopy(sqBoardText());return}
   if(a==='sqinc'){S.squad.inc[v]=S.squad.inc[v]?0:1;save();sqShow();lsPush(true);return}
@@ -4279,11 +4346,11 @@ function prHtml(kind,steps){
     for(let n=0;n<4;n++){const off=S.week+n,w=wkData(off);
       out+=`<div class="pr-wk${n?' brk':''}"><h2>Week ${n+1} · ${esc(wkRange(off))}${w&&w.note?' · '+esc(w.note):''}</h2>`;
       if(!w){out+='<div class="pr-empty">Not planned yet.</div></div>';continue}
-      for(let i=0;i<5;i++){out+=`<div class="pr-day"><h3>${DN[i]} ${esc(fmt(dayDate(i+n*7)))} · ${esc(DTYPES[w.types[i]])}${isStW(w,i)?' stations':''}</h3>`;
+      for(let i=0;i<5;i++){out+=`<div class="pr-day"><h3>${DN[i]} ${esc(fmt(dayDate(i+n*7)))} · ${esc(DTYPES[w.types[i]])}${isStW(w,i)?' stations':isCiW(w,i)?' circuit':''}</h3>`;
         const arr=(w.plan[i]||[]).filter(it=>EX[it.id]),line=it=>{const pw=it.pct?pctW(it.id,+it.pct):null;return `${esc(EX[it.id].name)}${it.rx?' '+esc(it.rx):''}${it.pct?' @ '+esc(it.pct)+'%'+(pw!==null?' ('+pw+' '+au()+')':''):it.w?' @ '+esc(it.w)+' '+au():''}`};
         if(!arr.length){out+='<div class="pr-empty">Rest or no exercises planned.</div></div>';continue}
         ['W','M','C'].forEach(s=>{if(s==='M'&&isStW(w,i)){const c=dstW(w,i);out+=`<div class="pr-mline"><b>Stations, ${c.st.length} × ${c.mins} min:</b> ${c.st.map((st,k)=>`<span class="pr-box"></span> ${k+1}. ${st.filter(id=>EX[id]).map(id=>esc(EX[id].name)).join(', ')||'none'}`).join(' ')}</div>`;return}
-          const rows=arr.filter(it=>(it.s||EX[it.id].sec)===s);if(!rows.length)return;out+=`<div class="pr-mline"><b>${SECNAME[s]}:</b> ${rows.map(it=>`<span class="pr-box"></span> ${line(it)}`).join(' ')}</div>`});
+          const rows=arr.filter(it=>(it.s||EX[it.id].sec)===s);if(!rows.length)return;if(s==='M'&&isCiW(w,i))out+=`<div class="pr-mline"><b>Circuit:</b> ${esc(ciLine(ciW(w,i),rows.length))}</div>`;out+=`<div class="pr-mline"><b>${SECNAME[s]}:</b> ${rows.map(it=>`<span class="pr-box"></span> ${line(it)}`).join(' ')}</div>`});
         out+='</div>'}
       out+='</div>'}
     out+='<div class="pr-note">Warm up before you start, stop if something hurts, and drink water. Tick each box as you finish.</div>';
@@ -4332,7 +4399,7 @@ function prHtml(kind,steps){
       out+=`<div class="pr-day${steps?' brk':''}"><h2>${DN[i]} ${esc(fmt(dayDate(i)))} · ${esc(DTYPES[S.types[i]])}</h2>`;
       const arr=S.plan[i]||[];let any=false;
       ['W','M','C'].forEach(s=>{if(s==='M'&&isSt(i)){const c=dayStCfg(i);any=true;out+=`<h3>Stations · ${c.st.length} × ${c.mins} min</h3>`+c.st.map((st,k)=>`<div class="pr-row"><span class="pr-box"></span><span class="pr-nm">Station ${k+1}<small>${st.filter(id=>EX[id]).map(id=>esc(EX[id].name)).join(', ')||'No exercises'}</small></span><span class="pr-rx">${c.mins} min</span></div>`).join('');return}
-        const rows=arr.filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)===s);if(!rows.length)return;any=true;out+=`<h3>${SECNAME[s]}</h3>`+rows.map(it=>prRow(it,steps,'train')).join('')});
+        const rows=arr.filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)===s);if(!rows.length)return;any=true;out+=`<h3>${s==='M'&&isCi(i)?'Circuit · '+esc(ciLine(dayCiCfg(i),rows.length)):SECNAME[s]}</h3>`+rows.map(it=>prRow(it,steps,'train')).join('')});
       if(!any)out+='<div class="pr-empty">No exercises planned.</div>';
       out+='</div>'}
     out+='<div class="pr-note">Warm up before you start, stop if something hurts, and drink water. Tick each box as you finish.</div>';
