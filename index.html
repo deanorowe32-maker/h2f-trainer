@@ -208,6 +208,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gtsum table{width:100%;border-collapse:collapse;font-size:14px}.gtsum th,.gtsum td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;font-variant-numeric:tabular-nums}
 .gtsum th:first-child,.gtsum tbody th{text-align:left}.gtsum thead th{font:700 12px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
+.chcard{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
+.chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.chtop small{font:700 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.chtop b,.chlink{font:700 16px var(--body);color:var(--fg)}
+.chlink{padding:0;border:0;background:none;text-align:left;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2)}
+.chlog{flex:none;min-height:40px;padding:0 14px}.chnum{display:block;margin-top:6px;font:500 14px var(--body);color:var(--muted)}.chok{color:var(--fg)}
+.chbar{position:relative;display:block;height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--fg) 10%,transparent);overflow:hidden}.chbar>i{display:block;height:100%;background:var(--gold)}
+.chbar em{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--surface)}
+.chmd{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chlv{gap:6px;flex-wrap:wrap}.chlv .btn{flex:1 1 auto}.chtrib{margin:6px 0 0}
 .gtbar{display:block;height:6px;margin-top:6px;border-radius:3px;background:color-mix(in srgb,var(--fg) 10%,transparent);overflow:hidden}.gtbar i{display:block;height:100%;background:var(--gold)}
 .gtwhy{margin:12px 0 0}.gtappr{margin:8px 0 0;font-weight:600}.gtmet{padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--gold) 20%,transparent)}
 .gtact{flex-wrap:wrap}.gtcopy{width:100%;font:500 14px/1.4 var(--body);padding:10px;border:1px solid var(--line);border-radius:10px}
@@ -942,6 +951,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="menuSheet" hidden style="z-index:74"><div class="panel" role="dialog" aria-label="Menu"><h2>H2F Trainer</h2><div class="menulist"><button type="button" data-a="hsopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/></svg>Add to Home Screen</button><button type="button" data-a="bkopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Backup</button><button type="button" data-a="sqopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c0-2.5 1.3-4.5 3-4.5s4 1.5 4 4.5"/></svg>Squad</button><button type="button" data-a="touropen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>App tour</button><button type="button" id="lockBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Lock app</button></div><div class="row"><button class="btn ghost" type="button" data-a="sheetclose">Close</button></div></div></div>
 <div class="sheet" id="moreSheet" hidden style="z-index:73"><div class="panel" role="dialog" aria-label="More"><h2>More</h2><div class="menulist" id="moreList"></div><div class="row"><button class="btn ghost" type="button" data-a="sheetclose">Close</button></div></div></div>
 
+<div class="sheet" id="chSheet" hidden style="z-index:72"><div class="panel" role="dialog" aria-label="Log a challenge"><div id="chSheetBody"></div></div></div>
 <div class="sheet" id="gtShared" hidden style="z-index:72"><div class="panel" role="dialog" aria-label="Shared goal test"><div id="gtSharedBody"></div></div></div>
 <div class="sheet" id="pickSheet" hidden><div class="panel" role="dialog" aria-label="Add exercise"><div id="pickBody"></div></div></div>
 <div class="sheet" id="formSheet" hidden style="z-index:70"><div class="panel" role="dialog" aria-label="New exercise"><div id="formBody"></div></div></div>
@@ -1515,6 +1525,54 @@ function chClean(o){const out={log:{},w:{},sp:{},last:[],fold:false};if(!o||type
   if(obj(o.sp))Object.keys(o.sp).filter(k=>/^\d{4}-md$/.test(k)).forEach(k=>{const e=o.sp[k];if(!obj(e))return;const it=Array.isArray(e.items)?e.items:[];out.sp[k]={items:[0,1,2,3,4].map(i=>it[i]===true||it[i]===1),lvl:[0,1,2,3].includes(e.lvl)?e.lvl:0}});
   if(Array.isArray(o.last))out.last=o.last.filter(e=>obj(e)&&okD(e.d)&&CH_BY[e.k]&&okN(e.n)).map(e=>({d:e.d,k:e.k,n:e.n})).slice(-50);
   out.fold=!!o.fold;return out}
+const CH_LV=['','Easy','Standard','Hard'];
+function chNum(u,v){if(u==='mi')return (chKm()?v*CH_KM:v).toFixed(1);if(u==='min')return String(Math.round(v*10)/10);return String(Math.round(v))}
+function chUnit(u){return u==='mi'?(chKm()?' km':' mi'):u==='min'?' min':''}
+function chBar(total,arr,u){const nx=arr.find(x=>total<x),lvl=chLevel(total,arr),pct=Math.min(100,total/arr[2]*100);
+  return `<span class="chnum">${lvl?`<b class="chok">✓ ${CH_LV[lvl]}</b> · `:''}${chNum(u,total)} / ${chNum(u,nx===undefined?arr[2]:nx)}${chUnit(u)}</span><i class="chbar"><i style="width:${pct}%"></i>${arr.slice(0,2).map(x=>`<em style="left:${x/arr[2]*100}%"></em>`).join('')}</i>`}
+function chName(c){return c.ex&&EX[c.ex]?`<button type="button" class="chlink" data-a="info" data-v="${c.ex}">${esc(c.name)}</button>`:esc(c.name)}
+function chRow(id,label,c,total,arr,logV){return `<div class="chrow" data-row="${id}"><div class="chtop"><span><small>${label}</small>${chName(c)}</span><button type="button" class="btn ghost chlog" data-a="chopen" data-v="${logV||id}">+ Log</button></div>${chBar(total,arr,c.u)}</div>`}
+const CH_MD=[['1-mile run','½-mile run'],['100 pull-ups','50 pull-ups'],['200 push-ups','100 push-ups'],['300 squats','150 squats'],['1-mile run','½-mile run']];
+function chSpecialHtml(sp){if(!sp)return '';
+  if(sp.id==='vd')return chRow('vd','Veterans Day · until '+rbShort(sp.to),CH_BY.stepup,chSum('stepup',sp.from,sp.to),CH_BY.stepup.d,'vd').replace('</div>','</div><p class="tag chtrib">Step-ups with a pack, for veteran mental health. Split them up across the week.</p>');
+  const key=sp.year+'-md',st=S.ch.sp[key]||{items:[false,false,false,false,false],lvl:0},all=st.items.every(Boolean);
+  return `<div class="chrow" data-row="md"><div class="chtop"><span><small>Memorial Day · until ${esc(rbShort(sp.to))}</small><b>Memorial Day Hero Workout</b></span></div>
+  <p class="tag chtrib">Honoring fallen service members. Split the reps however you need. Easy is half volume; Hard is in a weighted vest or plate carrier.</p>
+  ${st.lvl?`<p class="chnum"><b class="chok">✓ Done at ${CH_LV[st.lvl]}</b></p>`:`<div class="chmd">${CH_MD.map((x,i)=>`<button type="button" class="chip" data-a="chmditem" data-v="${i}" aria-pressed="${st.items[i]}">${x[0]}</button>`).join('')}</div>
+  <div class="row chlv">${[1,2,3].map(l=>`<button type="button" class="btn${l===2?'':' ghost'}" data-a="chmdlvl" data-v="${l}"${all?'':' disabled'}>Done at ${CH_LV[l]}</button>`).join('')}</div>`}</div>`}
+function chHtml(){const d=today(),st=chState(d),f=S.ch.fold,mon=new Date(chMs(d)).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'});
+  const head=`<div class="chhead"><h3>Challenges</h3><button type="button" class="chfold" data-a="chfold" aria-expanded="${!f}">${f?'Show':'Hide'}</button></div>`;
+  if(f)return `<section class="chcard" id="chcard">${head}</section>`;
+  const dc=CH_BY[st.day.k],wc=CH_BY[st.week.k],lc=CH_BY[st.month.lift];
+  return `<section class="chcard" id="chcard">${head}${chSpecialHtml(st.special)}
+  ${chRow('day','Today',dc,st.day.total,dc.d)}
+  ${chRow('week','This week',wc,st.week.total,wc.w)}
+  <div class="chrow" data-row="month"><div class="chtop"><span><small>${esc(mon)}</small><b>Miles, run or rucked</b></span><button type="button" class="btn ghost chlog" data-a="chopen" data-v="miles">+ Log</button></div>${chBar(st.month.miles,CH_MI,'mi')}
+  <div class="chtop" style="margin-top:10px"><span><small>Lift of the month</small>${chName(lc)}</span><button type="button" class="btn ghost chlog" data-a="chopen" data-v="lift">+ Log</button></div>${chBar(st.month.lift_total,CH_LIFT,'reps')}</div>
+  <p class="tag">Same challenge for everyone today. Reach Easy to earn its ribbon. Logged on trust.</p></section>`}
+let chOpenRow='';
+function chSheetKey(row){const st=chState(today());return row==='day'?st.day.k:row==='week'?st.week.k:row==='lift'?st.month.lift:row==='vd'?'stepup':null}
+function chSheetHtml(row,err){const d=today();let k=chSheetKey(row),pick='';
+  if(row==='miles'){k=(document.getElementById('chKind')||{}).value||'run';pick=`<label>Activity<select id="chKind"><option value="run"${k==='run'?' selected':''}>Run</option><option value="ruck"${k==='ruck'?' selected':''}>Ruck</option></select></label>`}
+  const c=CH_BY[k],u=c.u,lab=u==='mi'?(chKm()?'Kilometres':'Miles'):u==='min'?'Minutes':'Reps',canUndo=S.ch.last.some(e=>e.d===d);
+  return `<h2>${esc(row==='miles'?'Log miles':c.name)}</h2><p class="tag">Adds to today's total: ${chNum(u,chSum(k,d,d))}${chUnit(u)} so far.</p>
+  ${pick?`<div class="form">${pick}</div>`:''}<div class="form"><label>${lab}<input id="chAmt" inputmode="decimal" autocomplete="off"${err?' aria-invalid="true"':''}></label></div>${err?`<p class="err" role="alert">${esc(err)}</p>`:''}
+  ${u==='reps'?`<div class="row">${[10,25].map(n=>`<button type="button" class="btn ghost" data-a="chquick" data-v="${n}">+${n}</button>`).join('')}</div>`:''}
+  ${c.wt?`<div class="form"><label>${k==='ruck'||(row==='miles')?'Pack weight':'Weight'} (optional)<input id="chWt" maxlength="40" value="${esc((S.ch.w[d]||{})[k]||'')}"></label></div><p class="tag">Pick a weight you can move with good form for every rep. It's for your record only.</p>`:''}
+  <div class="row"><button type="button" class="btn" data-a="chadd">Add</button>${canUndo?`<button type="button" class="btn ghost" data-a="chundo">Undo last</button>`:''}<button type="button" class="btn ghost" data-a="sheetclose">Close</button></div>`}
+function chSheetShow(row,err){chOpenRow=row;const sh=document.getElementById('chSheet');document.getElementById('chSheetBody').innerHTML=chSheetHtml(row,err);sh.hidden=false;const i=document.getElementById('chAmt');if(i&&!err)i.focus()}
+function chAct(a,v){const d=today();
+  if(a==='chfold'){S.ch.fold=!S.ch.fold;save();render();return}
+  if(a==='chopen'){chSheetShow(v);return}
+  if(a==='chquick'){const i=document.getElementById('chAmt');i.value=String((parseFloat(i.value)||0)+(+v));return}
+  if(a==='chadd'){const row=chOpenRow,kind=document.getElementById('chKind'),k=row==='miles'?(kind?kind.value:'run'):chSheetKey(row);if(!CH_BY[k])return;
+    const n=chParse(CH_BY[k].u,document.getElementById('chAmt').value);if(n===null){chSheetShow(row,'Enter a number above 0.');return}
+    const w=document.getElementById('chWt');if(w&&w.value.trim()){S.ch.w[d]=S.ch.w[d]||{};S.ch.w[d][k]=w.value.trim().slice(0,40)}
+    chLog(k,n,d);save();document.getElementById('chSheet').hidden=true;render();if(typeof rbSoon==='function')rbSoon();return}
+  if(a==='chundo'){chUndo(d);save();document.getElementById('chSheet').hidden=true;render();return}
+  const sp=chSpecial(d);if(!sp||sp.id!=='md')return;const key=sp.year+'-md',st=S.ch.sp[key]=S.ch.sp[key]||{items:[false,false,false,false,false],lvl:0};
+  if(a==='chmditem'){st.items[+v]=!st.items[+v];save();render();return}
+  if(a==='chmdlvl'&&st.items.every(Boolean)){st.lvl=+v;save();render();if(typeof rbSoon==='function')rbSoon()}}
 function viewToday(){
   const now=new Date(),wd=(now.getDay()+6)%7,key=today();
   const dateLab=now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
@@ -1533,7 +1591,7 @@ function viewToday(){
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
-  ${startHtml()}${schedHtml()}${streakHtml()}${rbNextHtml()}
+  ${startHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
@@ -1965,6 +2023,7 @@ document.addEventListener('click',ev=>{
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
   else if(a==='focushide'){const f=focusPick();if(f){S.focus=S.focus||{};S.focus[mkey(S.week)+f.key]=1;save();render()}}
   else if(/^gt(new|edit|cancel|addev|rmev|save|logopen|log|done)$/.test(a)){gtAct(a,b)}
+  else if(/^ch(fold|open|quick|add|undo|mditem|mdlvl)$/.test(a)){chAct(a,v)}
   else if(a==='gtshare'||a==='gtcopy'||a==='gtadopt'){gtShareAct(a)}
   else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}

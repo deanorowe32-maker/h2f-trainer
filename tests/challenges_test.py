@@ -69,7 +69,43 @@ with sync_playwright() as p:
         except Exception as e:
             check('stage 1 ran: ' + str(e).splitlines()[0], False)
 
-    if want(2): pass  # Task 2
+    if want(2):
+        try:
+            fresh(pg)
+            E("window.chDayKey=()=>'pu';S.tab='today';render()"); pg.wait_for_timeout(300)
+            check('card present', pg.locator('#chcard').count() == 1)
+            check('three rows', [pg.locator(f'#chcard [data-row={r}]').count() for r in ('day', 'week', 'month')] == [1, 1, 1])
+            check('library link', pg.locator('#chcard [data-row=day] [data-a=info][data-v=pu]').count() == 1)
+            E("document.querySelector('[data-a=chopen][data-v=day]').click()"); pg.wait_for_timeout(200)
+            check('sheet open', E("!document.getElementById('chSheet').hidden"))
+            pg.fill('#chAmt', 'abc'); E("document.querySelector('[data-a=chadd]').click()"); pg.wait_for_timeout(200)
+            check('invalid marked', pg.locator('#chAmt[aria-invalid=true]').count() == 1 and E("chSum('pu',today(),today())") == 0)
+            pg.fill('#chAmt', '60'); E("document.querySelector('[data-a=chadd]').click()"); pg.wait_for_timeout(300)
+            check('logged 60', E("S.ch.log[today()].pu") == 60)
+            check('row shows 60 / 100', '60 / 100' in pg.locator('#chcard [data-row=day]').inner_text())
+            check('saved', E("JSON.parse(localStorage.getItem('h2f.v1')).ch.log[today()].pu") == 60)
+            E("document.querySelector('[data-a=chopen][data-v=day]').click()"); pg.wait_for_timeout(200)
+            E("document.querySelector('[data-a=chundo]').click()"); pg.wait_for_timeout(300)
+            check('undo', E("chSum('pu',today(),today())") == 0)
+            E("document.querySelector('[data-a=chopen][data-v=lift]').click()"); pg.wait_for_timeout(200)
+            check('weight field for lift', pg.locator('#chWt').count() == 1 and 'good form' in pg.locator('#chSheet').inner_text())
+            E("document.getElementById('chSheet').hidden=true")
+            E("document.querySelector('[data-a=chfold]').click()"); pg.wait_for_timeout(200); E("render()")
+            check('fold persists', E("S.ch.fold") is True and pg.locator('#chcard [data-row=day]').count() == 0)
+            E("document.querySelector('[data-a=chfold]').click()"); pg.wait_for_timeout(200)
+            E("window.chSpecial=()=>({id:'md',year:2027,date:'2027-05-31',from:'2027-05-28',to:'2027-06-03'});render()"); pg.wait_for_timeout(200)
+            check('memorial row', pg.locator('#chcard [data-row=md]').count() == 1)
+            check('level locked', E("[...document.querySelectorAll('[data-a=chmdlvl]')].every(b=>b.disabled)"))
+            for i in range(5):
+                E(f"document.querySelector('[data-a=chmditem][data-v=\"{i}\"]').click()"); pg.wait_for_timeout(120)
+            check('level unlocked', E("[...document.querySelectorAll('[data-a=chmdlvl]')].every(b=>!b.disabled)"))
+            E("document.querySelector('[data-a=chmdlvl][data-v=\"2\"]').click()"); pg.wait_for_timeout(200)
+            check('memorial done', E("S.ch.sp['2027-md'].lvl") == 2)
+            check('no Murph', 'murph' not in pg.locator('#chcard').inner_text().lower())
+            pg.screenshot(path='/tmp/ch.png', full_page=False)
+        except Exception as e:
+            check('stage 2 ran: ' + str(e).splitlines()[0], False)
+
     if want(3): pass  # Task 3
 
     check('no page errors', not errs)
