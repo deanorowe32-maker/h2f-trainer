@@ -209,6 +209,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gtsum th:first-child,.gtsum tbody th{text-align:left}.gtsum thead th{font:700 12px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
 .chcard{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.chsum{margin:2px 0 0;font:500 14px var(--body);color:var(--muted)}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .chtop small{font:700 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.chtop b,.chlink{font:700 16px var(--body);color:var(--fg)}
@@ -1544,7 +1545,8 @@ function chSpecialHtml(sp){if(!sp)return '';
   <div class="row chlv">${[1,2,3].map(l=>`<button type="button" class="btn${l===2?'':' ghost'}" data-a="chmdlvl" data-v="${l}"${all?'':' disabled'}>Done at ${CH_LV[l]}</button>`).join('')}</div>`}</div>`}
 function chHtml(){const d=today(),st=chState(d),f=S.ch.fold,mon=new Date(chMs(d)).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'});
   const head=`<div class="chhead"><h3>Challenges</h3><button type="button" class="chfold" data-a="chfold" aria-expanded="${!f}">${f?'Show':'Hide'}</button></div>`;
-  if(f)return `<section class="chcard" id="chcard">${head}</section>`;
+  if(f){const dc=CH_BY[st.day.k],wc=CH_BY[st.week.k],ln=(c,t,arr)=>`${esc(c.name)} ${chNum(c.u,t)} / ${chNum(c.u,arr.find(x=>t<x-CH_EPS)||arr[2])}${chUnit(c.u)}${chLevel(t,arr)?' ✓':''}`;
+    return `<section class="chcard" id="chcard">${head}<p class="chsum">Today: ${ln(dc,st.day.total,dc.d)} · Week: ${ln(wc,st.week.total,wc.w)}</p></section>`}
   const dc=CH_BY[st.day.k],wc=CH_BY[st.week.k],lc=CH_BY[st.month.lift];
   return `<section class="chcard" id="chcard">${head}${chSpecialHtml(st.special)}
   ${chRow('day','Today',dc,st.day.total,dc.d)}
@@ -1593,9 +1595,8 @@ function viewToday(){
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
-  ${startHtml()}${schedHtml()}${streakHtml()}
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
-  ${chHtml()}${rbNextHtml()}
+  ${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>

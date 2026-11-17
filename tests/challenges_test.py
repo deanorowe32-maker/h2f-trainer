@@ -92,6 +92,8 @@ with sync_playwright() as p:
             E("document.getElementById('chSheet').hidden=true")
             E("document.querySelector('[data-a=chfold]').click()"); pg.wait_for_timeout(200); E("render()")
             check('fold persists', E("S.ch.fold") is True and pg.locator('#chcard [data-row=day]').count() == 0)
+            check('folded summary', 'Today: Push-up' in pg.locator('#chcard .chsum').inner_text())
+            check('workout first on Today', E("[...document.querySelectorAll('#view > section,#view > div')][0].classList.contains('tdwide')"))
             E("document.querySelector('[data-a=chfold]').click()"); pg.wait_for_timeout(200)
             E("window.chSpecial=()=>({id:'md',year:2027,date:'2027-05-31',from:'2027-05-28',to:'2027-06-03'});render()"); pg.wait_for_timeout(200)
             check('memorial row', pg.locator('#chcard [data-row=md]').count() == 1)
