@@ -216,6 +216,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 #sgPrint{display:none}
 @media print{body.sgp>*:not(#sgPrint){display:none!important}body.sgp>#sgPrint{display:block!important;color:#000;background:#fff;font:12px/1.4 sans-serif}#sgPrint table{width:100%;border-collapse:collapse}#sgPrint th,#sgPrint td{border:1px solid #000;padding:4px;text-align:left;vertical-align:top}}
 .aftneed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.aftneed h4{margin:0 0 6px;font:700 16px var(--body)}
+.tdbk{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--gold);border-radius:var(--r);background:var(--surface)}.tdbk h3{margin:0 0 4px}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .chtop small{font:700 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.chtop b,.chlink{font:700 16px var(--body);color:var(--fg)}
@@ -1623,7 +1624,7 @@ function viewToday(){
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
-  ${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
+  ${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
@@ -3379,6 +3380,12 @@ renderMini();
 const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
+/* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
+function bkMark(){try{localStorage.setItem('h2f.bkAt',today());localStorage.removeItem('h2f.bkLater')}catch(e){}}
+function bkRemindHtml(){let at='',later='';try{at=localStorage.getItem('h2f.bkAt')||'';later=localStorage.getItem('h2f.bkLater')||''}catch(e){return ''}
+  if(!(S.savedAt>0)||later===today())return '';const days=at?Math.round((chMs(today())-chMs(at))/864e5):null;if(days!==null&&days<7)return '';
+  return `<section class="tdbk" id="bkRemind"><h3>Back up your data</h3><p class="tag">${days===null?'You have never made a backup.':`Last backup ${days} days ago.`} Everything you log lives only on this phone. Copy your backup code and keep it in a note or email to yourself.</p>
+  <div class="row"><button type="button" class="btn" data-a="bknow">Copy backup code</button><button type="button" class="btn ghost" data-a="bklater">Later</button></div></section>`}
 function openBackup(){
   const txt=makeBackup();
   document.getElementById('bkBody').innerHTML=`<h2>Backup</h2>
@@ -3482,7 +3489,7 @@ document.addEventListener('click',ev=>{
   const a=b.dataset.a;
   if(a==='bkopen')openBackup();
   else if(a==='bkclose')document.getElementById('bkSheet').hidden=true;
-  else if(a==='bkcopy'){
+  else if(a==='bkcopy'){bkMark();
     const ta=document.getElementById('bkOut'),btn=b;
     const sel=()=>{ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);btn.textContent='Selected. Press copy on your keyboard.'};
     try{navigator.clipboard.writeText(ta.value).then(()=>{btn.textContent='Copied ✓'},sel)}catch(e){sel()}
@@ -3988,6 +3995,9 @@ document.addEventListener('click',ev=>{
     if(S.nut.meals.length>=600){er.textContent='You have 600 entries. Delete or print some old ones first.';er.hidden=false;return}
     S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m:MEALS.includes(m)?m:'Snack',t:txt,k:Math.round(k),p:Math.round(pp),c:Math.round(cc),f:Math.round(ff)});save();render();return}
   if(a==='nudel'){if(nuArm!==v){nuArm=v;render()}else{S.nut.meals=S.nut.meals.filter(x=>x.id!==v);nuArm='';save();render()}return}
+  if(a==='bknow'){bkMark();const txt=makeBackup(),card=document.getElementById('bkRemind'),ok=()=>{if(card)card.innerHTML='<h3>Backup code copied ✓</h3><p class="tag">Paste it into a note or an email to yourself now. To restore, open Unit, Backup, then Restore.</p>'};
+    try{navigator.clipboard.writeText(txt).then(ok,()=>{gtCopy(txt);if(card)card.remove()})}catch(e){gtCopy(txt);if(card)card.remove()}return}
+  if(a==='bklater'){try{localStorage.setItem('h2f.bkLater',today())}catch(e){}render();return}
   if(/^sg(new|add|rm|copy|print|done)$/.test(a)){sgAct(a,v);return}
   if(a==='aftgoal'){S.aft.goal=+v;save();aftUpd();return}
   if(a==='aftsave'){const s=aftScore();if(!s||!s.all)return;S.aft.hist.unshift({id:'f'+Date.now().toString(36),d:today(),age:parseInt(S.aft.age,10),sex:S.aft.sex==='f'?'f':'m',std:S.aft.std==='c'?'c':'g',r:s.r,p:s.p,t:s.t});S.aft.hist=S.aft.hist.slice(0,100);save();render();return}
