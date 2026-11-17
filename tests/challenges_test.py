@@ -140,6 +140,25 @@ with sync_playwright() as p:
             check('stage 3 ran: ' + str(e).splitlines()[0], False)
 
 
+    if STAGE in ('all', 'fix'):
+        try:
+            fresh(pg)
+            E("S.rb=rbClean(null);S.ch=chClean(null);S.assess.unit='kg'")
+            n = E("chParse('mi','3.2')")
+            check('fix km target meets', E(f"chLevel({n},[2,3,5])") == 1)
+            check('fix km daily ribbon', E(f"(()=>{{S.ch=chClean(null);chLog('run',{n},'2026-01-11');return rbChCount('chrun')}})()") == 1)
+            check('fix comma decimal', abs((E("chParse('mi','5,5')") or 0) - 3.418) < 0.01)
+            E("S.assess.unit='lb';S.ch=chClean(null);chLog('pu',40,'2026-01-05');chLog('dl',20,'2026-01-05')")
+            check('fix undo by key', E("chUndo('2026-01-05','pu')") is True and E("[chSum('pu','2026-01-05','2026-01-05'),chSum('dl','2026-01-05','2026-01-05')]") == [0, 20])
+            E("""S.ch=chClean(null);for(let i=0;i<1500;i++){const d=chDk(CH_EPOCH+i*864e5);chLog(chDayKey(d),200,d);chLog('run',3,d)}""")
+            ms = E("(()=>{const t=performance.now();for(let i=0;i<5;i++)['chwk','chmo','chpu','chrun'].forEach(rbChCount);return (performance.now()-t)/5})()")
+            print('   rbChCount x4 ms', round(ms, 1))
+            check('fix fast ribbon counts', ms < 25)
+            want_counts = [115, 49]  # reference: slow pre-fix algorithm on this same data
+            check('fix counts match reference', E("['chwk','chmo'].map(rbChCount)") == want_counts)
+        except Exception as e:
+            check('fix ran: ' + str(e).splitlines()[0], False)
+
     check('no page errors', not errs)
     if errs: print(errs[:3])
     b.close()

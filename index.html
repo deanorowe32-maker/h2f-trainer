@@ -1506,13 +1506,15 @@ function chSpecial(d){const y=+d.slice(0,4),ms=chMs(d);
   const may31=Date.UTC(y,4,31),md=may31-chMod(new Date(may31).getUTCDay()-1,7)*864e5,vd=Date.UTC(y,10,11);
   for(const [id,at] of [['md',md],['vd',vd]])if(Math.abs(ms-at)<=3*864e5)return {id,year:y,date:chDk(at),from:chDk(at-3*864e5),to:chDk(at+3*864e5)};return null}
 function chSum(k,from,to){let s=0;const L=S.ch.log;for(const d in L)if(d>=from&&d<=to&&L[d][k])s+=L[d][k];return Math.round(s*1000)/1000}
-function chLevel(t,arr){return t>=arr[2]?3:t>=arr[1]?2:t>=arr[0]?1:0}
+var CH_EPS=0.032;/* half of 0.1 km in miles: a km target typed as shown still counts */
+function chLevel(t,arr){return t>=arr[2]-CH_EPS?3:t>=arr[1]-CH_EPS?2:t>=arr[0]-CH_EPS?1:0}
 function chKm(){return S.assess&&S.assess.unit==='kg'}
-function chParse(u,text){const v=parseFloat(String(text).trim());if(!/^\d*\.?\d+$/.test(String(text).trim())||!(v>0))return null;
+function chParse(u,text){const tx=String(text).trim().replace(',','.'),v=parseFloat(tx);if(!/^\d*\.?\d+$/.test(tx)||!(v>0))return null;
   const mi=u==='mi'&&chKm()?v/CH_KM:v;return mi>CH_CAP[u]?null:Math.round(mi*1000)/1000}
 function chShow(u,v){const r=x=>String(Math.round(x*10)/10);if(u==='mi')return chKm()?(v*CH_KM).toFixed(1)+' km':(Math.round(v*10)/10).toFixed(1)+' mi';if(u==='min')return r(v)+' min';return String(Math.round(v))}
-function chLog(k,n,d){const L=S.ch.log;L[d]=L[d]||{};L[d][k]=Math.round(((L[d][k]||0)+n)*1000)/1000;S.ch.last.push({d,k,n});S.ch.last=S.ch.last.slice(-50)}
-function chUndo(d){const i=S.ch.last.map(e=>e.d).lastIndexOf(d);if(i<0)return false;const e=S.ch.last.splice(i,1)[0],L=S.ch.log[d];
+var chVer=0;
+function chLog(k,n,d){chVer++;const L=S.ch.log;L[d]=L[d]||{};L[d][k]=Math.round(((L[d][k]||0)+n)*1000)/1000;S.ch.last.push({d,k,n});S.ch.last=S.ch.last.slice(-50)}
+function chUndo(d,k){chVer++;const i=S.ch.last.map(e=>e.d===d&&(!k||e.k===k)).lastIndexOf(true);if(i<0)return false;const e=S.ch.last.splice(i,1)[0],L=S.ch.log[d];
   if(L&&L[e.k]!=null){L[e.k]=Math.round((L[e.k]-e.n)*1000)/1000;if(L[e.k]<=0)delete L[e.k];if(!Object.keys(L).length)delete S.ch.log[d]}return true}
 function chMonthRange(d){const [y,m]=d.split('-').map(Number);return [chDk(Date.UTC(y,m-1,1)),chDk(Date.UTC(y,m,0))]}
 function chState(d){const dk_=chDayKey(d),dt=chSum(dk_,d,d),ws=chWeekStart(d),we=chDk(chMs(ws)+6*864e5),wk=chWeekKey(d),wt=chSum(wk,ws,we);
@@ -1554,7 +1556,7 @@ let chOpenRow='';
 function chSheetKey(row){const st=chState(today());return row==='day'?st.day.k:row==='week'?st.week.k:row==='lift'?st.month.lift:row==='vd'?'stepup':null}
 function chSheetHtml(row,err){const d=today();let k=chSheetKey(row),pick='';
   if(row==='miles'){k=(document.getElementById('chKind')||{}).value||'run';pick=`<label>Activity<select id="chKind"><option value="run"${k==='run'?' selected':''}>Run</option><option value="ruck"${k==='ruck'?' selected':''}>Ruck</option></select></label>`}
-  const c=CH_BY[k],u=c.u,lab=u==='mi'?(chKm()?'Kilometres':'Miles'):u==='min'?'Minutes':'Reps',canUndo=S.ch.last.some(e=>e.d===d);
+  const c=CH_BY[k],u=c.u,lab=u==='mi'?(chKm()?'Kilometres':'Miles'):u==='min'?'Minutes':'Reps',canUndo=S.ch.last.some(e=>e.d===d&&(row==='miles'?(e.k==='run'||e.k==='ruck'):e.k===k));
   return `<h2>${esc(row==='miles'?'Log miles':c.name)}</h2><p class="tag">Adds to today's total: ${chNum(u,chSum(k,d,d))}${chUnit(u)} so far.</p>
   ${pick?`<div class="form">${pick}</div>`:''}<div class="form"><label>${lab}<input id="chAmt" inputmode="decimal" autocomplete="off"${err?' aria-invalid="true"':''}></label></div>${err?`<p class="err" role="alert">${esc(err)}</p>`:''}
   ${u==='reps'?`<div class="row">${[10,25].map(n=>`<button type="button" class="btn ghost" data-a="chquick" data-v="${n}">+${n}</button>`).join('')}</div>`:''}
@@ -1569,7 +1571,7 @@ function chAct(a,v){const d=today();
     const n=chParse(CH_BY[k].u,document.getElementById('chAmt').value);if(n===null){chSheetShow(row,'Enter a number above 0.');return}
     const w=document.getElementById('chWt');if(w&&w.value.trim()){S.ch.w[d]=S.ch.w[d]||{};S.ch.w[d][k]=w.value.trim().slice(0,40)}
     chLog(k,n,d);save();document.getElementById('chSheet').hidden=true;render();if(typeof rbSoon==='function')rbSoon();return}
-  if(a==='chundo'){chUndo(d);save();document.getElementById('chSheet').hidden=true;render();return}
+  if(a==='chundo'){const kind=document.getElementById('chKind');if(chOpenRow==='miles'){if(!chUndo(d,kind?kind.value:'run'))chUndo(d,kind&&kind.value==='run'?'ruck':'run')}else chUndo(d,chSheetKey(chOpenRow));save();document.getElementById('chSheet').hidden=true;render();return}
   const sp=chSpecial(d);if(!sp||sp.id!=='md')return;const key=sp.year+'-md',st=S.ch.sp[key]=S.ch.sp[key]||{items:[false,false,false,false,false],lvl:0};
   if(a==='chmditem'){st.items[+v]=!st.items[+v];save();render();return}
   if(a==='chmdlvl'&&st.items.every(Boolean)){st.lvl=+v;save();render();if(typeof rbSoon==='function')rbSoon()}}
@@ -2189,12 +2191,18 @@ function rbLogDays(){const D=new Set(rbWorkDays());rbNights().forEach(([k])=>D.a
   Object.entries(S.mind.log||{}).forEach(([k,v])=>{if(v&&v.mood>=0)D.add(k)});Object.entries((S.spirit&&S.spirit.log)||{}).forEach(([k,v])=>{if(v&&String(v).trim())D.add(k)});return [...D].filter(k=>/^\d{4}-\d\d-\d\d$/.test(k))}
 function rbCftFull(){return ((S.cft&&S.cft.hist)||[]).filter(h=>h.n===7).slice().sort((a,b)=>a.ts-b.ts)}
 /* count(id) -> how far along this ribbon is, in its own unit. Streak ribbons return {times, cur}. */
+/* totals by week start and by month, rebuilt only when the log changes */
+let chAggC=null;
+function chAgg(){if(chAggC&&chAggC.o===S.ch&&chAggC.v===chVer)return chAggC;const wk={},mo={},L=S.ch.log;
+  for(const d in L){const ws=chWeekStart(d),m=d.slice(0,7),W=wk[ws]=wk[ws]||{},M=mo[m]=mo[m]||{};for(const k in L[d]){W[k]=(W[k]||0)+L[d][k];M[k]=(M[k]||0)+L[d][k]}}
+  return chAggC={o:S.ch,v:chVer,wk,mo}}
 function rbChCount(id){const L=S.ch.log,ds=Object.keys(L);
-  if(id==='chwk')return [...new Set(ds.map(chWeekStart))].filter(ws=>{const k=chWeekKey(ws);return chSum(k,ws,chDk(chMs(ws)+6*864e5))>=CH_BY[k].w[0]}).length;
-  if(id==='chmo')return [...new Set(ds.map(d=>d.slice(0,7)))].filter(m=>chState(m+'-01').month.lvl>=1).length;
+  const A=chAgg();
+  if(id==='chwk')return Object.entries(A.wk).filter(([ws,t])=>{const k=chWeekKey(ws);return chLevel(t[k]||0,CH_BY[k].w)>=1}).length;
+  if(id==='chmo')return Object.entries(A.mo).filter(([m,t])=>chLevel((t.run||0)+(t.ruck||0),CH_MI)>=1&&chLevel(t[chMonthLift(m+'-01')]||0,CH_LIFT)>=1).length;
   if(id==='chmd')return Object.values(S.ch.sp).filter(x=>x.lvl>=1).length;
   if(id==='chvd')return [...new Set(ds.filter(d=>L[d].stepup).map(d=>d.slice(0,4)))].filter(y=>{const sp=chSpecial(y+'-11-11');return chSum('stepup',sp.from,sp.to)>=250}).length;
-  const k=id.slice(2);return ds.filter(d=>chDayKey(d)===k&&(L[d][k]||0)>=CH_BY[k].d[0]).length}
+  const k=id.slice(2);return ds.filter(d=>chDayKey(d)===k&&chLevel(L[d][k]||0,CH_BY[k].d)>=1).length}
 function rbCount(id){const T=S.rb.tally,now=rbMon(Date.now()),tk=typeof today==='function'?today():rbDK(new Date());
   const cnt=n=>({n}),st=(runs,len,rep)=>({times:rep?runs.reduce((s,r)=>s+Math.floor(r.len/len),0):(runs.some(r=>r.len>=len)?1:0),cur:rbCur(runs,now,rbNextMon)%(rep?len:Infinity)});
   const tests=rbAftAsc();
