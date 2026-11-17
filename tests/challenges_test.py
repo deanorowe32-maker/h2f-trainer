@@ -106,7 +106,39 @@ with sync_playwright() as p:
         except Exception as e:
             check('stage 2 ran: ' + str(e).splitlines()[0], False)
 
-    if want(3): pass  # Task 3
+    if want(3):
+        try:
+            fresh(pg)
+            E("S.rb=rbClean(null);S.ch=chClean(null);S.tab='unit';render()")  # pagehide re-saves S on reload; pg.wait_for_timeout(300)
+            check('100 to earn', pg.locator('#rbcase .rbhead b').inner_text() == '100 ribbons to earn')
+            check('challenge area listed', 'Challenge' in pg.locator('#rbcase').inner_text())
+            ts0 = E("rbCount('tsol').n")
+            E("chLog('pu',50,'2026-01-05');rbCheck()")
+            check('chpu awarded', E("S.rb.aw.chpu&&S.rb.aw.chpu.n") == 1)
+            E("chLog('pu',50,'2026-01-16');rbCheck()")
+            check('chpu twice', E("S.rb.aw.chpu.n") == 2)
+            E("chLog('pu',49,'2026-01-27');rbCheck()")
+            check('below easy no star', E("S.rb.aw.chpu.n") == 2)
+            E("chUndo('2026-01-16');rbCheck()")
+            check('undo keeps award', E("S.rb.aw.chpu.n") == 2)
+            E("chLog('pu',250,'2026-01-06');rbCheck()")
+            check('weekly awarded', E("S.rb.aw.chwk&&S.rb.aw.chwk.n") == 1)
+            check('wrong-day log no daily', E("!S.rb.aw.chbws"))
+            E("S.ch.sp['2027-md']={items:[true,true,true,true,true],lvl:1};rbCheck()")
+            check('memorial awarded', E("!!S.rb.aw.chmd"))
+            E("chLog('stepup',250,'2026-11-09');rbCheck()")
+            check('vets awarded', E("!!S.rb.aw.chvd"))
+            E("chLog('run',20,'2026-03-02');chLog('bsq',300,'2026-03-03');rbCheck()")
+            check('monthly awarded', E("!!S.rb.aw.chmo"))
+            check('tsol unchanged', E("rbCount('tsol').n") == ts0)
+            check('closest never challenge', E("RB.filter(r=>r.area==='Challenge').length") == 15 and E("(()=>{const b=rbNext();return !b||b.r.area!=='Challenge'})()"))
+            code = E("makeBackup()")
+            E("S.ch=chClean(null)")
+            ok = E(f"(()=>{{const c=cleanBackup({code!r});if(!c)return false;applyBackup(c);return chSum('pu','2026-01-05','2026-01-05')===50}})()")
+            check('backup round trip', ok)
+        except Exception as e:
+            check('stage 3 ran: ' + str(e).splitlines()[0], False)
+
 
     check('no page errors', not errs)
     if errs: print(errs[:3])
