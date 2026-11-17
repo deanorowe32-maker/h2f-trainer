@@ -112,7 +112,7 @@ with sync_playwright() as p:
         try:
             fresh(pg)
             E("S.rb=rbClean(null);S.ch=chClean(null);S.tab='unit';render()")  # pagehide re-saves S on reload; pg.wait_for_timeout(300)
-            check('100 to earn', pg.locator('#rbcase .rbhead b').inner_text() == '100 ribbons to earn')
+            check('108 to earn', pg.locator('#rbcase .rbhead b').inner_text() == '108 ribbons to earn')
             check('challenge area listed', 'Challenge' in pg.locator('#rbcase').inner_text())
             ts0 = E("rbCount('tsol').n")
             E("chLog('pu',50,'2026-01-05');rbCheck()")
@@ -133,7 +133,7 @@ with sync_playwright() as p:
             E("chLog('run',20,'2026-03-02');chLog('bsq',300,'2026-03-03');rbCheck()")
             check('monthly awarded', E("!!S.rb.aw.chmo"))
             check('tsol unchanged', E("rbCount('tsol').n") == ts0)
-            check('closest never challenge', E("RB.filter(r=>r.area==='Challenge').length") == 15 and E("(()=>{const b=rbNext();return !b||b.r.area!=='Challenge'})()"))
+            check('closest never challenge', E("RB.filter(r=>r.area==='Challenge').length") == 23 and E("(()=>{const b=rbNext();return !b||b.r.area!=='Challenge'})()"))
             code = E("makeBackup()")
             E("S.ch=chClean(null)")
             ok = E(f"(()=>{{const c=cleanBackup({code!r});if(!c)return false;applyBackup(c);return chSum('pu','2026-01-05','2026-01-05')===50}})()")
@@ -141,6 +141,55 @@ with sync_playwright() as p:
         except Exception as e:
             check('stage 3 ran: ' + str(e).splitlines()[0], False)
 
+
+    if STAGE in ('all', '4'):
+        try:
+            fresh(pg)
+            E("S.rb=rbClean(null);S.ch=chClean(null)")
+            ny = E("chSpecial('2026-12-30')")
+            check('h NY window crosses year', ny and ny['id'] == 'ny' and ny['year'] == 2027)
+            check('h NY closed Jan 5', E("chSpecial('2027-01-05')") is None)
+            check('h NY uses 27', '27 burpees' in ' '.join(E("HOL.find(h=>h.id==='ny').items(2027)")))
+            check('h Easter 2027', E("chEaster(2027)") == '2027-03-28')
+            check('h Easter 2028', E("chEaster(2028)") == '2028-04-16')
+            check('h Thanksgiving 2026', (E("chSpecial('2026-11-26')") or {}).get('id') == 'tg')
+            check('h Labor Day 2026', (E("chSpecial('2026-09-07')") or {}).get('id') == 'lab')
+            check('h Halloween', (E("chSpecial('2026-10-31')") or {}).get('id') == 'hw')
+            check('h Army Birthday', (E("chSpecial('2026-06-14')") or {}).get('id') == 'ab')
+            check('h Army targets 2026', E("HOL.find(h=>h.id==='ab').t(2026)") == [126, 251, 377])
+            check('h Memorial still', (E("chSpecial('2027-05-31')") or {}).get('id') == 'md')
+            check('h Vets still', (E("chSpecial('2026-11-11')") or {}).get('id') == 'vd')
+            c = E("chClean({sp:{'2027-xm':{items:Array(12).fill(true),lvl:2},'2027-zz':{items:[true],lvl:1},'2027-hw':{items:[true,true,true,true,true],lvl:1}}})")
+            check('h clean xm kept', c['sp'].get('2027-xm', {}).get('lvl') == 2 and len(c['sp']['2027-xm']['items']) == 12)
+            check('h clean zz dropped', '2027-zz' not in c['sp'])
+            check('h clean hw trimmed', len(c['sp'].get('2027-hw', {}).get('items', [])) == 3)
+            before = E("JSON.stringify(chState('2026-07-04'))")
+            E("chLog('hid4',900,'2026-07-04')")
+            check('h logs isolated', E("JSON.stringify((({special,...r})=>r)(chState('2026-07-04')))") == E(f"JSON.stringify((({{special,...r}})=>r)({before}))"))
+            E("rbCheck()")
+            check('h id4 ribbon', E("!!S.rb.aw.chid4"))
+            E("S.ch.sp['2026-xm']={items:Array(12).fill(true),lvl:1};rbCheck()")
+            check('h xmas ribbon', E("!!S.rb.aw.chxm"))
+            check('h 108 shown', E("RB_SHOW.length") == 108)
+            check('h md vd ribbons still', E("(()=>{S.ch.sp['2027-md']={items:[true,true,true,true,true],lvl:1};chLog('stepup',250,'2026-11-10');return [rbChCount('chmd'),rbChCount('chvd')]})()") == [1, 1])
+            E("S.ch=chClean(null);S.ch.fold=false;window.chSpecial=()=>({id:'xm',year:2026,date:'2026-12-25',from:'2026-12-22',to:'2026-12-28'});S.tab='today';render()"); pg.wait_for_timeout(200)
+            check('h xmas 12 chips', pg.locator('#chcard [data-row=xm] [data-a=chmditem]').count() == 12)
+            check('h xmas locked', E("[...document.querySelectorAll('#chcard [data-row=xm] [data-a=chmdlvl]')].every(b=>b.disabled)"))
+            check('h xmas line', 'like the song' in pg.locator('#chcard [data-row=xm]').inner_text().lower())
+            for i in range(12):
+                E(f"document.querySelector('[data-row=xm] [data-a=chmditem][data-v=\"{i}\"]').click()"); pg.wait_for_timeout(60)
+            E("document.querySelector('[data-row=xm] [data-a=chmdlvl][data-v=\"1\"]').click()"); pg.wait_for_timeout(200)
+            check('h xmas done via UI', E("S.ch.sp['2026-xm'].lvl") == 1)
+            E("S.assess.unit='kg';window.chSpecial=()=>({id:'tg',year:2026,date:'2026-11-26',from:'2026-11-23',to:'2026-11-29'});render()"); pg.wait_for_timeout(200)
+            check('h tg row', pg.locator('#chcard [data-row=tg] [data-a=chopen][data-v=hol]').count() == 1)
+            E("document.querySelector('[data-row=tg] [data-a=chopen]').click()"); pg.wait_for_timeout(200)
+            pg.fill('#chAmt', '5'); E("document.querySelector('[data-a=chadd]').click()"); pg.wait_for_timeout(300)
+            check('h tg logged km', abs((E("S.ch.log[today()]&&S.ch.log[today()].htg") or 0) - 3.107) < 0.01)
+            check('h tg shows km', 'km' in pg.locator('#chcard [data-row=tg]').inner_text())
+            E("S.assess.unit='lb'")
+            pg.screenshot(path='/tmp/hol.png')
+        except Exception as e:
+            check('stage 4 ran: ' + str(e).splitlines()[0], False)
 
     if STAGE in ('all', 'fix'):
         try:
