@@ -25,6 +25,25 @@ with sync_playwright() as p:
         check('text and email links count too', E("(()=>{document.querySelector('[data-a=shareapp]').click();return [...document.querySelectorAll('#hsBody a[href^=sms],#hsBody a[href^=mailto]')].every(a=>a.hasAttribute('data-pio'))})()"))
         check('kept in backup', E("cleanBackup(makeBackup()).rb.tally.pio") == 1)
         check('both hidden still count', E("(()=>{S.rb.tally.egg=1;rbCheck();return RB.filter(r=>r.area==='Hidden'&&S.rb.aw[r.id]).length})()") == 2)
+        # Seven Taps
+        E("document.getElementById('rbSheet')&&(document.getElementById('rbSheet').hidden=true);document.getElementById('hsSheet').hidden=true")
+        logo = "document.querySelector('header.top .logo, header.top .appicon')"
+        for i in range(6): E(f"{logo}.dispatchEvent(new MouseEvent('click',{{bubbles:true}}))")
+        check('six taps is not enough', not E("!!S.rb.aw.st7"))
+        E(f"{logo}.dispatchEvent(new MouseEvent('click',{{bubbles:true}}))"); pg.wait_for_timeout(1300)
+        check('seven taps earns Seven Taps', E("!!S.rb.aw.st7"))
+        check('slow taps reset the count', E("(()=>{stTaps=[];const t=Date.now();stTap(t);stTap(t+5000);return stTaps.length})()") == 1)
+        # Creator's Word
+        E("S.tab='creator';render();window.scrollTo(0,0)"); pg.wait_for_timeout(300)
+        check('opening the page is not enough', not E("!!S.rb.aw.crw"))
+        E("window.scrollTo(0,document.body.scrollHeight)"); pg.wait_for_timeout(1300)
+        check('reading to the end earns Creator\'s Word', E("!!S.rb.aw.crw"))
+        # Early Bird
+        check('workout at 0545 counts', E("(()=>{const d=new Date();d.setHours(5,45,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 1)
+        check('workout at 0645 does not', E("(()=>{const d=new Date();d.setHours(6,45,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 0)
+        check('all-nighter at 0130 does not', E("(()=>{const d=new Date();d.setHours(1,30,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 0)
+        check('five hidden ribbons, none listed', E("RB.filter(r=>r.area==='Hidden').length") == 5 and E("RB_SHOW.length") == shown)
+        check('new tallies kept in backup', E("(()=>{const t=cleanBackup(makeBackup()).rb.tally;return [t.st7,t.crw]})()") == [1, 1])
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
     check('no page errors', not errs)
