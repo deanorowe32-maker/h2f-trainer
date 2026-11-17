@@ -50,7 +50,7 @@ with sync_playwright() as p:
         check('saved 3 events', E("S.goal.cur&&S.goal.cur.ev.length") == 3)
         check('time stored in seconds', E("S.goal.cur.ev[0].base") == 4080)
         check('summary rows', pg.locator('.gtsum tbody tr').count() == 3)
-        check('summary heading copy', 'Personal training goal' in pg.locator('.gtsum').inner_text())
+        check('summary heading copy', 'personal training goal' in pg.locator('.gtsum').inner_text().lower())
         check('approval line', 'Approved by SSG Smith' in pg.locator('.gtsum').inner_text())
         # retest with one blank
         pg.evaluate("document.querySelector('[data-a=gtlogopen]').click()"); pg.wait_for_timeout(200)

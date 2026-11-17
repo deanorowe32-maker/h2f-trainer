@@ -198,6 +198,19 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .editday>summary::after{content:'';margin-left:auto;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s}
 .editday[open]>summary::after{transform:rotate(-135deg)}
 .editday[open]{padding-bottom:12px}
+.gted label,.gtlogf label{display:flex;flex-direction:column;gap:4px;margin:8px 0;font:600 14px var(--body)}
+.gted input,.gted select,.gted textarea,.gtlogf input{font:500 16px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.gted [aria-invalid=true],.gtlogf [aria-invalid=true]{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 30%,transparent)}
+.gtev{border:1px solid var(--line);border-radius:var(--r);padding:8px 12px 12px;margin:12px 0}.gtev legend{font:700 14px var(--body);padding:0 4px}
+.gtrow{display:flex;gap:12px}.gtrow>label{flex:1}.gterr{color:var(--warn);font-weight:600}
+.gtsum{margin:12px 0;padding:16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
+.gthead{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}.gthead small{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.gthead b{font:700 20px var(--body)}.gthead span{color:var(--muted);font-size:14px}
+.gtsum table{width:100%;border-collapse:collapse;font-size:14px}.gtsum th,.gtsum td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;font-variant-numeric:tabular-nums}
+.gtsum th:first-child,.gtsum tbody th{text-align:left}.gtsum thead th{font:700 12px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.gtsum tbody th{font-weight:600}.gtsum tbody th small{display:block;font-weight:500;color:var(--muted)}.gtsum td.hit{color:var(--sage-text);font-weight:700}
+.gtbar{display:block;height:6px;margin-top:6px;border-radius:3px;background:color-mix(in srgb,var(--fg) 10%,transparent);overflow:hidden}.gtbar i{display:block;height:100%;background:var(--gold)}
+.gtwhy{margin:12px 0 0}.gtappr{margin:8px 0 0;font-weight:600}.gtmet{padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--gold) 20%,transparent)}
+.gtact{flex-wrap:wrap}.gtpast{margin-top:12px}.gtpast summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}.gtpast ul{list-style:none;margin:0;padding:0}.gtpast li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .cftclock{margin:12px 0;padding:16px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);text-align:center}
 #cftClock{font:800 48px/1 var(--display,var(--body));font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 #cftLeft{margin-top:6px;font:600 14px var(--body);opacity:.85}
@@ -1900,6 +1913,7 @@ document.addEventListener('click',ev=>{
   else if(a==='readyfull'){const wd=(new Date().getDay()+6)%7;readyItems(wd).forEach(it=>{if(typeof it.rx0==='string'){it.rx=it.rx0;delete it.rx0}});save();render()}
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
   else if(a==='focushide'){const f=focusPick();if(f){S.focus=S.focus||{};S.focus[mkey(S.week)+f.key]=1;save();render()}}
+  else if(/^gt(new|edit|cancel|addev|rmev|save|logopen|log|done)$/.test(a)){gtAct(a,b)}
   else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
@@ -1948,7 +1962,7 @@ document.addEventListener('input',ev=>{
   else if(f==='name'){S.pt.p.name=t.value;save()}
   else if(f==='pain'){const q=ptQ(t.dataset.j);if(q){q.pain=+t.value;const pv=document.getElementById('painVal'+(+t.dataset.j||''));if(pv)pv.textContent=t.value+'/10';save()}}
 });
-document.addEventListener('change',ev=>{
+document.addEventListener('change',ev=>{if(ev.target&&ev.target.dataset&&ev.target.dataset.gtm){gtAct('gtm');return}
   const t=ev.target,f=t.dataset&&t.dataset.f;if(!f)return;
   if(f==='area'||f==='side'||f==='phase'){const q=ptQ(t.dataset.j);if(q){if(!S.pt.sig)S.pt.sig=ptSig(S.pt.p);q[f]=t.value;render()}}
   else if(f==='pain'){render()}
@@ -3332,6 +3346,69 @@ function gtLatest(t,i){for(let k=t.log.length-1;k>=0;k--){const v=t.log[k].v[i];
 function gtPct(ev,v){const span=ev.goal-ev.base;if(!span)return v===ev.goal?100:0;const f=(v-ev.base)/span;return Math.max(0,Math.min(100,Math.round(f*100)))}
 function gtHit(ev,v){return ev.m==='time'?v<=ev.goal:v>=ev.goal}
 function gtMet(t){return !!(t&&t.ev&&t.ev.length&&t.ev.every((e,i)=>gtHit(e,gtLatest(t,i))))}
+var gtDraft=null,gtLogOpen=false,gtLogErr={};
+function gtBlankEv(){return {name:'',m:'reps',unit:'mi',note:'',base:'',goal:''}}
+function gtToDraft(t){return t?{id:t.id,who:t.who||'',name:t.name,why:t.why,due:t.due,by:t.appr.by,bd:t.appr.d,ev:t.ev.map(e=>({name:e.name,m:e.m,unit:e.unit||'mi',note:e.note,base:gtFmt(e.m,e.base,'').replace(/\u00a0.*$/,''),goal:gtFmt(e.m,e.goal,'').replace(/\u00a0.*$/,'')})),err:{}}
+  :{id:'',who:(S.squad&&S.squad.name)||'',name:'',why:'',due:'',by:'',bd:'',ev:[gtBlankEv()],err:{}}}
+function gtReadForm(){const D=gtDraft,v=id=>{const e=document.getElementById(id);return e?e.value:''};if(!D)return;
+  D.who=v('gtWho');D.name=v('gtName');D.why=v('gtWhy');D.due=v('gtDue');D.by=v('gtApprBy');D.bd=v('gtApprD');
+  D.ev.forEach((e,i)=>{e.name=v('gtEvName'+i);e.m=v('gtEvM'+i)||'reps';e.unit=v('gtEvUnit'+i)||'mi';e.note=v('gtEvNote'+i);e.base=v('gtEvBase'+i);e.goal=v('gtEvGoal'+i)})}
+function gtPh(m){return m==='time'?'m:ss':m==='weight'?au():m==='distance'?'distance':'reps'}
+function gtEditorHtml(){const D=gtDraft,bad=k=>D.err[k]?' aria-invalid="true"':'',opt=(m)=>Object.entries(GT_M).map(([k,l])=>`<option value="${k}"${k===m?' selected':''}>${l}</option>`).join('');
+  const rows=D.ev.map((e,i)=>`<fieldset class="gtev"><legend>Event ${i+1}</legend>
+    <label>Exercise<input id="gtEvName${i}" list="gtExList" maxlength="60" value="${esc(e.name)}" placeholder="Pick or type"${bad('n'+i)}></label>
+    <div class="gtrow"><label>Measured in<select id="gtEvM${i}" data-gtm="1">${opt(e.m)}</select></label>${e.m==='distance'?`<label>Unit<select id="gtEvUnit${i}"><option value="mi"${e.unit!=='km'?' selected':''}>mi</option><option value="km"${e.unit==='km'?' selected':''}>km</option></select></label>`:''}</div>
+    <div class="gtrow"><label>Now<input id="gtEvBase${i}" inputmode="decimal" value="${esc(e.base)}" placeholder="${gtPh(e.m)}"${bad('b'+i)}></label><label>Goal<input id="gtEvGoal${i}" inputmode="decimal" value="${esc(e.goal)}" placeholder="${gtPh(e.m)}"${bad('g'+i)}></label></div>
+    <label>Note (optional)<input id="gtEvNote${i}" maxlength="60" value="${esc(e.note)}" placeholder="e.g. 35 lb ruck"></label>
+    ${D.ev.length>1?`<button type="button" class="btn ghost small" data-a="gtrmev" data-i="${i}">Remove event</button>`:''}</fieldset>`).join('');
+  return `<div class="gted"><label>Your rank and name<input id="gtWho" maxlength="40" value="${esc(D.who)}" placeholder="e.g. SPC Rowe"></label>
+  <label>Test name<input id="gtName" maxlength="50" value="${esc(D.name)}" placeholder="e.g. Air Assault prep"${bad('name')}></label>
+  <label>Why this goal (optional)<textarea id="gtWhy" maxlength="200" rows="2" placeholder="e.g. Preparing for Air Assault selection.">${esc(D.why)}</textarea></label>
+  <label>Target date<input id="gtDue" type="date" value="${esc(D.due)}"></label>
+  ${rows}${D.ev.length<6?'<button type="button" class="btn ghost" data-a="gtaddev">Add an event</button>':''}
+  <div class="gtrow"><label>Approved by (optional)<input id="gtApprBy" maxlength="40" value="${esc(D.by)}" placeholder="e.g. SSG Smith"></label><label>On<input id="gtApprD" type="date" value="${esc(D.bd)}"></label></div>
+  ${Object.keys(D.err).length?'<p class="gterr" role="alert">Check the highlighted boxes. Times look like 8:30, other results are numbers.</p>':''}
+  <div class="row"><button class="btn" data-a="gtsave">Save goal test</button><button class="btn ghost" data-a="gtcancel">Cancel</button></div>
+  <datalist id="gtExList">${Object.values(EX).map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist></div>`}
+function gtSave(){gtReadForm();const D=gtDraft;D.err={};const ev=[];
+  D.ev.forEach((e,i)=>{if(!e.name.trim()&&!e.base.trim()&&!e.goal.trim())return;const b=gtParse(e.m,e.base),g=gtParse(e.m,e.goal);
+    if(!e.name.trim())D.err['n'+i]=1;if(b===null)D.err['b'+i]=1;if(g===null)D.err['g'+i]=1;
+    const ex=Object.values(EX).find(x=>x.name.toLowerCase()===e.name.trim().toLowerCase());
+    ev.push({name:e.name.trim().slice(0,60),exId:ex?ex.id:null,m:GT_M[e.m]?e.m:'reps',unit:e.m==='distance'?(e.unit==='km'?'km':'mi'):'',note:e.note.trim().slice(0,60),base:b,goal:g,_i:i})});
+  if(!ev.length)D.err.n0=1;if(Object.keys(D.err).length)return false;
+  const old=S.goal.cur&&S.goal.cur.id===D.id?S.goal.cur:null;
+  const t={id:old?old.id:'g'+Date.now().toString(36),who:D.who.trim().slice(0,40),name:(D.name.trim()||'My goal test').slice(0,50),why:D.why.trim().slice(0,200),due:/^\d{4}-\d\d-\d\d$/.test(D.due)?D.due:'',
+    appr:{by:D.by.trim().slice(0,40),d:/^\d{4}-\d\d-\d\d$/.test(D.bd)?D.bd:''},ev:ev.map(({_i,...e})=>e),log:old?old.log.map(l=>({d:l.d,v:ev.map(e=>l.v[e._i]!==undefined?l.v[e._i]:null)})):[],done:''};
+  if(S.goal.cur&&!old){S.goal.past.unshift(Object.assign(S.goal.cur,{done:S.goal.cur.done||today()}));S.goal.past=S.goal.past.slice(0,20)}
+  S.goal.cur=t;if(t.who&&S.squad&&!S.squad.name)S.squad.name=t.who;gtDraft=null;return true}
+function gtSummaryHtml(t,ro){const met=gtMet(t),dd=d=>d?fmt(new Date(d+'T12:00:00')):'';
+  const rows=t.ev.map((e,i)=>{const l=gtLatest(t,i),pc=gtPct(e,l),hit=gtHit(e,l);return `<tr><th scope="row">${esc(e.name)}${e.note?`<small>${esc(e.note)}</small>`:''}<span class="gtbar" role="img" aria-label="${pc}% of the way to the goal"><i style="width:${pc}%"></i></span></th><td>${gtFmt(e.m,e.base,e.unit)}</td><td>${gtFmt(e.m,e.goal,e.unit)}</td><td class="${hit?'hit':''}">${t.log.length?gtFmt(e.m,l,e.unit):'–'}</td></tr>`}).join('');
+  return `<div class="gtsum"><div class="gthead"><small>Personal training goal</small><b>${esc(t.name)}</b><span>${t.who?esc(t.who):''}${t.who&&t.due?' · ':''}${t.due?'Target '+dd(t.due):''}</span></div>
+  <table><thead><tr><th>Event</th><th>Now</th><th>Goal</th><th>Latest</th></tr></thead><tbody>${rows}</tbody></table>
+  ${t.why?`<p class="gtwhy">${esc(t.why)}</p>`:''}${t.appr.by?`<p class="gtappr">Approved by ${esc(t.appr.by)}${t.appr.d?', '+dd(t.appr.d):''}</p>`:''}
+  ${!ro&&t.log.length?`<p class="tag">${t.log.length} retest${t.log.length===1?'':'s'}, last on ${dd(t.log[t.log.length-1].d)}.</p>`:''}</div>${met&&!ro?'<p class="gtmet" role="status"><b>Goal met.</b> Finish it to keep it in your past goal tests, then set a new one.</p>':''}`}
+function gtLogHtml(){const t=S.goal.cur;return `<div class="gtlogf"><label>Retest date<input id="gtLogD" type="date" value="${today()}"></label>
+  ${t.ev.map((e,i)=>`<label>${esc(e.name)}<input id="gtLog${i}" inputmode="decimal" placeholder="${gtPh(e.m)}${e.m==='distance'?' ('+(e.unit||'mi')+')':''}"${gtLogErr[i]?' aria-invalid="true"':''}></label>`).join('')}
+  ${Object.keys(gtLogErr).length?'<p class="gterr" role="alert">Check the highlighted boxes. Times look like 8:30, other results are numbers.</p>':''}<p class="tag">Leave an event blank if you didn't test it this time.</p><div class="row"><button class="btn" data-a="gtlog">Save retest</button><button class="btn ghost" data-a="gtlogopen">Cancel</button></div></div>`}
+function gtHtml(){const t=S.goal.cur,past=S.goal.past;let body;
+  if(gtDraft)body=gtEditorHtml();
+  else if(!t)body=`<p class="tag">Build your own test as a training goal: pick up to six events, write down where you are now and where you want to be, then show it to your leader and retest until you get there.</p><div class="row"><button class="btn" data-a="gtnew">Build my goal test</button></div>`;
+  else body=`${gtSummaryHtml(t)}${gtLogOpen?gtLogHtml():''}<div class="row gtact">${gtLogOpen?'':'<button class="btn" data-a="gtlogopen">Log a retest</button>'}<button class="btn ghost" data-a="gtshare">Share with my leader</button><button class="btn ghost" data-a="gtcopy">Copy as text</button><button class="btn ghost" data-a="gtedit">Edit</button><button class="btn ghost" data-a="gtdone">${gtMet(t)?'Finish':'End this goal test'}</button></div>`;
+  const ph=past.length?`<details class="gtpast"><summary>Past goal tests (${past.length})</summary><ul>${past.map(p=>`<li><b>${esc(p.name)}</b><span>${gtMet(p)?'Goal met':'Ended'}${p.done?', '+fmt(new Date(p.done+'T12:00:00')):''}</span></li>`).join('')}</ul></details>`:'';
+  return `<section class="gt" id="gt"><h3 style="margin-top:26px">My goal test</h3>${body}${ph}</section>`}
+function gtAct(a,b){const T=S.goal;
+  if(a==='gtnew'){gtDraft=gtToDraft(null);gtLogOpen=false}
+  else if(a==='gtedit'){gtDraft=gtToDraft(T.cur);gtLogOpen=false}
+  else if(a==='gtcancel'){gtDraft=null}
+  else if(a==='gtaddev'){gtReadForm();if(gtDraft.ev.length<6)gtDraft.ev.push(gtBlankEv())}
+  else if(a==='gtrmev'){gtReadForm();gtDraft.ev.splice(+b.dataset.i,1);gtDraft.err={}}
+  else if(a==='gtm'){gtReadForm()}
+  else if(a==='gtsave'){if(gtSave())save()}
+  else if(a==='gtlogopen'){gtLogOpen=!gtLogOpen;gtLogErr={}}
+  else if(a==='gtlog'){const t=T.cur;if(!t)return;const d=(document.getElementById('gtLogD')||{}).value,lerr={},v=t.ev.map((e,i)=>{const raw=(document.getElementById('gtLog'+i)||{}).value||'';if(!raw.trim())return null;const x=gtParse(e.m,raw);if(x===null)lerr[i]=1;return x});
+    gtLogErr=lerr;if(Object.keys(lerr).length){}else if(v.some(x=>x!==null)){t.log.push({d:/^\d{4}-\d\d-\d\d$/.test(d)?d:today(),v});t.log.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);t.log=t.log.slice(-60);gtLogOpen=false;save()}}
+  else if(a==='gtdone'&&T.cur){T.past.unshift(Object.assign(T.cur,{done:today()}));T.past=T.past.slice(0,20);T.cur=null;gtLogOpen=false;save()}
+  const y=window.scrollY;render();window.scrollTo(0,y)}
 function cftNow(){const r=S.cft.run;return r?r.acc+(r.on?Date.now()-r.start:0):0}
 function cftBest(){return S.cft.hist.filter(h=>h.n===7).reduce((b,h)=>!b||h.t<b.t?h:b,null)}
 function cftClockTxt(){const t=cftNow(),left=CFT_CAP-t;return [fmtT(t),left>=0?fmtT(left)+' left of 30:00':'Over 30:00 by '+fmtT(-left)]}
@@ -3366,6 +3443,7 @@ function viewAssess(){
   <div class="form"><label>Units<select data-f="asunit"><option value="lb"${A.unit==='lb'?' selected':''}>Pounds (lb), feet</option><option value="kg"${A.unit==='kg'?' selected':''}>Kilograms (kg), meters</option></select></label></div>
   ${aftHtml()}
   ${cftHtml()}
+  ${gtHtml()}
   <h3 style="margin-top:26px">Progression table</h3>
   <p class="tag">Pick any exercise from the library as a max effort event, then log a result each time you test it. Your results stay saved.</p>
   ${A.ev.length?A.ev.map(aEvent).join(''):'<div class="empty">No events yet. Choose one to start tracking.</div>'}
