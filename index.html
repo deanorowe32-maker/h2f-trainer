@@ -1635,6 +1635,7 @@ function viewToday(){
   const W=wkData(0);
   if(wd<5&&!W)work=`<div class="tdbig">Not planned</div><p>This week has no plan yet.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Plan this week</button></div>`;
   else if(wd<5){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),done=items.filter(it=>it.done).length,names=items.filter(it=>(it.s||EX[it.id].sec)==='M').slice(0,3).map(it=>EX[it.id].name);
+    if(isPrW(W,wd,0)){const d=prDayAt(today()),w=prWeekOf(today());work=`<div class="tdbig">${esc(DTYPES[d.f])} · Program</div><p>Week ${w+1} of 8${S.prog.w[w].dl?' · Deload':''} · ${esc(S.prog.n||'Platoon program')}</p><div class="tdrows">${prDayHtml(d)}</div><div class="row"><button class="btn" data-a="propen">Open program</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}else
     if(isCiW(W,wd)){const c=ciW(W,wd),n=ciIds(W,wd).length;work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} circuit</div><p>Circuit: ${esc(ciLine(c,n))}.</p><div class="row">${n?`<button class="btn" data-a="ciopen" data-d="${wd}" data-w="0">${CI.started&&!CI.done?'Open circuit':'Start circuit'}</button>`:''}<button class="btn${n?' ghost':''}" data-a="tdgo" data-v="train">Open today's workout</button></div>`}else
     if(isStW(W,wd)){const c=dstW(W,wd);work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} stations</div><p>${c.st.length} station${c.st.length===1?'':'s'} of ${c.mins} minutes, ${c.st.length*c.mins} minutes total.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}else
     work=`<div class="tdbig">${esc(DTYPES[W.types[wd]]||'Training')}</div><p>${items.length} exercise${items.length===1?'':'s'}${done?`, ${done} done`:''}${names.length?'. Main work: '+names.map(esc).join(', ')+(items.filter(it=>(it.s||EX[it.id].sec)==='M').length>3?' and more':''):''}.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}
@@ -1643,7 +1644,7 @@ function viewToday(){
   const tg=nuTargets(),t=nuTot(nuMeals(key)),af=S.aft.hist[0];
   if(wd<5&&W){const dn=doneOn(key),man=dn.find(x=>x.man);
     work+=dn.length?`<div class="row" style="margin-top:6px"><span class="tddone">${TICK}Done today</span>${man?'<button class="btn ghost small" data-a="tdundo">Undo</button>':''}</div>`:`<div class="row" style="margin-top:6px"><button class="btn ghost" data-a="tddone">Mark workout done</button></div>`}
-  if(wd<5&&W&&!isStW(W,wd)){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),cnt={W:0,M:0,C:0};
+  if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),cnt={W:0,M:0,C:0};
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
@@ -1700,6 +1701,7 @@ function listFor(kind){
   const arr=kind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];
   if(!arr.length&&kind==='pt')return '<div class="empty">No exercises on this day yet. Add one below.</div>';
   if(kind==='pt')return arr.map((it,i)=>itemRow(kind,it,i)).join('');
+  if(isPrW(S,S.day,S.week))return prCardHtml(S.week,S.day);
   const stDayOn=isSt(S.day),ciOn=isCi(S.day);
   return ['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')}
 function dayCiHtml(i){const c=dayCiCfg(i),ids=ciIds(S,i),f=(k,lab,u)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="${i}" value="${c[k]}" aria-label="${lab} in ${u}"></label>`;
@@ -1777,6 +1779,7 @@ function grpSuggest(w0){w0=w0||{};const lb=v=>au()==='kg'?v/0.45359237:v,e=v=>lb
 function prWeekOf(k){if(!S.prog||typeof k!=='string')return -1;const d=Math.round((new Date(k+'T12:00:00')-new Date(S.prog.s+'T12:00:00'))/864e5);if(!(d>=0))return -1;const w=Math.floor(d/7);return w<8?w:-1}
 function prDayAt(k){const w=prWeekOf(k);if(w<0)return null;const wd=(new Date(k+'T12:00:00').getDay()+6)%7;if(wd>4)return null;const d=S.prog.w[w].d[wd];return d.off?null:d}
 function prLoad(r){if(r.pct){const w=pctW(r.id,r.pct);if(w!==null)return `${r.pct}% → ${w} ${au()}`}const g=S.grp&&S.grp.g;return g&&r.g&&r.g[g]?`${g} group: ${r.g[g]}`:''}
+function isPrW(w,i,off){return !!(w&&w.fmt&&w.fmt[i]==='p'&&prDayAt(prDate(off,i)))}
 function isStW(w,i){return w&&(w.types[i]==='upper'||w.types[i]==='lower')&&w.fmt&&w.fmt[i]==='s'}
 function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i);const c=w.dst&&w.dst[i];if(c&&Array.isArray(c.st)&&c.st.length)return c;
   const ids=(w.plan[i]||[]).filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)==='M').map(it=>it.id),n=Math.max(1,Math.min(10,Math.ceil(ids.length/3))),st=[];let k=0;
@@ -1784,10 +1787,10 @@ function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i)
 function wkRange(off){const a=monday(off),b=new Date(a);b.setDate(b.getDate()+4);return fmt(a)+' – '+fmt(b)}
 function monthHtml(){
   const rows=[0,1,2,3].map(n=>{const off=S.week+n,w=wkData(off),cur=n===0;
-    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}" aria-label="Week of ${esc(wkRange(off))}${w?'':', not planned'}"><span class="mrng">${esc(wkRange(off))}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isStW(w,i)?'<i>St</i>':isCiW(w,i)?'<i>Ci</i>':''):'–'}</span>`).join('')}</button>`}).join('');
+    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}" aria-label="Week of ${esc(wkRange(off))}${w?'':', not planned'}"><span class="mrng">${esc(wkRange(off))}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isPrW(w,i,off)?'<i>Pr</i>':isStW(w,i)?'<i>St</i>':isCiW(w,i)?'<i>Ci</i>':''):'–'}</span>`).join('')}</button>`}).join('');
   const empty=[1,2,3].filter(n=>!wkData(S.week+n)).length;
   return `<h3 style="margin-top:24px">4-week plan</h3>
-  <p class="tag">Starts with the week shown above. Tap a week to open and edit it. "St" marks a stations day and "Ci" a circuit day.</p>
+  <p class="tag">Starts with the week shown above. Tap a week to open and edit it. "St" marks a stations day, "Ci" a circuit day and "Pr" a program day.</p>
   <div class="mgrid"><div class="mhead"><span></span>${DN.map(d=>`<span>${d}</span>`).join('')}</div>${rows}</div>
   <div class="row">${empty?`<button class="btn ghost" data-a="wkfill" data-v="0">Copy this week into the ${empty} empty week${empty===1?'':'s'}</button><button class="btn ghost" data-a="wkfill" data-v="1">Copy, with week 4 lighter</button>`:''}<button class="btn ghost" data-a="print" data-k="mo">Print 4-week plan</button></div>`}
 function wkLight(w){w.plan.forEach(d=>d.forEach(i=>{if(typeof i.rx==='string')i.rx=i.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>2?+a-1:+a)+b)}));w.note='Lighter week';return w}
@@ -1806,14 +1809,14 @@ function focusHtml(){const f=focusPick();if(!f||!f.ids.every(i=>EX[i]))return ''
   return `<div class="focus"><b>${esc(f.head)}</b><p>${esc(f.txt)}</p><p class="tag">Goes on ${days.map(d=>DN[d]).join(', ')}.</p><div class="row"><button class="btn" data-a="focusadd">Add to this week</button><button class="btn ghost" data-a="focushide">Not now</button></div></div>`}
 var trEdit=false;
 function viewTrain(){
-  const t=S.types[S.day];
+  const t=S.types[S.day],prOn=!!prDayAt(prDate(S.week,S.day));
   return `${ptBanner()}
   ${weekBar()}${strip('train')}${focusHtml()}
-  <details class="editday"${trEdit?' open':''} ontoggle="trEdit=this.open"><summary>Edit ${DN[S.day]}: ${esc(DTYPES[t]||'not planned')}${(t==='upper'||t==='lower')&&S.fmt[S.day]==='s'?', stations':isCi(S.day)?', circuit':''}</summary>
+  <details class="editday"${trEdit?' open':''} ontoggle="trEdit=this.open"><summary>Edit ${DN[S.day]}: ${esc(DTYPES[t]||'not planned')}${isPrW(S,S.day,S.week)?', program':(t==='upper'||t==='lower')&&S.fmt[S.day]==='s'?', stations':isCi(S.day)?', circuit':''}</summary>
   <h3 style="margin-top:10px">${DN[S.day]} focus</h3>
   <div class="chips" role="group" aria-label="Day focus">${Object.entries(DTYPES).map(([k,n])=>`<button class="chip" aria-pressed="${t===k}" data-a="type" data-v="${k}">${n}</button>`).join('')}</div>
   <details class="howto"><summary>How this works</summary><p>Use + Add in each part to add exercises, and × to remove one. Changing the focus rebuilds this day. Aerobic and anaerobic days use conditioning; upper and lower days add power, barbell, dumbbell, kettlebell, plyometric and unilateral work. This is a sample week.</p></details>
-  ${(t==='upper'||t==='lower')?`<h3 style="margin-top:14px">Workout format</h3><div class="chips" role="group" aria-label="Workout format"><button class="chip" aria-pressed="${S.fmt[S.day]==='n'}" data-a="fmt" data-v="n">Normal</button><button class="chip" aria-pressed="${S.fmt[S.day]==='s'}" data-a="fmt" data-v="s">Stations</button><button class="chip" aria-pressed="${S.fmt[S.day]==='c'}" data-a="fmt" data-v="c">Circuit</button></div>`:''}
+  ${(t==='upper'||t==='lower'||prOn)?`<h3 style="margin-top:14px">Workout format</h3><div class="chips" role="group" aria-label="Workout format"><button class="chip" aria-pressed="${S.fmt[S.day]==='n'||S.fmt[S.day]==='p'&&!prOn}" data-a="fmt" data-v="n">Normal</button>${t==='upper'||t==='lower'?`<button class="chip" aria-pressed="${S.fmt[S.day]==='s'}" data-a="fmt" data-v="s">Stations</button><button class="chip" aria-pressed="${S.fmt[S.day]==='c'}" data-a="fmt" data-v="c">Circuit</button>`:''}${prOn?`<button class="chip" aria-pressed="${S.fmt[S.day]==='p'}" data-a="fmt" data-v="p">Program</button>`:''}</div>`:''}
   </details>
   <div id="wkout">${listFor('train')}</div>
   <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
@@ -2122,7 +2125,7 @@ document.addEventListener('click',ev=>{
   if(a==='tab'){if(S.tab!==v)FX.view=true;S.tab=v;render();window.scrollTo(0,0)}
   else if(a==='tdday'){if(S.week!==0)wkGo(0);S.day=+v;S.tab='train';FX.view=true;render();window.scrollTo(0,0)}
   else if(a==='pctset'){pcId=EX[v]?v:'bsq';S.tab='assess';render();setTimeout(()=>{const e=document.getElementById('pcEx');if(e)e.scrollIntoView({block:'center'});const m=document.getElementById('pcMax');if(m)m.focus()},50)}
-  else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':isCiW(W,wd)?' circuit':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
+  else if(a==='tddone'){const wd=(new Date().getDay()+6)%7,W=wkData(0);if(wd<5&&W&&!doneOn(today()).length){const n=(W.plan[wd]||[]).filter(it=>EX[it.id]).length;S.hist=S.hist||[];S.hist.unshift({id:'h'+Date.now().toString(36),ts:Date.now(),day:DN[wd],type:isPrW(W,wd,0)?'Program · '+DTYPES[prDayAt(today()).f]:DTYPES[W.types[wd]]+(isStW(W,wd)?' stations':isCiW(W,wd)?' circuit':''),ms:0,d:n,n,man:1});S.hist=S.hist.slice(0,200);render()}}
   else if(a==='readylite'){const wd=(new Date().getDay()+6)%7;if(S.rb){S.rb.tally.lt=S.rb.tally.lt||{};S.rb.tally.lt[today()]=1}readyItems(wd).forEach(it=>{if(typeof it.rx!=='string'||typeof it.rx0==='string')return;const r=it.rx.replace(/^(\d+)(\s*[×x])/,(m,a,b)=>(+a>1?+a-1:+a)+b);if(r!==it.rx){it.rx0=it.rx;it.rx=r}});save();render()}
   else if(a==='readyfull'){const wd=(new Date().getDay()+6)%7;readyItems(wd).forEach(it=>{if(typeof it.rx0==='string'){it.rx=it.rx0;delete it.rx0}});save();render()}
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
@@ -2141,7 +2144,7 @@ document.addEventListener('click',ev=>{
   else if(a==='wkgo'){const to=+v;if(to!==S.week){wkGo(to);render();window.scrollTo(0,0)}}
   else if(a==='wkfill'){const base=wkCopy();[1,2,3].forEach(n=>{const k=mkey(S.week+n);if(!S.weeks[k]){const w=JSON.parse(JSON.stringify(base));S.weeks[k]=v==='1'&&n===3?wkLight(w):w}});render()}
   else if(a==='type'){S.types[S.day]=v;S.plan[S.day]=genDay(v);S.dst[S.day]=null;render()}
-  else if(a==='fmt'){S.fmt[S.day]=v==='s'||v==='c'?v:'n';if(v==='s')dayStCfg(S.day);if(v==='c')dayCiCfg(S.day);render()}
+  else if(a==='fmt'){S.fmt[S.day]=v==='s'||v==='c'||v==='p'?v:'n';if(v==='s')dayStCfg(S.day);if(v==='c')dayCiCfg(S.day);render()}
   else if(a==='fmtre'){S.dst[S.day]=dayStFrom(S.day);render()}
   else if(a==='genweek'){S.plan=S.types.map(genDay);S.dst=[null,null,null,null,null];S.ptFrom=null;S.ptPrev=null;render()}
   else if(a==='hudnext'){hudOff++;render()}
@@ -2194,7 +2197,7 @@ var asArm='',runMode='pace',rmLift='bench';
 const LIFTS={bench:'Bench press',bsq:'Back squat',dl:'Deadlift'};
 S.assess=S.assess||{ev:[],log:[],unit:'lb'};
 S.maxes=S.maxes&&typeof S.maxes==='object'&&!Array.isArray(S.maxes)?S.maxes:{};
-S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
+S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'||x==='p'?x:'n'):['n','n','n','n','n'];
 S.circuit=S.circuit?ciQClean(S.circuit):null;
 S.prog=S.prog?prClean(S.prog,id=>typeof id==='string'):null;
 S.grp=grpClean(S.grp);
@@ -3624,10 +3627,10 @@ function cleanBackup(raw){
   if(o.weeks&&typeof o.weeks==='object'&&!Array.isArray(o.weeks)){out.weeks={};Object.entries(o.weeks).slice(0,40).forEach(([k,w])=>{
     if(!/^\d{4}-\d\d-\d\d$/.test(k)||!w||typeof w!=='object'||!Array.isArray(w.types)||w.types.length!==5||!w.types.every(t=>DTYPES[t])||!Array.isArray(w.plan)||w.plan.length!==5)return;
     const plan=w.plan.map(d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).slice(0,40).map(i=>{const q={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))q.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))q.w=i.w;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)q.pct=i.pct;return q}));
-    const fm=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.map(x=>x==='s'||x==='c'?x:'n'):['n','n','n','n','n'];
+    const fm=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.map(x=>x==='s'||x==='c'||x==='p'?x:'n'):['n','n','n','n','n'];
     const ds=Array.isArray(w.dst)&&w.dst.length===5?w.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}}):[null,null,null,null,null];
     out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,dcir:fm.map((f,i)=>f==='c'?ciClean(Array.isArray(w.dcir)?w.dcir[i]:null):null),from:null,note:w.note==='Lighter week'?w.note:undefined}})}
-  if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'||x==='c'?x:'n');
+  if(Array.isArray(o.fmt)&&o.fmt.length===5)out.fmt=o.fmt.map(x=>x==='s'||x==='c'||x==='p'?x:'n');
   if(o.circuit&&typeof o.circuit==='object')out.circuit=ciQClean(o.circuit);
   if(o.prog){const pg=prClean(o.prog,known);if(pg)out.prog=pg}
   if(o.grp)out.grp=grpClean(o.grp);
@@ -4151,7 +4154,7 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
   <div class="chips" role="group" aria-label="Change every % this week">${[-3,1,2,3,5].map(n=>`<button class="chip" data-a="prbump" data-v="${n}">${n>0?'+':'−'}${Math.abs(n)}%</button>`).join('')}</div>
   ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b><button class="btn ghost small" data-a="prday" data-v="${i}">Edit</button></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
   ${prDayAt(today())?`<div class="row"><button class="btn" data-a="prtoday">Start today's session</button></div>`:''}
-  <div class="row"><button class="btn" data-a="prpush">Push to platoon</button><button class="btn ghost" data-a="prpaste">Paste a program</button>${S.progPrev!==undefined?'<button class="btn ghost" data-a="prundo">Undo last load</button>':''}<button class="btn ghost" data-a="prdel">${prArm==='del'?'Tap again to remove':'Remove program'}</button></div>
+  <div class="row"><button class="btn" data-a="prpush">Push to platoon</button><button class="btn ghost" data-a="prpaste">Paste a program</button><button class="btn ghost" data-a="print" data-k="pr">Print block</button>${S.progPrev!==undefined?'<button class="btn ghost" data-a="prundo">Undo last load</button>':''}<button class="btn ghost" data-a="prdel">${prArm==='del'?'Tap again to remove':'Remove program'}</button></div>
   <details class="howto"${P.n?"":" open"}><summary>Block settings</summary><div class="form"><label class="wide">Block name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Block 1 of 3"></label>
   <label class="wide">Week 1 starts<select data-f="prf" data-k="s">${Array.from({length:13},(_,i)=>mkey(i-4)).concat(P.s).filter((k,i,a)=>a.indexOf(k)===i).sort().map(k=>`<option value="${k}"${k===P.s?' selected':''}>Week of ${esc(fmt(new Date(k+'T12:00:00')))}</option>`).join('')}</select></label></div>
   <div class="row"><button class="btn ghost small" data-a="prnew">${prArm==='new'?'Tap again to start over':'Start a new program'}</button></div></details>
@@ -4168,6 +4171,12 @@ function prEdHtml(d){const inp=(k,lab,v,n)=>`<label class="wide">${lab}<input ty
   <h3>Cool down</h3><div class="form">${inp('cd','Cool down',d.cd,200)}</div>`}
   <div class="row"><button class="btn" data-a="prday" data-v="">Done</button></div>`}
 function prEdDay(){return S.prog&&prEd!==null?S.prog.w[prWk].d[prEd]:null}
+function prCardHtml(off,i){const k=prDate(off,i),w=prWeekOf(k),d=prDayAt(k);
+  return `<div class="sec prcard"><div class="sechead"><h3>Program · Week ${w+1} of 8${S.prog.w[w].dl?' · Deload':''}</h3></div><p class="tag">${esc(S.prog.n||'Platoon program')} · ${esc(DTYPES[d.f])}</p>${prDayHtml(d)}
+  <div class="row"><button class="btn ghost" data-a="propen">Open program</button></div></div>`}
+function prPrintDay(d,all){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
+  return (L.length?`<h3>Warm-up</h3>${L.map(x=>`<div class="pr-mline"><b>${x[0]}:</b> ${esc(x[1])}</div>`).join('')}`:'')+['P','M','A','C'].map(k=>{const rs=d.r.filter(r=>r.p===k&&EX[r.id]);return rs.length?`<h3>${PR_PART[k]}</h3>`+rs.map(r=>{const ld=all?['A','B','C'].filter(g=>r.g&&r.g[g]).map(g=>g+': '+r.g[g]).concat(r.pct?[r.pct+'%']:[]).join(' · '):prLoad(r);
+    return `<div class="pr-row"><span class="pr-box"></span><span class="pr-nm">${esc(EX[r.id].name)}<small>${esc([r.rx,r.rs?'rest '+r.rs:'',r.rpe?'RPE '+r.rpe:''].filter(Boolean).join(' · '))}</small></span><span class="pr-rx">${esc(ld)}</span></div>`}).join(''):''}).join('')+(d.cd?`<h3>Cool down</h3><div class="pr-mline">${esc(d.cd)}</div>`:'')}
 function prOpen(){prWk=Math.max(0,prWeekOf(today()));prEd=null;prArm='';prBody();document.getElementById('pgSheet').hidden=false}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,sh=document.getElementById('pgSheet');
   if(a==='propen')prOpen();
@@ -4520,14 +4529,19 @@ function prHtml(kind,steps){
     for(let n=0;n<4;n++){const off=S.week+n,w=wkData(off);
       out+=`<div class="pr-wk${n?' brk':''}"><h2>Week ${n+1} · ${esc(wkRange(off))}${w&&w.note?' · '+esc(w.note):''}</h2>`;
       if(!w){out+='<div class="pr-empty">Not planned yet.</div></div>';continue}
-      for(let i=0;i<5;i++){out+=`<div class="pr-day"><h3>${DN[i]} ${esc(fmt(dayDate(i+n*7)))} · ${esc(DTYPES[w.types[i]])}${isStW(w,i)?' stations':isCiW(w,i)?' circuit':''}</h3>`;
+      for(let i=0;i<5;i++){out+=`<div class="pr-day"><h3>${DN[i]} ${esc(fmt(dayDate(i+n*7)))} · ${esc(DTYPES[w.types[i]])}${isPrW(w,i,off)?' · program':isStW(w,i)?' stations':isCiW(w,i)?' circuit':''}</h3>`;
         const arr=(w.plan[i]||[]).filter(it=>EX[it.id]),line=it=>{const pw=it.pct?pctW(it.id,+it.pct):null;return `${esc(EX[it.id].name)}${it.rx?' '+esc(it.rx):''}${it.pct?' @ '+esc(it.pct)+'%'+(pw!==null?' ('+pw+' '+au()+')':''):it.w?' @ '+esc(it.w)+' '+au():''}`};
+        if(isPrW(w,i,off)){const pd=prDayAt(prDate(off,i));out+=`<div class="pr-mline"><b>Program:</b> ${['P','M','A','C'].filter(k=>pd.r.some(r=>r.p===k&&EX[r.id])).map(k=>`<span class="pr-box"></span> ${PR_PART[k]}: ${pd.r.filter(r=>r.p===k&&EX[r.id]).map(r=>esc(EX[r.id].name)+(r.rx?' '+esc(r.rx):'')).join(', ')}`).join(' ')||'No exercises'}</div></div>`;continue}
         if(!arr.length){out+='<div class="pr-empty">Rest or no exercises planned.</div></div>';continue}
         ['W','M','C'].forEach(s=>{if(s==='M'&&isStW(w,i)){const c=dstW(w,i);out+=`<div class="pr-mline"><b>Stations, ${c.st.length} × ${c.mins} min:</b> ${c.st.map((st,k)=>`<span class="pr-box"></span> ${k+1}. ${st.filter(id=>EX[id]).map(id=>esc(EX[id].name)).join(', ')||'none'}`).join(' ')}</div>`;return}
           const rows=arr.filter(it=>(it.s||EX[it.id].sec)===s);if(!rows.length)return;if(s==='M'&&isCiW(w,i))out+=`<div class="pr-mline"><b>Circuit:</b> ${esc(ciLine(ciW(w,i),rows.length))}</div>`;out+=`<div class="pr-mline"><b>${SECNAME[s]}:</b> ${rows.map(it=>`<span class="pr-box"></span> ${line(it)}`).join(' ')}</div>`});
         out+='</div>'}
       out+='</div>'}
     out+='<div class="pr-note">Warm up before you start, stop if something hurts, and drink water. Tick each box as you finish.</div>';
+  }else if(kind==='pr'&&S.prog){const P=S.prog;
+    out+=`<h1>${esc(P.n||'Platoon program')}</h1><p class="prsub">8 weeks from the week of ${esc(fmt(new Date(P.s+'T12:00:00')))}${P.fr?' · '+esc(P.fr):''}</p>`;
+    P.w.forEach((w,n)=>{out+=`<div class="pr-wk${n?' brk':''}"><h2>Week ${n+1}${w.dl?' · Deload':''}</h2>`;
+      w.d.forEach((d,i)=>{out+=`<div class="pr-day"><h3>${DN[i]} · ${esc(DTYPES[d.f])}</h3>${d.off||!d.r.length?'<div class="pr-empty">No session.</div>':prPrintDay(d,true)}</div>`});out+='</div>'});
   }else if(kind==='sq'){
     const ms=S.squad.members.slice().sort((a,b)=>a.n.toLowerCase()<b.n.toLowerCase()?-1:1);
     out+=`<h1>H2F Squad Roster</h1><p class="prsub">${ms.length} Soldier${ms.length===1?'':'s'} · printed ${esc(jrLabel(today()))}</p>`;
@@ -4570,8 +4584,9 @@ function prHtml(kind,steps){
   }else if(kind==='train'){
     out+=`<h1>H2F Weekly Workout</h1><p class="prsub">Week of ${esc(rng)}</p>`;
     for(let i=0;i<5;i++){
-      out+=`<div class="pr-day${steps?' brk':''}"><h2>${DN[i]} ${esc(fmt(dayDate(i)))} · ${esc(DTYPES[S.types[i]])}</h2>`;
+      out+=`<div class="pr-day${steps?' brk':''}"><h2>${DN[i]} ${esc(fmt(dayDate(i)))} · ${isPrW(S,i,S.week)?esc(DTYPES[prDayAt(prDate(S.week,i)).f])+' · Program':esc(DTYPES[S.types[i]])}</h2>`;
       const arr=S.plan[i]||[];let any=false;
+      if(isPrW(S,i,S.week)){any=true;out+=prPrintDay(prDayAt(prDate(S.week,i)))}else
       ['W','M','C'].forEach(s=>{if(s==='M'&&isSt(i)){const c=dayStCfg(i);any=true;out+=`<h3>Stations · ${c.st.length} × ${c.mins} min</h3>`+c.st.map((st,k)=>`<div class="pr-row"><span class="pr-box"></span><span class="pr-nm">Station ${k+1}<small>${st.filter(id=>EX[id]).map(id=>esc(EX[id].name)).join(', ')||'No exercises'}</small></span><span class="pr-rx">${c.mins} min</span></div>`).join('');return}
         const rows=arr.filter(it=>EX[it.id]&&(it.s||EX[it.id].sec)===s);if(!rows.length)return;any=true;out+=`<h3>${s==='M'&&isCi(i)?'Circuit · '+esc(ciLine(dayCiCfg(i),rows.length)):SECNAME[s]}</h3>`+rows.map(it=>prRow(it,steps,'train')).join('')});
       if(!any)out+='<div class="pr-empty">No exercises planned.</div>';
@@ -4592,7 +4607,7 @@ function prShow(){document.getElementById('prDoc').innerHTML=prHtml(prKind,docum
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a;
-  if(a==='print'){prKind=b.dataset.k==='pt'?'pt':b.dataset.k==='st'?'st':b.dataset.k==='sl'?'sl':b.dataset.k==='nu'?'nu':b.dataset.k==='sq'?'sq':b.dataset.k==='mo'?'mo':/^jr-/.test(b.dataset.k||'')?b.dataset.k:'train';document.getElementById('prSteps').checked=false;document.getElementById('prSteps').parentElement.style.display=/^jr-/.test(prKind)||prKind==='sl'||prKind==='nu'||prKind==='sq'||prKind==='mo'?'none':'';prShow();const s=document.getElementById('prSheet');s.hidden=false;s.scrollTop=0}
+  if(a==='print'){prKind=b.dataset.k==='pt'?'pt':b.dataset.k==='st'?'st':b.dataset.k==='sl'?'sl':b.dataset.k==='nu'?'nu':b.dataset.k==='sq'?'sq':b.dataset.k==='mo'?'mo':b.dataset.k==='pr'?'pr':/^jr-/.test(b.dataset.k||'')?b.dataset.k:'train';document.getElementById('prSteps').checked=false;document.getElementById('prSteps').parentElement.style.display=/^jr-/.test(prKind)||prKind==='sl'||prKind==='nu'||prKind==='sq'||prKind==='mo'||prKind==='pr'?'none':'';prShow();const s=document.getElementById('prSheet');s.hidden=false;s.scrollTop=0}
   else if(a==='prclose')document.getElementById('prSheet').hidden=true;
   else if(a==='prgo'){sgPrintOff();try{window.print()}catch(e){}}
 });
