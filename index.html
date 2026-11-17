@@ -4093,7 +4093,33 @@ function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)r
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
   <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
-var prWk=0,prEd=null,prPart='M',prArm='';
+var prWk=0,prEd=null,prPart='M',prArm='',prMode='';
+const PR_TAG='H2FPROG1:';
+function prDate(off,i){const d=monday(off);d.setDate(d.getDate()+i);return dk(d)}
+function prCode(){const P=S.prog,used=new Set();P.w.forEach(w=>w.d.forEach(d=>d.r.forEach(r=>used.add(r.id))));
+  const cu=(S.custom||[]).filter(c=>used.has(c.id)).map(c=>({id:c.id,name:c.name,cat:c.cat,sec:c.sec,eq:c.eq,steps:c.steps,cue:c.cue,link:c.link||''}));
+  return PR_TAG+JSON.stringify(prPack(Object.assign({},P,{fr:(S.squad.name||'').trim().slice(0,40)||P.fr,cu})))}
+/* repeated texts (warm-ups, rx, ranges) are stored once in a table t and referenced as "§<base36>" */
+function prPack(o){const n={},walk=x=>{if(typeof x==='string'){if(x.length>3||x[0]==='§')n[x]=(n[x]||0)+1}else if(x&&typeof x==='object')Object.values(x).forEach(walk)};walk(o);
+  const t=Object.keys(n).filter(k=>n[k]>1||k[0]==='§'),ix={};t.forEach((k,i)=>ix[k]='§'+i.toString(36));
+  const sub=x=>typeof x==='string'?(ix[x]||x):Array.isArray(x)?x.map(sub):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,sub(v)])):x;
+  return Object.assign(sub(o),{z:1,t})}
+function prUnpack(o){if(!o||o.z!==1||!Array.isArray(o.t))return o;const t=o.t;
+  const sub=x=>typeof x==='string'?(x[0]==='§'&&typeof t[parseInt(x.slice(1),36)]==='string'?t[parseInt(x.slice(1),36)]:x):Array.isArray(x)?x.map(sub):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,sub(v)])):x;
+  const r=sub(Object.assign({},o,{t:undefined}));delete r.z;delete r.t;return r}
+function prParse(txt){const i=typeof txt==='string'?txt.indexOf(PR_TAG):-1;if(i<0)throw new Error('This is not a program code. Ask your leader to send it again.');
+  let o;try{o=prUnpack(JSON.parse(txt.slice(i+PR_TAG.length).trim()))}catch(e){throw new Error('The program code looks cut off. Copy the whole message again.')}
+  const str=x=>typeof x==='string';
+  const cu=(o&&Array.isArray(o.cu)?o.cu:[]).filter(c=>c&&str(c.id)&&/^c_[a-z0-9]+$/.test(c.id)&&str(c.name)&&c.name.trim()&&Array.isArray(c.steps)&&c.steps.every(str)).slice(0,30).map(c=>{
+    let link='';if(str(c.link)&&c.link){try{const u=new URL(c.link);if(/^https?:$/.test(u.protocol))link=u.href}catch(e){}}
+    return {id:c.id,name:c.name.slice(0,60),cat:CATS[c.cat]?c.cat:'bodyweight',sec:SECNAME[c.sec]?c.sec:'M',eq:str(c.eq)?c.eq.slice(0,60):'None',steps:c.steps.slice(0,30).map(x=>x.slice(0,300)),cue:str(c.cue)?c.cue.slice(0,120):'',link}});
+  const prog=prClean(o,id=>!!EX[id]||cu.some(c=>c.id===id));if(!prog)throw new Error('This program code is not readable. Ask your leader to send it again.');
+  return {prog,cu}}
+function prMark(){const set=(fm,off)=>{for(let i=0;i<5;i++)if(prDayAt(prDate(off,i)))fm[i]='p'};
+  set(S.fmt,S.week);Object.keys(S.weeks).forEach(k=>{const w=S.weeks[k];if(w&&Array.isArray(w.fmt)&&w.fmt.length===5)set(w.fmt,wkOff(k))})}
+function prApply(prog,cu){S.custom=S.custom||[];(cu||[]).forEach(x=>{if(!S.custom.some(y=>y.id===x.id)&&S.custom.length<200){S.custom.push(x);EX[x.id]=Object.assign({},x,{custom:true})}});
+  S.progPrev=S.prog||null;S.prog=prog;prMark();save();render()}
+function prUnmark(){const un=fm=>{for(let i=0;i<5;i++)if(fm[i]==='p')fm[i]='n'};un(S.fmt);Object.values(S.weeks).forEach(w=>{if(w&&Array.isArray(w.fmt))un(w.fmt)})}
 function prSplit(v){return v>0?Math.floor(v/60)+':'+String(Math.round(v%60)).padStart(2,'0'):''}
 function prDayHtml(d){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
   return `${L.length?`<div class="tdsec">Warm-up (RAMP)</div>${L.map(x=>`<p class="tag" style="margin:2px 0"><b>${x[0]}:</b> ${esc(x[1])}</p>`).join('')}`:''}
@@ -4107,6 +4133,13 @@ function prGrpHtml(){const g=S.grp,w=g.w0,sg=grpSuggest(w),f=(k,lab,v)=>`<label>
   <div id="prSug">${prSugHtml(sg)}</div>`}
 function prSugHtml(sg){return sg?`<p class="tag">Suggested: ${sg} group${S.grp.g!==sg?` <button class="btn ghost small" data-a="prgrp" data-v="${sg}">Use ${sg}</button>`:''}</p>`:''}
 function prBody(){const b=document.getElementById('prBody');if(!b)return;const P=S.prog;
+  if(prMode==='paste'){b.innerHTML=`<h2>Paste a program</h2><p class="tag">Paste the whole message your leader sent. Your own plan is not changed.${P?' This replaces the program you have now.':''}</p>
+    <textarea id="prIn" placeholder="Paste the program code" aria-label="Program code" style="min-height:110px;font:12px var(--mono)"></textarea><div class="note warn" id="prErr" hidden></div>
+    <div class="row"><button class="btn" data-a="prload">Load program</button><button class="btn ghost" data-a="prback">Back</button></div>`;return}
+  if(prMode==='push'&&P){const msg='Paste this in H2F Trainer: Train, Platoon program, Paste a program.\n'+prCode();
+    b.innerHTML=`<h2>Push to platoon</h2><p class="tag">Send this message to your Soldiers in your group chat or by email. They paste it under Train, Platoon program. Everyone sees their own weights from their max or group.</p>
+    <textarea id="prOut" readonly aria-label="Program message" style="min-height:110px;font:12px var(--mono)">${esc(msg)}</textarea>
+    <div class="row"><button class="btn" data-a="prcopycode">Copy message</button>${navigator.share?'<button class="btn ghost" data-a="prshare">Share</button>':''}<button class="btn ghost" data-a="prback">Back</button></div>`;return}
   if(!P){b.innerHTML=`<h2>Platoon program</h2><p class="tag">An 8-week training block your leader builds and sends to the platoon. It sits next to your own plan and never changes it.</p>
     <div class="row"><button class="btn" data-a="prpaste">Paste a program from your leader</button><button class="btn ghost" data-a="prnew">Build a program</button></div>${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`;return}
   const cw=prWeekOf(today()),W=P.w[prWk];
@@ -4118,6 +4151,7 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
   <div class="chips" role="group" aria-label="Change every % this week">${[-3,1,2,3,5].map(n=>`<button class="chip" data-a="prbump" data-v="${n}">${n>0?'+':'−'}${Math.abs(n)}%</button>`).join('')}</div>
   ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b><button class="btn ghost small" data-a="prday" data-v="${i}">Edit</button></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
   ${prDayAt(today())?`<div class="row"><button class="btn" data-a="prtoday">Start today's session</button></div>`:''}
+  <div class="row"><button class="btn" data-a="prpush">Push to platoon</button><button class="btn ghost" data-a="prpaste">Paste a program</button>${S.progPrev!==undefined?'<button class="btn ghost" data-a="prundo">Undo last load</button>':''}<button class="btn ghost" data-a="prdel">${prArm==='del'?'Tap again to remove':'Remove program'}</button></div>
   <details class="howto"${P.n?"":" open"}><summary>Block settings</summary><div class="form"><label class="wide">Block name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Block 1 of 3"></label>
   <label class="wide">Week 1 starts<select data-f="prf" data-k="s">${Array.from({length:13},(_,i)=>mkey(i-4)).concat(P.s).filter((k,i,a)=>a.indexOf(k)===i).sort().map(k=>`<option value="${k}"${k===P.s?' selected':''}>Week of ${esc(fmt(new Date(k+'T12:00:00')))}</option>`).join('')}</select></label></div>
   <div class="row"><button class="btn ghost small" data-a="prnew">${prArm==='new'?'Tap again to start over':'Start a new program'}</button></div></details>
@@ -4141,6 +4175,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='prwk'){const n=+v;if(n>=0&&n<8){prWk=n;prBody()}}
   else if(a==='prgrp'){S.grp.g=['A','B','C'].includes(v)?v:'';save();prBody()}
   else if(a==='prtoday'){sh.hidden=true;S.tab='today';render()}
+  else if(a==='prpaste'){prMode='paste';prBody()}
+  else if(a==='prback'){prMode='';prBody()}
+  else if(a==='prload'){const el=document.getElementById('prIn'),er=document.getElementById('prErr');try{const r=prParse(el.value);prApply(r.prog,r.cu);prMode='';prWk=Math.max(0,prWeekOf(today()));prEd=null;prBody()}catch(e){er.textContent=e.message;er.hidden=false}}
+  else if(a==='prundo'){if(S.progPrev===undefined)return;S.prog=S.progPrev;delete S.progPrev;if(S.prog)prMark();save();render();prWk=0;prEd=null;prBody()}
   else if(a==='prnew'){if(S.prog&&prArm!=='new'){prArm='new';prBody();return}prArm='';S.prog=prBlank('',mkey(0));prWk=0;prEd=null;save();prBody()}
   else if(!S.prog)return;
   else if(a==='prday'){prEd=v===''||v===undefined?null:+v;prBody()}
@@ -4151,6 +4189,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='proff'){const d=prEdDay();if(d){d.off=!d.off;save();prBody()}}
   else if(a==='prcopy'){if(prWk>0){S.prog.w[prWk].d=JSON.parse(JSON.stringify(S.prog.w[prWk-1].d));save();prBody()}}
   else if(a==='prbump'){const n=parseInt(v,10);if(!n)return;S.prog.w[prWk].d.forEach(d=>d.r.forEach(r=>{if(r.pct)r.pct=Math.max(1,Math.min(120,Math.round((r.pct+n)*10)/10))}));save();prBody()}
+  else if(a==='prpush'){prMode='push';prBody()}
+  else if(a==='prcopycode'){const el=document.getElementById('prOut');try{navigator.clipboard.writeText(el.value).then(()=>{b.textContent='Copied ✓'},()=>{el.select();document.execCommand('copy');b.textContent='Copied ✓'})}catch(e){el.select();document.execCommand('copy')}}
+  else if(a==='prshare'){const el=document.getElementById('prOut');navigator.share({title:'H2F platoon program',text:el.value}).catch(()=>{})}
+  else if(a==='prdel'){if(prArm!=='del'){prArm='del';prBody();return}prArm='';S.progPrev=S.prog;S.prog=null;prUnmark();save();render();prBody()}
   else if(a==='prdl'){S.prog.w[prWk].dl=!S.prog.w[prWk].dl;save();prBody()}
 });
 document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if((f!=='prf'&&f!=='prr')||!S.prog)return;const k=t.dataset.k,cut=(x,n)=>x.replace(/[\u0000-\u001f]/g,' ').slice(0,n);
