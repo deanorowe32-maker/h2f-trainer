@@ -39,6 +39,10 @@ with sync_playwright() as p:
         check('board shown', pg.locator('#sqBody .sqboard').count() == 1 and 'PFC Lee' in pg.locator('#sqBody .sqboard').inner_text())
         txt = E("sqBoardText()")
         check('standings text', txt.splitlines()[1].startswith('1. PFC Lee') and '6 of 7' in txt)
+        check('fix copy fallback above squad sheet', E("+getComputedStyle(document.getElementById('gtShared')).zIndex>+getComputedStyle(document.getElementById('sqSheet')).zIndex"))
+        E("S.squad.inc.ch=0;S.aft.goal=450")
+        r = E("(()=>{const c=cleanBackup(makeBackup());return c?[c.squad.inc.ch,c.aft.goal]:null})()")
+        check('fix restore keeps ch off and goal', r == [0, 450])
         check('names escaped on board', E("(()=>{S.squad.members[0].n='<i>x</i>';return sqBoardHtml().includes('<i>x</i>')})()") is False)
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)

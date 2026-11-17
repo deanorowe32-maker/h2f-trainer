@@ -40,6 +40,13 @@ with sync_playwright() as p:
         E("window.print=()=>{};sgPrint(S.sg.cur)"); pg.emulate_media(media='print'); pg.wait_for_timeout(150)
         check('print sheet visible when printing', E("getComputedStyle(document.getElementById('sgPrint')).display") == 'block')
         pg.emulate_media(media='screen')
+        E("window.print=()=>{window.dispatchEvent(new Event('afterprint'))};sgPrint(S.sg.cur)"); pg.emulate_media(media='print'); pg.wait_for_timeout(150)
+        check('fix early afterprint still prints', E("getComputedStyle(document.getElementById('sgPrint')).display") == 'block')
+        pg.emulate_media(media='screen'); E("document.body.click()"); pg.wait_for_timeout(100)
+        check('fix print mode ends on next tap', not E("document.body.classList.contains('sgp')"))
+        E("window.print=()=>{};sgPrint(S.sg.cur);document.body.dataset.x=1"); 
+        E("(()=>{const b=document.createElement('button');b.dataset.a='prgo';document.body.appendChild(b);b.click();b.remove()})()")
+        check('fix plan print clears score sheet mode', not E("document.body.classList.contains('sgp')"))
         E("document.querySelector('[data-a=sgdone]').click()"); pg.wait_for_timeout(150)
         check('finish moves to history', E("S.sg.cur") is None and E("S.sg.hist.length") == 1)
         c = E("sgClean({cur:{d:'2026-11-17',by:'SGT X',rows:[{n:'<b>A</b>',age:'999999',sex:'q',std:'z',in:{mdl:'200',xx:'1'}},'junk']},hist:[{d:'bad'},{d:'2026-11-01',by:'',rows:[]}]})")

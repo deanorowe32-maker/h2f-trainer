@@ -959,7 +959,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div class="sheet" id="moreSheet" hidden style="z-index:73"><div class="panel" role="dialog" aria-label="More"><h2>More</h2><div class="menulist" id="moreList"></div><div class="row"><button class="btn ghost" type="button" data-a="sheetclose">Close</button></div></div></div>
 
 <div class="sheet" id="chSheet" hidden style="z-index:72"><div class="panel" role="dialog" aria-label="Log a challenge"><div id="chSheetBody"></div></div></div>
-<div class="sheet" id="gtShared" hidden style="z-index:72"><div class="panel" role="dialog" aria-label="Shared goal test"><div id="gtSharedBody"></div></div></div>
+<div class="sheet" id="gtShared" hidden style="z-index:79"><div class="panel" role="dialog" aria-label="Shared goal test"><div id="gtSharedBody"></div></div></div>
 <div class="sheet" id="pickSheet" hidden><div class="panel" role="dialog" aria-label="Add exercise"><div id="pickBody"></div></div></div>
 <div class="sheet" id="formSheet" hidden style="z-index:70"><div class="panel" role="dialog" aria-label="New exercise"><div id="formBody"></div></div></div>
 <div class="sheet" id="timerSheet" hidden style="z-index:55"><div class="panel" role="dialog" aria-label="Workout timer"><div id="timerBody"></div></div></div>
@@ -2567,7 +2567,9 @@ function sgSess(v){return v==='cur'?S.sg.cur:S.sg.hist[+String(v).slice(1)]}
 function sgPrint(se){let el=document.getElementById('sgPrint');if(!el){el=document.createElement('div');el.id='sgPrint';document.body.appendChild(el)}
   el.innerHTML=`<h2>AFT score sheet</h2><p>Date: ${esc(se.d)} · Grader: ${esc(se.by||'____________________')}</p><table><thead><tr><th>Name</th><th>Age</th><th>Sex</th><th>Std</th>${AFT_EV.map(([,n])=>`<th>${esc(n)}</th>`).join('')}<th>Total</th><th>Result</th></tr></thead><tbody>${se.rows.map(r=>{const s=sgScore(r);return `<tr><td>${esc(r.n)}</td><td>${esc(r.age)}</td><td>${r.sex.toUpperCase()}</td><td>${r.std==='c'?'C':'G'}</td>${AFT_EV.map(([k],i)=>`<td>${esc((r.in||{})[k]||'')}${s&&s.p[i]!==null?`<br><b>${s.p[i]}</b>`:''}</td>`).join('')}<td><b>${s?s.t:''}</b></td><td>${sgVerdict(s)}</td></tr>`}).join('')}</tbody></table>
   <p>Unofficial estimate from H2F Trainer. Transfer results to DA Form 705 or AFT Go.</p><p>Grader signature: ______________________________ Date: __________</p>`;
-  document.body.classList.add('sgp');const off=()=>{document.body.classList.remove('sgp');window.removeEventListener('afterprint',off)};window.addEventListener('afterprint',off);window.print();setTimeout(off,60000)}
+  /* phones can fire afterprint before the page is captured, so print mode ends on the next tap instead */
+  document.body.classList.add('sgp');try{window.print()}catch(e){}setTimeout(()=>document.addEventListener('click',sgPrintOff,{once:true,capture:true}),0)}
+function sgPrintOff(){document.body.classList.remove('sgp')}
 function sgAct(a,v){const G=S.sg;
   if(a==='sgnew'){G.cur={d:today(),by:(S.squad.name||'').trim().slice(0,40),rows:(S.squad.members||[]).slice(0,60).map(m=>({n:String(m.n||'').slice(0,40),age:'',sex:'',std:'g',in:{}}))};if(!G.cur.rows.length)G.cur.rows.push({n:'',age:'',sex:'',std:'g',in:{}});save();render();return}
   if(a==='sgadd'&&G.cur&&G.cur.rows.length<60){G.cur.rows.push({n:'',age:'',sex:'',std:'g',in:{}});save();render();return}
@@ -3430,10 +3432,10 @@ function cleanBackup(raw){
   if(o.ch&&typeof o.ch==='object')out.ch=chClean(o.ch);
   if(o.cft&&typeof o.cft==='object'&&Array.isArray(o.cft.hist))out.cft={hist:o.cft.hist.filter(h=>h&&Number.isFinite(h.ts)&&Number.isInteger(h.n)&&h.n>=1&&h.n<=7&&Array.isArray(h.sp)&&h.sp.length===h.n&&h.sp.every((v,k)=>Number.isFinite(v)&&v>=0&&v<=36e5&&(!k||v>=h.sp[k-1]))&&h.t===h.sp[h.n-1]).slice(0,50).map(h=>({ts:h.ts,sp:h.sp.slice(),t:h.t,n:h.n}))};
   if(o.aft&&typeof o.aft==='object'){const a=o.aft,s8=x=>isStr(x)?x.slice(0,8):'',i=a.in&&typeof a.in==='object'?a.in:{};
-    out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};
+    out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};if([300,350,400,450,500].includes(a.goal))out.aft.goal=a.goal;
     if(Array.isArray(a.hist))out.aft.hist=a.hist.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)&&Number.isInteger(e.age)&&e.age>=17&&e.age<=99&&Array.isArray(e.r)&&e.r.length===5&&e.r.every(x=>Number.isFinite(x)&&x>=0&&x<=3600)&&Array.isArray(e.p)&&e.p.length===5&&e.p.every(x=>Number.isInteger(x)&&x>=0&&x<=100)).slice(0,100).map(e=>({id:e.id,d:e.d,age:e.age,sex:e.sex==='f'?'f':'m',std:e.std==='c'?'c':'g',r:e.r.slice(),p:e.p.slice(),t:e.p.reduce((s,x)=>s+x,0)}))}
   if(o.squad&&typeof o.squad==='object'){const q=o.squad,ic=q.inc&&typeof q.inc==='object'?q.inc:{};
-    out.squad={name:isStr(q.name)?q.name.slice(0,40):'',inc:{tr:ic.tr?1:0,sl:ic.sl?1:0,nu:ic.nu?1:0,aft:ic.aft?1:0,rb:ic.rb===0?0:1},members:[]};
+    out.squad={name:isStr(q.name)?q.name.slice(0,40):'',inc:{tr:ic.tr?1:0,sl:ic.sl?1:0,nu:ic.nu?1:0,aft:ic.aft?1:0,rb:ic.rb===0?0:1,ch:ic.ch===0?0:1},members:[]};
     if(Array.isArray(q.members))q.members.slice(0,60).forEach(m=>{const c=sqClean(m);if(c&&isStr(m.k)&&/^[a-z0-9-]{1,40}$/.test(m.k)&&!out.squad.members.some(x=>x.k===m.k)){c.k=m.k;{const pr=rbCleanList(m.prb);if(pr)c.prb=pr}if(m.p&&typeof m.p==='object'){const pc=sqClean({v:1,n:'p',d:m.p.d,tr:m.p.tr,sl:m.p.sl,aft:m.p.aft});if(pc)c.p={d:pc.d,tr:pc.tr,sl:pc.sl,aft:pc.aft}}out.squad.members.push(c)}});out.squad.unit=isStr(q.unit)?q.unit.slice(0,40):'';out.squad.units=[];if(Array.isArray(q.units))q.units.slice(0,40).forEach(u=>{const c=ruClean(u);if(c&&isStr(u.k)&&/^[a-z0-9]{1,40}$/.test(u.k)&&!out.squad.units.some(x=>x.k===u.k)){c.k=u.k;out.squad.units.push(c)}})}
   if(o.sleep&&isStr(o.sleep.wake)&&/^\d\d:\d\d$/.test(o.sleep.wake))out.sleepWake=o.sleep.wake;
   if(o.sleep&&o.sleep.log&&typeof o.sleep.log==='object'){const lg={};Object.entries(o.sleep.log).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&typeof v==='number'&&v>=0&&v<=24)lg[k]=Math.round(v*100)/100});out.sleepLog=lg}
@@ -4189,7 +4191,7 @@ document.addEventListener('click',ev=>{
   const a=b.dataset.a;
   if(a==='print'){prKind=b.dataset.k==='pt'?'pt':b.dataset.k==='st'?'st':b.dataset.k==='sl'?'sl':b.dataset.k==='nu'?'nu':b.dataset.k==='sq'?'sq':b.dataset.k==='mo'?'mo':/^jr-/.test(b.dataset.k||'')?b.dataset.k:'train';document.getElementById('prSteps').checked=false;document.getElementById('prSteps').parentElement.style.display=/^jr-/.test(prKind)||prKind==='sl'||prKind==='nu'||prKind==='sq'||prKind==='mo'?'none':'';prShow();const s=document.getElementById('prSheet');s.hidden=false;s.scrollTop=0}
   else if(a==='prclose')document.getElementById('prSheet').hidden=true;
-  else if(a==='prgo'){try{window.print()}catch(e){}}
+  else if(a==='prgo'){sgPrintOff();try{window.print()}catch(e){}}
 });
 document.addEventListener('change',ev=>{if(ev.target.id==='prSteps')prShow()});
 
