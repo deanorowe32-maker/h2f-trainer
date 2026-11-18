@@ -1758,8 +1758,16 @@ function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id
    Short keys travel in the share code. Must not use consts defined later (startup normalization calls prClean). */
 const PR_FOCUS=['anaerobic','upper','lower','stretch','aerobic'];
 const PR_PART={W:'Warm-up',P:'Power/Plyo',M:'Main',A:'Accessory',C:'Conditioning',D:'Cool down'},PR_ORD=['W','P','M','A','C','D'];
+/* Week 0 group tests: the leader's list travels in the program. a = A cutoff, b = B cutoff (worse than b = C). hi: higher is better. tm: mm:ss time in seconds. rm: a 5RM graded on the Epley est. max (lb) and saved as that exercise's max */
+const PR_TESTS=[{k:'sh',n:'300 yd shuttle',u:'s',hi:false,tm:false,a:60,b:66},{k:'bp',n:'Bench 5RM',u:'',hi:true,tm:false,a:300,b:225,rm:'bench'},{k:'dl',n:'Deadlift 5RM',u:'',hi:true,tm:false,a:400,b:315,rm:'dl'},{k:'rk',n:'Ruck 1-mile split',u:'',hi:false,tm:true,a:810,b:855}];
+function prTestsClean(t){if(!Array.isArray(t))return JSON.parse(JSON.stringify(PR_TESTS));const seen={},str=(x,n)=>typeof x==='string'?x.replace(/[\u0000-\u001f]/g,' ').slice(0,n):'';
+  return t.filter(x=>x&&typeof x==='object'&&typeof x.k==='string'&&/^[a-z0-9]{1,8}$/.test(x.k)&&!seen[x.k]&&(seen[x.k]=1)).slice(0,12).map(x=>{const o={k:x.k,n:str(x.n,40).trim()||'Test',u:str(x.u,12),hi:x.hi===true,tm:x.tm===true};
+    ['a','b'].forEach(c=>{const v=parseFloat(x[c]);if(v>0&&v<=100000)o[c]=v});if(x.rm==='bench'||x.rm==='dl')o.rm=x.rm;return o})}
+function prTests(){return S.prog&&Array.isArray(S.prog.t)?S.prog.t:PR_TESTS}
+function prGrade(t,v){if(!(v>0)||!(t.a>0)||!(t.b>0))return '';const x=t.rm?(au()==='kg'?v/0.45359237:v)*(1+5/30):v;return t.hi?(x>=t.a?'A':x>=t.b?'B':'C'):(x<=t.a?'A':x<=t.b?'B':'C')}
+function prCut(t,v){return v>0?(t.tm?prSplit(v):String(v)):''}
 function prHead(k){return k==='W'?'Warm-up (RAMP)':PR_PART[k]}
-function prBlank(name,start){return {v:1,n:String(name||'').slice(0,60),s:start,fr:'',w:Array.from({length:8},()=>({dl:false,d:PR_FOCUS.map(f=>({f,wu:{r:'',a:'',p:''},cd:'',off:false,r:[]}))}))}}
+function prBlank(name,start){return {v:1,n:String(name||'').slice(0,60),s:start,fr:'',w:Array.from({length:8},()=>({dl:false,d:PR_FOCUS.map(f=>({f,wu:{r:'',a:'',p:''},cd:'',off:false,r:[]}))})),t:prTestsClean()}}
 function prClean(o,known){known=known||(id=>!!EX[id]);const t=(x,n)=>typeof x==='string'?x.replace(/[\u0000-\u001f]/g,' ').slice(0,n):'';
   if(!o||typeof o!=='object'||!Array.isArray(o.w)||o.w.length!==8||typeof o.s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(o.s))return null;
   const row=r=>{if(!r||typeof r!=='object'||typeof r.id!=='string'||!known(r.id))return null;const q={p:PR_PART[r.p]?r.p:'M',id:r.id,rx:t(r.rx,30),rs:t(r.rs,12)};
@@ -1769,14 +1777,10 @@ function prClean(o,known){known=known||(id=>!!EX[id]);const t=(x,n)=>typeof x===
     return {f:DTYPES[d.f]?d.f:PR_FOCUS[i],wu:{r:t(wu.r,200),a:t(wu.a,200),p:t(wu.p,200)},cd:t(d.cd,200),off:d.off===true,r:(Array.isArray(d.r)?d.r:[]).map(row).filter(Boolean).slice(0,15)}};
   const w=o.w.map(x=>{x=x&&typeof x==='object'?x:{};const d=Array.isArray(x.d)&&x.d.length===5?x.d:null;return d?{dl:x.dl===true,d:d.map(day)}:null});
   if(w.some(x=>!x))return null;
-  return {v:1,n:t(o.n,60),s:o.s,fr:t(o.fr,40),w}}
+  return {v:1,n:t(o.n,60),s:o.s,fr:t(o.fr,40),w,t:prTestsClean(o.t)}}
 function grpClean(o){o=o&&typeof o==='object'?o:{};const w0={},src=o.w0&&typeof o.w0==='object'?o.w0:{};
-  ['sh','bp','dl','rk'].forEach(k=>{const v=parseFloat(src[k]);if(v>0&&v<=10000)w0[k]=v});return {g:['A','B','C'].includes(o.g)?o.g:'',w0}}
-function grpSuggest(w0){w0=w0||{};const lb=v=>au()==='kg'?v/0.45359237:v,e=v=>lb(v)*(1+5/30),n={A:0,B:0,C:0};
-  if(w0.sh>0)n[w0.sh<=60?'A':w0.sh<=66?'B':'C']++;
-  if(w0.bp>0)n[e(w0.bp)>=300?'A':e(w0.bp)>=225?'B':'C']++;
-  if(w0.dl>0)n[e(w0.dl)>=400?'A':e(w0.dl)>=315?'B':'C']++;
-  if(w0.rk>0)n[w0.rk<=810?'A':w0.rk<=855?'B':'C']++;
+  Object.keys(src).filter(k=>/^[a-z0-9]{1,8}$/.test(k)).slice(0,24).forEach(k=>{const v=parseFloat(src[k]);if(v>0&&v<=100000)w0[k]=v});return {g:['A','B','C'].includes(o.g)?o.g:'',w0}}
+function grpSuggest(w0,tests){w0=w0||{};const n={A:0,B:0,C:0};(tests||prTests()).forEach(t=>{const g=prGrade(t,w0[t.k]);if(g)n[g]++});
   const top=Math.max(n.A,n.B,n.C);return top?['C','B','A'].find(k=>n[k]===top):''}
 function prWeekOf(k){if(!S.prog||typeof k!=='string')return -1;const d=Math.round((new Date(k+'T12:00:00')-new Date(S.prog.s+'T12:00:00'))/864e5);if(!(d>=0))return -1;const w=Math.floor(d/7);return w<8?w:-1}
 function prDayAt(k){const w=prWeekOf(k);if(w<0)return null;const wd=(new Date(k+'T12:00:00').getDay()+6)%7;if(wd>4)return null;const d=S.prog.w[w].d[wd];return d.off?null:d}
@@ -4098,7 +4102,7 @@ function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)r
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
   <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
-var prWk=0,prEd=null,prPart='M',prArm='',prMode='';
+var prTOpen=false,prWk=0,prEd=null,prPart='M',prArm='',prMode='';
 const PR_TAG='H2FPROG1:';
 function prDate(off,i){const d=monday(off);d.setDate(d.getDate()+i);return dk(d)}
 function prCode(){const P=S.prog,used=new Set();P.w.forEach(w=>w.d.forEach(d=>d.r.forEach(r=>used.add(r.id))));
@@ -4108,10 +4112,10 @@ function prCode(){const P=S.prog,used=new Set();P.w.forEach(w=>w.d.forEach(d=>d.
 function prPack(o){const n={},walk=x=>{if(typeof x==='string'){if(x.length>3||x[0]==='§')n[x]=(n[x]||0)+1}else if(x&&typeof x==='object')Object.values(x).forEach(walk)};walk(o);
   const t=Object.keys(n).filter(k=>n[k]>1||k[0]==='§'),ix={};t.forEach((k,i)=>ix[k]='§'+i.toString(36));
   const sub=x=>typeof x==='string'?(ix[x]||x):Array.isArray(x)?x.map(sub):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,sub(v)])):x;
-  return Object.assign(sub(o),{z:1,t})}
-function prUnpack(o){if(!o||o.z!==1||!Array.isArray(o.t))return o;const t=o.t;
+  return Object.assign(sub(o),{z:2,zt:t})}
+function prUnpack(o){if(!o)return o;const t=o.z===2?o.zt:o.z===1?o.t:null;if(!Array.isArray(t))return o;
   const sub=x=>typeof x==='string'?(x[0]==='§'&&typeof t[parseInt(x.slice(1),36)]==='string'?t[parseInt(x.slice(1),36)]:x):Array.isArray(x)?x.map(sub):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,sub(v)])):x;
-  const r=sub(Object.assign({},o,{t:undefined}));delete r.z;delete r.t;return r}
+  const r=sub(Object.assign({},o,o.z===2?{zt:undefined}:{t:undefined}));delete r.z;delete r.zt;if(o.z===1)delete r.t;return r}
 function prParse(txt){const i=typeof txt==='string'?txt.indexOf(PR_TAG):-1;if(i<0)throw new Error('This is not a program code. Ask your leader to send it again.');
   let o;try{o=prUnpack(JSON.parse(txt.slice(i+PR_TAG.length).trim()))}catch(e){throw new Error('The program code looks cut off. Copy the whole message again.')}
   const str=x=>typeof x==='string';
@@ -4129,11 +4133,19 @@ function prSplit(v){return v>0?Math.floor(v/60)+':'+String(Math.round(v%60)).pad
 function prDayHtml(d){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
   return `${PR_ORD.map(k=>{const rs=d.r.filter(r=>r.p===k&&EX[r.id]),pre=k==='W'?L.map(x=>`<p class="tag" style="margin:2px 0"><b>${x[0]}:</b> ${esc(x[1])}</p>`).join(''):k==='D'&&d.cd?`<p class="tag" style="margin:2px 0">${esc(d.cd)}</p>`:'';return rs.length||pre?`<div class="tdsec">${prHead(k)}</div>`+pre+rs.map(r=>{const ld=prLoad(r),bits=[r.rx,r.rs?'rest '+r.rs:'',r.rpe?'RPE '+r.rpe:''].filter(Boolean);
     return `<div class="item"><button class="nm" data-a="info" data-v="${r.id}">${esc(EX[r.id].name)}<small>${esc(bits.join(' · '))}</small></button>${ld?`<span class="rxv">${esc(ld)}</span>`:''}</div>`}).join(''):''}).join('')}`}
-function prGrpHtml(){const g=S.grp,w=g.w0,sg=grpSuggest(w),f=(k,lab,v)=>`<label>${lab}<input type="text" inputmode="${k==='rk'?'text':'decimal'}" autocomplete="off" data-f="prw0" data-k="${k}" value="${esc(v)}" placeholder="${k==='rk'?'mm:ss':''}"></label>`;
+function prGrpHtml(){const g=S.grp,w=g.w0,sg=grpSuggest(w),f=t=>`<label>${esc(t.n)}${t.rm?', '+au():t.u?', '+esc(t.u):''}<input type="text" inputmode="${t.tm?'text':'decimal'}" autocomplete="off" data-f="prw0" data-k="${t.k}" value="${esc(prCut(t,w[t.k]))}" placeholder="${t.tm?'mm:ss':''}"></label>`;
   return `<h3 style="margin-top:18px">My group</h3><p class="tag">Your leader's program lists weights or times for A, B and C groups. Pick yours, or enter your Week 0 results to get a suggestion.</p>
   <div class="chips" role="group" aria-label="My group">${['A','B','C',''].map(k=>`<button class="chip" aria-pressed="${g.g===k}" data-a="prgrp" data-v="${k}">${k?k+' group':'None'}</button>`).join('')}</div>
-  <div class="form">${f('sh','300 yd shuttle, seconds',w.sh||'')}${f('bp','Bench 5RM, '+au(),w.bp||'')}${f('dl','Deadlift 5RM, '+au(),w.dl||'')}${f('rk','Ruck 1-mile split',prSplit(w.rk))}</div>
+  <div class="form">${prTests().map(f).join('')}</div>
   <div id="prSug">${prSugHtml(sg)}</div>`}
+function prTestsHtml(){const T=S.prog.t,X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const kinds=[['nl','Lower wins'],['nh','Higher wins'],['tl','Time, lower wins'],['th','Time, higher wins']];
+  return `<details class="howto prtests"${prTOpen?' open':''} ontoggle="prTOpen=this.open"><summary>Group tests (Week 0)</summary><p class="tag">Soldiers enter these results under My group. A result at or better than the A cutoff counts as A, at or better than B as B, anything else as C. The app suggests the group most of their results land in.</p>
+  ${T.map((t,i)=>`<div class="evcard"><div class="evhead"><b>${esc(t.n)}</b><button class="x" data-a="prtrm" data-i="${i}" aria-label="Remove ${esc(t.n)}">${X}</button></div>
+    <div class="form"><label class="wide">Test name<input type="text" data-f="prt" data-i="${i}" data-k="n" value="${esc(t.n)}" maxlength="40"></label>
+    ${t.rm?`<p class="tag wide" style="grid-column:1/-1">Soldiers enter a 5RM. It is graded on the estimated max in lb and saved as their max.</p>`:`<label>Result<select data-f="prt" data-i="${i}" data-k="kind">${kinds.map(([v,l])=>`<option value="${v}"${v===(t.tm?'t':'n')+(t.hi?'h':'l')?' selected':''}>${l}</option>`).join('')}</select></label><label>Unit<input type="text" data-f="prt" data-i="${i}" data-k="u" value="${esc(t.u)}" maxlength="12" placeholder="reps, s, m"></label>`}
+    <label>A cutoff${t.rm?', lb':''}<input type="text" data-f="prt" data-i="${i}" data-k="a" value="${esc(prCut(t,t.a))}" inputmode="${t.tm?'text':'decimal'}" placeholder="${t.tm?'mm:ss':''}"></label><label>B cutoff${t.rm?', lb':''}<input type="text" data-f="prt" data-i="${i}" data-k="b" value="${esc(prCut(t,t.b))}" inputmode="${t.tm?'text':'decimal'}" placeholder="${t.tm?'mm:ss':''}"></label></div></div>`).join('')}
+  ${T.length<12?'<div class="row"><button class="btn ghost small" data-a="prtadd">+ Add test</button></div>':''}</details>`}
 function prSugHtml(sg){return sg?`<p class="tag">Suggested: ${sg} group${S.grp.g!==sg?` <button class="btn ghost small" data-a="prgrp" data-v="${sg}">Use ${sg}</button>`:''}</p>`:''}
 function prBody(){const b=document.getElementById('prBody');if(!b)return;const P=S.prog;
   if(prMode==='paste'){b.innerHTML=`<h2>Paste a program</h2><p class="tag">Paste the whole message your leader sent. Your own plan is not changed.${P?' This replaces the program you have now.':''}</p>
@@ -4158,6 +4170,7 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
   <details class="howto"${P.n?"":" open"}><summary>Weeks settings</summary><div class="form"><label class="wide">Program name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Weeks 1–8"></label>
   <label class="wide">Week 1 starts<select data-f="prf" data-k="s">${Array.from({length:13},(_,i)=>mkey(i-4)).concat(P.s).filter((k,i,a)=>a.indexOf(k)===i).sort().map(k=>`<option value="${k}"${k===P.s?' selected':''}>Week of ${esc(fmt(new Date(k+'T12:00:00')))}</option>`).join('')}</select></label></div>
   <div class="row"><button class="btn ghost small" data-a="prnew">${prArm==='new'?'Tap again to start over':'Start a new program'}</button></div></details>
+  ${prTestsHtml()}
   ${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`}
 function prEdHtml(d){const inp=(k,lab,v,n)=>`<label class="wide">${lab}<input type="text" data-f="prf" data-k="${k}" value="${esc(v)}" maxlength="${n}"></label>`,X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   const rf=(i,k,lab,v,n,im)=>`<label>${lab}<input type="text" data-f="prr" data-i="${i}" data-k="${k}" value="${esc(v===undefined?'':v)}" maxlength="${n}"${im?` inputmode="${im}"`:''}></label>`;
@@ -4201,6 +4214,8 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='prcopycode'){const el=document.getElementById('prOut');try{navigator.clipboard.writeText(el.value).then(()=>{b.textContent='Copied ✓'},()=>{el.select();document.execCommand('copy');b.textContent='Copied ✓'})}catch(e){el.select();document.execCommand('copy')}}
   else if(a==='prshare'){const el=document.getElementById('prOut');navigator.share({title:'H2F integrator program',text:el.value}).catch(()=>{})}
   else if(a==='prdel'){if(prArm!=='del'){prArm='del';prBody();return}prArm='';S.progPrev=S.prog;S.prog=null;prUnmark();save();render();prBody()}
+  else if(a==='prtadd'){if(S.prog.t.length<12){let k;do{k='t'+Math.random().toString(36).slice(2,7)}while(S.prog.t.some(x=>x.k===k));S.prog.t.push({k,n:'New test',u:'',hi:false,tm:false});prTOpen=true;save();prBody()}}
+  else if(a==='prtrm'){const i=+b.dataset.i;if(S.prog.t[i]){S.prog.t.splice(i,1);prTOpen=true;save();prBody()}}
   else if(a==='prdl'){S.prog.w[prWk].dl=!S.prog.w[prWk].dl;save();prBody()}
 });
 document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if((f!=='prf'&&f!=='prr')||!S.prog)return;const k=t.dataset.k,cut=(x,n)=>x.replace(/[\u0000-\u001f]/g,' ').slice(0,n);
@@ -4212,10 +4227,17 @@ document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.
   else if(k==='pct'){const n=parseFloat(v.replace(',','.'));if(!v)delete r.pct;else if(n>=1&&n<=120)r.pct=Math.round(n*10)/10;else return}
   else if(/^g[ABC]$/.test(k)){r.g=r.g||{};const g=k[1],x=cut(v,24);if(x)r.g[g]=x;else delete r.g[g];if(!Object.keys(r.g).length)delete r.g}
   save()});
+document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prt'||!S.prog)return;const T=S.prog.t[+t.dataset.i],k=t.dataset.k;if(!T)return;
+  if(k==='n'){T.n=t.value.replace(/[\u0000-\u001f]/g,' ').slice(0,40).trim()||'Test'}
+  else if(k==='u')T.u=t.value.replace(/[\u0000-\u001f]/g,' ').slice(0,12);
+  else if(k==='kind'&&!T.rm&&/^[nt][hl]$/.test(t.value)){T.tm=t.value[0]==='t';T.hi=t.value[1]==='h';delete T.a;delete T.b;save();prTOpen=true;prBody();return}
+  else if(k==='a'||k==='b'){const raw=t.value.trim(),v=prNum(raw,T.tm);if(!raw)delete T[k];else if(v>0&&v<=100000)T[k]=v;else return}
+  save()});
 document.addEventListener('change',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prr')return;const d=prEdDay(),r=d&&d.r[+t.dataset.i],k=t.dataset.k;if(r&&(k==='rpe'||k==='pct'))t.value=r[k]===undefined?'':r[k]});
-document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prw0')return;const k=t.dataset.k,w=S.grp.w0,raw=t.value.trim();if(!['sh','bp','dl','rk'].includes(k))return;
-  let v;if(k==='rk'){const m=/^(\d{1,2}):([0-5]\d)$/.exec(raw);v=m?+m[1]*60+ +m[2]:NaN}else v=parseFloat(raw.replace(',','.'));
-  if(!raw)delete w[k];else if(v>0&&v<=10000){w[k]=v;if(k==='bp'||k==='dl')S.maxes[k==='bp'?'bench':'dl']={v:wRound(v*(1+5/30)),u:au(),d:today()}}else return;
+function prNum(raw,tm){raw=String(raw).trim();if(tm){const m=/^(\d{1,3}):([0-5]\d)$/.exec(raw);return m?+m[1]*60+ +m[2]:NaN}return parseFloat(raw.replace(',','.'))}
+document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='prw0')return;const k=t.dataset.k,w=S.grp.w0,raw=t.value.trim(),T=prTests().find(x=>x.k===k);if(!T)return;
+  const v=prNum(raw,T.tm);
+  if(!raw)delete w[k];else if(v>0&&v<=100000){w[k]=v;if(T.rm)S.maxes[T.rm]={v:wRound(v*(1+5/30)),u:au(),d:today()}}else return;
   save();const sg=document.getElementById('prSug');if(sg)sg.innerHTML=prSugHtml(grpSuggest(w))});
 function ciBtn(){const b=document.getElementById('ciOpenBtn');if(b&&b.lastChild)b.lastChild.textContent=CI.started&&!CI.done?'Open circuit timer':'Circuit'}
 function ciBuild(){const b=document.getElementById('ciBody');if(!b)return;const c=ciCfgOf('q'),f=(k,lab)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="q" value="${c[k]}"></label>`;
