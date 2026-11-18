@@ -21,7 +21,7 @@ with sync_playwright() as p:
         check(f'reopen {i}: today drawn', len(pg.evaluate("document.getElementById('view').innerText")) > 200)
     # simulate a crash during startup: the safety screen must appear with a restorable backup code
     def boom(route):
-        body = route.fetch().text().replace('render();BOOTED=true;', "throw new Error('boom');render();BOOTED=true;")
+        body = route.fetch().text().replace('\ntry{render()}catch(e){', "\nthrow new Error('boom');try{render()}catch(e){")
         route.fulfill(body=body, headers={'content-type': 'text/html'})
     saved = pg.evaluate("localStorage.getItem('h2f.v1')")
     ctx2 = b.new_context(service_workers='block'); pg2 = ctx2.new_page()
