@@ -48,6 +48,24 @@ with sync_playwright() as p:
         E("document.querySelector('#infoBody [data-a=laddone]').click();openInfo('kbwin')"); A.wait_for_timeout(100)
         t = A.locator('#infoBody').text_content()
         check('T2 no ladder hides lines', 'Easier' not in t and A.locator('#infoBody [data-a=ladedit]').count() == 1)
+        # ---------- Task 3: ladders travel ----------
+        E("S.lad={pu:{e:['ipu'],h:['pplu']}};S.prog=prBlank('x',mkey(0));S.squad.name='SGT Rowe'")
+        code = E("prCode()")
+        check('T3 code carries ladders', E("JSON.stringify(prParse(prCode()).prog.ld.pu)") == '{"e":["ipu"],"h":["pplu"]}')
+        check('T3 cap 40', E("(()=>{const o=prBlank('x',mkey(0));o.ld={};Object.keys(EX).slice(0,60).forEach(k=>o.ld[k]={e:[],h:[]});return Object.keys(prClean(o).ld).length})()") == 40)
+        Bp = phone(); F = Bp.evaluate
+        F("S.lad={}"); r = F(f"(()=>{{const r=prParse({json.dumps(code)});prApply(r.prog,r.cu);return JSON.stringify(ladFor('pu'))}})()")
+        check('T3 soldier sees leader ladder', r == '{"e":["ipu"],"h":["pplu"]}')
+        F("S.lad={pu:{e:['chsq'],h:[]}}")
+        check('T3 soldier own edit still wins', F("ladFor('pu').e[0]") == 'chsq')
+        # custom exercise share carries links
+        E("S.custom=S.custom||[];S.custom.push({id:'c_box1',name:'Box Step Push-Up',cat:'bodyweight',sec:'M',eq:'Box',steps:['Do it'],cue:'',link:''});EX.c_box1=Object.assign({},S.custom[S.custom.length-1],{custom:true});S.lad.c_box1={e:['kpu'],h:['pu','zzz']}")
+        msg = E("xsMsg([EX.c_box1])")
+        F("S.lad={}")
+        F(f"xsLoad(xsParse({json.dumps(msg)}));document.querySelector('#cmBody [data-a=xsadd]').click()"); Bp.wait_for_timeout(150)
+        nid = F("S.custom.find(c=>c.name==='Box Step Push-Up').id")
+        check('T3 shared custom links arrive', F(f"JSON.stringify(S.lad['{nid}'])") == '{"e":["kpu"],"h":["pu"]}')
+        Bp.close()
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)

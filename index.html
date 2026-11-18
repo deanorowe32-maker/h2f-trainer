@@ -1793,7 +1793,9 @@ function prClean(o,known){known=known||(id=>!!EX[id]);const t=(x,n)=>typeof x===
     return {f:DTYPES[d.f]?d.f:PR_FOCUS[i],wu:{r:t(wu.r,200),a:t(wu.a,200),p:t(wu.p,200)},cd:t(d.cd,200),off:d.off===true,r:(Array.isArray(d.r)?d.r:[]).map(row).filter(Boolean).slice(0,15)}};
   const w=o.w.map(x=>{x=x&&typeof x==='object'?x:{};const d=Array.isArray(x.d)&&x.d.length===5?x.d:null;return d?{dl:x.dl===true,d:d.map(day)}:null});
   if(w.some(x=>!x))return null;
-  return {v:1,n:t(o.n,60),s:o.s,fr:t(o.fr,40),w,t:prTestsClean(o.t)}}
+  const out={v:1,n:t(o.n,60),s:o.s,fr:t(o.fr,40),w,t:prTestsClean(o.t)};
+  if(o.ld&&typeof o.ld==='object'){const ld=ladClean(o.ld,known),k=Object.keys(ld).slice(0,40);if(k.length){out.ld={};k.forEach(x=>out.ld[x]=ld[x])}}
+  return out}
 function grpClean(o){o=o&&typeof o==='object'?o:{};const w0={},src=o.w0&&typeof o.w0==='object'?o.w0:{};
   Object.keys(src).filter(k=>/^[a-z0-9]{1,8}$/.test(k)).slice(0,24).forEach(k=>{const v=parseFloat(src[k]);if(v>0&&v<=100000)w0[k]=v});return {g:['A','B','C'].includes(o.g)?o.g:'',w0}}
 function grpSuggest(w0,tests){w0=w0||{};const n={A:0,B:0,C:0};(tests||prTests()).forEach(t=>{const g=prGrade(t,w0[t.k]);if(g)n[g]++});
@@ -4143,7 +4145,8 @@ const PR_TAG='H2FPROG1:';
 function prDate(off,i){const d=monday(off);d.setDate(d.getDate()+i);return dk(d)}
 function prCode(){const P=S.prog,used=new Set();P.w.forEach(w=>w.d.forEach(d=>d.r.forEach(r=>used.add(r.id))));
   const cu=(S.custom||[]).filter(c=>used.has(c.id)).map(c=>({id:c.id,name:c.name,cat:c.cat,sec:c.sec,eq:c.eq,steps:c.steps,cue:c.cue,link:c.link||''}));
-  return PR_TAG+JSON.stringify(prPack(Object.assign({},P,{fr:(S.squad.name||'').trim().slice(0,40)||P.fr,cu})))}
+  const okId=id=>(EX[id]&&!EX[id].custom)||cu.some(c=>c.id===id),ld=ladClean(S.lad,okId),ldk=Object.keys(ld).slice(0,40),ldo={};ldk.forEach(k=>ldo[k]=ld[k]);
+  return PR_TAG+JSON.stringify(prPack(Object.assign({},P,{fr:(S.squad.name||'').trim().slice(0,40)||P.fr,cu},ldk.length?{ld:ldo}:{})))}
 /* repeated texts (warm-ups, rx, ranges) are stored once in a table t and referenced as "§<base36>" */
 function prPack(o){const n={},walk=x=>{if(typeof x==='string'){if(x.length>3||x[0]==='§')n[x]=(n[x]||0)+1}else if(x&&typeof x==='object')Object.values(x).forEach(walk)};walk(o);
   const t=Object.keys(n).filter(k=>n[k]>1||k[0]==='§'),ix={};t.forEach((k,i)=>ix[k]='§'+i.toString(36));
@@ -4331,11 +4334,13 @@ function cmClean(o){
   if(!name||!steps.length||!CATS[cat]||!['W','M','C'].includes(sec))return null;
   return {name,cat,sec,eq:cmStr(o.eq,60)||'None',steps,cue:cmStr(o.cue,120)||'Control every rep.'}}
 const XS_TAG='H2FEX1:';
-function xsEnc(list,from){const j=JSON.stringify({v:1,from:cmStr(from,40),ex:list.map(e=>cmClean(e)).filter(Boolean)});
+function xsEnc(list,from){const ix=id=>{const i=list.findIndex(e=>e.id===id);return i>=0?'#'+i:EX[id]&&!EX[id].custom?id:null},lk=list.map(e=>{const L=ladFor(e.id),m=a=>a.map(ix).filter(Boolean);return {e:m(L.e),h:m(L.h)}});
+  const j=JSON.stringify(Object.assign({v:1,from:cmStr(from,40),ex:list.map(e=>cmClean(e)).filter(Boolean)},lk.some(x=>x.e.length||x.h.length)?{ld:lk}:{}));
   const b=new TextEncoder().encode(j);let s='';b.forEach(c=>s+=String.fromCharCode(c));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function xsDec(code){try{const s=atob(code.replace(/-/g,'+').replace(/_/g,'/'));const b=Uint8Array.from(s,c=>c.charCodeAt(0));
   const o=JSON.parse(new TextDecoder().decode(b));if(!o||!Array.isArray(o.ex))return null;
-  return {from:cmStr(o.from,40),ex:o.ex.slice(0,40).map(cmClean).filter(Boolean)}}catch(e){return null}}
+  const ex=o.ex.slice(0,40).map((x,i)=>{const c=cmClean(x);if(c&&Array.isArray(o.ld)&&o.ld[i]&&typeof o.ld[i]==='object'){const f=a=>(Array.isArray(a)?a:[]).filter(v=>typeof v==='string'&&/^(#\d{1,2}|[\w-]{1,40})$/.test(v)).slice(0,3);c.ld={e:f(o.ld[i].e),h:f(o.ld[i].h)}}return c});
+  return {from:cmStr(o.from,40),ex:ex.filter(Boolean)}}catch(e){return null}}
 /* A link only makes sense on the app's own website, where the page can read it back */
 function xsSite(){try{return window.top===window&&location.protocol==='https:'?location.origin+location.pathname:''}catch(e){return ''}}
 function xsMine(){return (S.custom||[]).map(c=>EX[c.id]).filter(Boolean)}
@@ -4392,9 +4397,10 @@ document.addEventListener('click',ev=>{
     try{navigator.clipboard.writeText(t.value).then(ok,()=>{t.focus();t.select();cmMsg('Select all and copy the message above.',false)})}catch(e){t.focus();t.select()}}
   else if(a==='xsnative'){const list=XS.out||[];navigator.share({title:xsSubj(list),text:xsMsg(list)}).catch(()=>{})}
   else if(a==='xsclear'){XS.items=[];XS.src='';cmOpen()}
-  else if(a==='xsadd'){let n=0;for(const x of XS.items){if(xsDupe(x))continue;
+  else if(a==='xsadd'){let n=0;const nid=[];XS.items.forEach((x,i)=>{if(xsDupe(x))return;
       const c={id:'c_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36)+n,name:x.name,cat:x.cat,sec:x.sec,eq:x.eq,steps:x.steps.slice(),cue:x.cue,link:''};
-      S.custom.push(c);EX[c.id]=Object.assign({},c,{custom:true});n++}
+      S.custom.push(c);EX[c.id]=Object.assign({},c,{custom:true});nid[i]=c.id;n++});
+    XS.items.forEach((x,i)=>{if(!nid[i]||!x.ld||S.lad[nid[i]])return;const m=a=>a.map(v=>v[0]==='#'?nid[+v.slice(1)]:v).filter(v=>v&&EX[v]&&v!==nid[i]);S.lad[nid[i]]={e:m(x.ld.e),h:m(x.ld.h)}});
     save();XS.items=[];XS.src='';cmOpen();cmMsg(n?`Added ${n} exercise${n===1?'':'s'} to your library.`:'Those are already in your library.',!n);if(S.tab==='lib')render()}
 });
 document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;
