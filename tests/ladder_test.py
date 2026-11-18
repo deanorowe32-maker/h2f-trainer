@@ -67,6 +67,15 @@ with sync_playwright() as p:
         nid = F("S.custom.find(c=>c.name==='Box Step Push-Up').id")
         check('T3 shared custom links arrive', F(f"JSON.stringify(S.lad['{nid}'])") == '{"e":["kpu"],"h":["pu"]}')
         Bp.close()
+        # ---------- Review fix: picker stacking ----------
+        E("S.lad={};openInfo('pu');document.querySelector('#infoBody [data-a=ladedit]').click()"); A.wait_for_timeout(100)
+        E("document.querySelector('#infoBody [data-a=ladadd][data-k=h]').click()"); A.wait_for_timeout(100)
+        E("document.querySelector('#pickBody [data-a=closepick]').click()"); A.wait_for_timeout(100)
+        check('F cancel returns to card', not E("document.getElementById('infoSheet').hidden") and E("document.getElementById('pickSheet').hidden"))
+        E("document.querySelector('#infoBody [data-a=laddone]').click();document.querySelector('#infoBody [data-a=closeinfo]').click();openPick('train','M')"); A.wait_for_timeout(100)
+        E("document.querySelector('#pickList [data-a=info]').click()"); A.wait_for_timeout(100)
+        zi = E("[+getComputedStyle(document.getElementById('infoSheet')).zIndex,+getComputedStyle(document.getElementById('pickSheet')).zIndex]")
+        check('F info card shows above normal picker', zi[0] > zi[1])
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)
