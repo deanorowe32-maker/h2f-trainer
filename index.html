@@ -1936,7 +1936,7 @@ function libList(q,cat){
 let libQ='',libC='';
 function viewLib(){
   return `<h2>Exercise Library</h2><p>Tap any exercise for steps and coaching cues, or add your own.</p>
-  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button></div><div class="row" style="margin:6px 0"><button class="btn ghost" data-a="cmopen">Add a shared exercise</button></div>
+  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button></div><div class="row" style="margin:6px 0"><button class="btn ghost" data-a="xspick">Share an exercise</button><button class="btn ghost" data-a="cmopen">Add a shared exercise</button></div>
   <input type="search" id="libQ" data-f="libq" placeholder="Search exercises or equipment" value="${esc(libQ)}" aria-label="Search exercises">
   <div class="chips cats" id="libChips" role="group" aria-label="Filter by category">${chipsHtml(libC,'libcat')}</div>
   <div class="list" id="libList">${libList(libQ,libC)}</div>`}
@@ -4435,12 +4435,18 @@ function xsRecvHtml(){
   <textarea id="xsIn" class="xscode" rows="3" data-f="xsin" placeholder="Paste the whole message here" aria-label="Paste a shared exercise message"></textarea>
   <div class="note" id="cmMsg" hidden aria-live="polite"></div>
   ${prev}
-  <p class="tag" style="margin-top:16px">To send one of your own, tap My exercises in the Library, then Share.${mine.length>1?` Or <button type="button" class="linkbtn" data-a="xsall">send all ${mine.length} at once</button>.`:''}</p>
+  <p class="tag" style="margin-top:16px">To send one of your own, use Share an exercise in the Library.${mine.length>1?` Or <button type="button" class="linkbtn" data-a="xsall">send all ${mine.length} at once</button>.`:''}</p>
   <div class="row"><button class="btn ghost" data-a="cmclose">Close</button></div>`}
 function xsParse(raw){const s=String(raw||'');let i=s.indexOf(XS_TAG);let code='';
   if(i>=0)code=s.slice(i+XS_TAG.length).match(/^[A-Za-z0-9_-]+/)?.[0]||'';
   else{const m=s.match(/#ex=([A-Za-z0-9_-]+)/);if(m)code=m[1]}
   return code?xsDec(code):null}
+function xsPickHtml(){const m=xsMine();
+  return `<h2>Share an exercise</h2>${m.length?`<p class="tag">Pick one of your exercises to send to another Soldier.</p>
+  <div class="list">${m.map(e=>`<div class="item"><button class="nm" data-a="cmshare" data-v="${e.id}">${esc(e.name)}<small>${esc(CATS[e.cat])} · ${esc(e.eq)}</small></button></div>`).join('')}</div>
+  ${m.length>1?`<div class="row"><button class="btn" data-a="xsall">Share all ${m.length}</button></div>`:''}`:'<p class="tag">You have no exercises of your own yet. Make one with Add your exercise, then share it from here.</p>'}
+  <div class="row"><button class="btn ghost" data-a="cmclose">Close</button></div>`}
+function xsPick(){document.getElementById('cmBody').innerHTML=xsPickHtml();document.getElementById('cmSheet').hidden=false}
 function cmOpen(){XS.items=XS.items||[];document.getElementById('cmBody').innerHTML=xsRecvHtml();document.getElementById('cmSheet').hidden=false}
 function xsLoad(o){XS.items=o.ex;XS.src=o.from;cmOpen();if(!o.ex.length)cmMsg('That message has no exercises this app can read.',true)}
 /* Opening a shared link on the website */
@@ -4450,6 +4456,7 @@ function xsFromLink(){try{const m=location.hash.match(/^#ex=([A-Za-z0-9_-]+)/);i
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
   if(a==='cmopen')cmOpen();
+  else if(a==='xspick')xsPick();
   else if(a==='cmclose')document.getElementById('cmSheet').hidden=true;
   else if(a==='cmshare'){const e=EX[v];if(e&&e.custom){document.getElementById('infoSheet').hidden=true;xsSend([e])}}
   else if(a==='xsall'){const m=xsMine();if(m.length)xsSend(m)}
