@@ -1,4 +1,4 @@
-"""Platoon program (8-week block pushed by a leader). Server on :8765."""
+"""Integrator program (8-week block pushed by a leader). Server on :8765."""
 import sys, json
 from playwright.sync_api import sync_playwright
 fails = []
@@ -111,7 +111,7 @@ with sync_playwright() as p:
         code = E("prCode()")
         check('T4 code tag', code.startswith('H2FPROG1:') and 'Sandbag Toss' in code)
         E("prOpen();document.querySelector('#prBody [data-a=prpush]').click()"); A.wait_for_timeout(100)
-        check('T4 push panel', 'H2FPROG1:' in A.input_value('#prOut') and 'Platoon program, Paste a program' in A.input_value('#prOut'))
+        check('T4 push panel', 'H2FPROG1:' in A.input_value('#prOut') and 'Integrator program, Paste a program' in A.input_value('#prOut'))
         Bp = phone(); F = Bp.evaluate
         F("S.prog=null;save()")
         plan_before = F("JSON.stringify([S.plan,S.types])")
@@ -120,7 +120,7 @@ with sync_playwright() as p:
         check('T4 cut code rejected', 'cut off' in Bp.locator('#prErr').text_content() and F("S.prog") is None)
         Bp.fill('#prIn', 'H2FPT1:{}'); F("document.querySelector('#prBody [data-a=prload]').click()"); Bp.wait_for_timeout(100)
         check('T4 wrong code rejected', 'not a program code' in Bp.locator('#prErr').text_content() and F("S.prog") is None)
-        Bp.fill('#prIn', 'Paste this in H2F Trainer: Train, Platoon program, Paste a program.\n' + code); F("document.querySelector('#prBody [data-a=prload]').click()"); Bp.wait_for_timeout(150)
+        Bp.fill('#prIn', 'Paste this in H2F Trainer: Train, Integrator program, Paste a program.\n' + code); F("document.querySelector('#prBody [data-a=prload]').click()"); Bp.wait_for_timeout(150)
         check('T4 loaded', F("S.prog&&S.prog.w[0].d[1].r[0].id") == 'bench' and F("S.prog.fr") == 'SGT Rowe')
         check('T4 custom came along', F("!!EX.c_sandbag&&S.custom.some(c=>c.id==='c_sandbag')"))
         check('T4 own plan untouched', F("JSON.stringify([S.plan,S.types])") == plan_before)
