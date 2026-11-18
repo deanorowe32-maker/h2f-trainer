@@ -3517,14 +3517,17 @@ function openForm(ctx,sec){
     <label class="wide">Steps, one per line<textarea id="nxSteps" placeholder="Stand with feet shoulder-width&#10;Lower slowly&#10;Return to start"></textarea></label>
     <label class="wide">Coaching cue (optional)<input type="text" id="nxCue" maxlength="120" autocomplete="off"></label>
     <label class="wide">Demo link (optional)<input type="text" id="nxLink" inputmode="url" placeholder="https://" autocomplete="off"></label>
+    <label>Start photo (optional)<input type="file" id="nxPhA" accept="image/*"></label>
+    <label>Finish photo (optional)<input type="file" id="nxPhB" accept="image/*"></label>
   </div>
+  <p class="tag">Photos are saved on this phone only. To add many at once, use Import photos in the Exercise Library.</p>
   <div class="note warn" id="nxErr" hidden></div>
   <div class="row"><button class="btn" data-a="savex">Save exercise</button><button class="btn ghost" data-a="closeform">Cancel</button></div>`;
   document.getElementById('formSheet').hidden=false;
   document.getElementById('nxSec').value=newSec;
   setTimeout(()=>{const n=document.getElementById('nxName');if(n)n.focus()},50);
 }
-function saveEx(){
+async function saveEx(){
   const g=id=>document.getElementById(id).value.trim();
   const err=document.getElementById('nxErr');
   const fail=m=>{err.textContent=m;err.hidden=false};
@@ -3534,14 +3537,17 @@ function saveEx(){
   if(!steps.length)return fail('Add at least one step.');
   if(Object.values(EX).some(e=>e.name.toLowerCase()===name.toLowerCase()))return fail('An exercise with this name already exists.');
   if(link){try{const u=new URL(/^https?:\/\//i.test(link)?link:'https://'+link);if(!/^https?:$/.test(u.protocol))throw 0;link=u.href}catch(e){return fail('That link does not look right.')}}
+  const pf=['A','B'].map(x=>{const el=document.getElementById('nxPh'+x);return el&&el.files&&el.files[0]||null});
+  if(pf.some(f=>f&&!/^image\//.test(f.type)))return fail('Choose an image file for the photo.');
   const c={id:'c_'+Date.now().toString(36),name,cat:g('nxCat'),sec:g('nxSec'),eq:g('nxEq')||'None',steps,cue:g('nxCue')||'Control every rep.',link};
   S.custom.push(c);EX[c.id]=Object.assign({},c,{custom:true});
   if(formCtx==='train')S.plan[S.day].push({id:c.id,rx:RXC[c.cat],s:c.sec});
   else if(formCtx==='pt')S.pt.plan[S.ptDay].push({id:c.id,rx:RXC[c.cat]});
   document.getElementById('formSheet').hidden=true;
+  let phBad=false;for(const [i,f] of pf.entries())if(f){try{await phSave(c.id+':'+(i?'b':'a'),await toJpeg(f))}catch(e){phBad=true}}
   const pl=document.getElementById('pickList');if(pl&&!document.getElementById('pickSheet').hidden)pl.innerHTML=pickList();
   render();
-  document.getElementById('cmBody').innerHTML=`<h2>Saved: ${esc(c.name)}</h2><p>Share it with another Soldier? They get a link that adds it to their library.</p><div class="row"><button class="btn" data-a="cmshare" data-v="${c.id}">Share</button><button class="btn ghost" data-a="cmclose">Not now</button></div>`;document.getElementById('cmSheet').hidden=false;
+  document.getElementById('cmBody').innerHTML=`<h2>Saved: ${esc(c.name)}</h2>${phBad?'<p class="note warn">A photo could not be saved. Open the exercise to try again with a smaller picture.</p>':''}<p>Share it with another Soldier? They get a link that adds it to their library.</p><div class="row"><button class="btn" data-a="cmshare" data-v="${c.id}">Share</button><button class="btn ghost" data-a="cmclose">Not now</button></div>`;document.getElementById('cmSheet').hidden=false;
 }
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
