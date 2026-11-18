@@ -1754,7 +1754,7 @@ function ciRep(c,id){return c.reps[id]||10}
 function ciLine(c,n){return `${n} exercise${n===1?'':'s'} × ${c.rounds} round${c.rounds===1?'':'s'}, `+(c.mode==='t'?`${c.work}s work, ${c.rest}s rest`:'reps')+(c.rounds>1&&c.rrest?`, ${c.rrest}s between rounds`:'')}
 function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id,e)=>{ph.push({k:'w',id,r,e,s:c.mode==='t'?c.work:null,reps:c.mode==='r'?ciRep(c,id):null});if(c.mode==='t'&&c.rest&&e<ids.length-1)ph.push({k:'r',r,e,s:c.rest})});
   if(r<c.rounds-1&&c.rrest)ph.push({k:'R',r,s:c.rrest})}return ph}
-/* integrator program: an 8-week block (5 weekdays) a leader builds and pushes; separate from the Soldier's own plan.
+/* integrator program: 8 weeks (5 weekdays each) a leader builds and pushes; separate from the Soldier's own plan.
    Short keys travel in the share code. Must not use consts defined later (startup normalization calls prClean). */
 const PR_FOCUS=['anaerobic','upper','lower','stretch','aerobic'];
 const PR_PART={W:'Warm-up',P:'Power/Plyo',M:'Main',A:'Accessory',C:'Conditioning',D:'Cool down'},PR_ORD=['W','P','M','A','C','D'];
@@ -4143,7 +4143,7 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
     b.innerHTML=`<h2>Push to platoon</h2><p class="tag">Send this message to your Soldiers in your group chat or by email. They paste it under Train, Integrator program. Everyone sees their own weights from their max or group.</p>
     <textarea id="prOut" readonly aria-label="Program message" style="min-height:110px;font:12px var(--mono)">${esc(msg)}</textarea>
     <div class="row"><button class="btn" data-a="prcopycode">Copy message</button>${navigator.share?'<button class="btn ghost" data-a="prshare">Share</button>':''}<button class="btn ghost" data-a="prback">Back</button></div>`;return}
-  if(!P){b.innerHTML=`<h2>Integrator program</h2><p class="tag">An 8-week training block your leader builds and sends to the platoon. It sits next to your own plan and never changes it.</p>
+  if(!P){b.innerHTML=`<h2>Integrator program</h2><p class="tag">8 weeks of training your leader builds and sends to the platoon. It sits next to your own plan and never changes it.</p>
     <div class="row"><button class="btn" data-a="prpaste">Paste a program from your leader</button><button class="btn ghost" data-a="prnew">Build a program</button>${S.progPrev?'<button class="btn ghost" data-a="prundo">Undo remove</button>':''}</div>${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`;return}
   const cw=prWeekOf(today()),W=P.w[prWk];
   if(prEd!==null){b.innerHTML=prEdHtml(W.d[prEd]);return}
@@ -4154,8 +4154,8 @@ function prBody(){const b=document.getElementById('prBody');if(!b)return;const P
   <div class="chips" role="group" aria-label="Change every % this week">${[-3,1,2,3,5].map(n=>`<button class="chip" data-a="prbump" data-v="${n}">${n>0?'+':'−'}${Math.abs(n)}%</button>`).join('')}</div>
   ${W.d.map((d,i)=>`<div class="evcard"><div class="evhead"><b>${DN[i]} · ${esc(DTYPES[d.f])}</b><button class="btn ghost small" data-a="prday" data-v="${i}">Edit</button></div>${d.off||!d.r.length&&!d.wu.r&&!d.cd?'<div class="empty">No session.</div>':prDayHtml(d)}</div>`).join('')}
   ${prDayAt(today())?`<div class="row"><button class="btn" data-a="prtoday">Start today's session</button></div>`:''}
-  <div class="row"><button class="btn" data-a="prpush">Push to platoon</button><button class="btn ghost" data-a="prpaste">Paste a program</button><button class="btn ghost" data-a="print" data-k="pr">Print block</button>${S.progPrev!==undefined?'<button class="btn ghost" data-a="prundo">Undo last load</button>':''}<button class="btn ghost" data-a="prdel">${prArm==='del'?'Tap again to remove':'Remove program'}</button></div>
-  <details class="howto"${P.n?"":" open"}><summary>Block settings</summary><div class="form"><label class="wide">Block name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Block 1 of 3"></label>
+  <div class="row"><button class="btn" data-a="prpush">Push to platoon</button><button class="btn ghost" data-a="prpaste">Paste a program</button><button class="btn ghost" data-a="print" data-k="pr">Print all 8 weeks</button>${S.progPrev!==undefined?'<button class="btn ghost" data-a="prundo">Undo last load</button>':''}<button class="btn ghost" data-a="prdel">${prArm==='del'?'Tap again to remove':'Remove program'}</button></div>
+  <details class="howto"${P.n?"":" open"}><summary>Weeks settings</summary><div class="form"><label class="wide">Program name<input type="text" data-f="prf" data-k="n" value="${esc(P.n)}" maxlength="60" placeholder="RTP Weeks 1–8"></label>
   <label class="wide">Week 1 starts<select data-f="prf" data-k="s">${Array.from({length:13},(_,i)=>mkey(i-4)).concat(P.s).filter((k,i,a)=>a.indexOf(k)===i).sort().map(k=>`<option value="${k}"${k===P.s?' selected':''}>Week of ${esc(fmt(new Date(k+'T12:00:00')))}</option>`).join('')}</select></label></div>
   <div class="row"><button class="btn ghost small" data-a="prnew">${prArm==='new'?'Tap again to start over':'Start a new program'}</button></div></details>
   ${prGrpHtml()}<div class="row"><button class="btn ghost" data-a="pgclose">Close</button></div>`}
