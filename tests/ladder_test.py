@@ -34,6 +34,7 @@ with sync_playwright() as p:
         check('H library chip', E("!!document.querySelector('#view [data-a=libcat][data-v=hexbar]')"))
         SWD = ['ipu','kpu','bapu','npu','spsq','pcl','bb_fsq','bb_pend','bb_gm','bb_box','bb_skull','bb_curl','db_hammer','db_conc','db_arnold','db_floor','db_snatch','tb_shrug','bb_shrug','db_shrug','db_kick']
         check('D SmartWorkout demos for new exercises', E(f"{json.dumps(SWD)}.every(id=>DEMO[id]&&demoLink(id).includes('Watch demo on SmartWorkout'))"))
+        check('V every exercise without a photo has a video card', E("Object.values(EX).filter(e=>!e.custom&&!BPH[e.id]&&e.id!=='prest').every(e=>YT[e.id]&&illHtml(e.id).includes('ytcard'))"))
         check('T1 merges chains', len(E("ladFor('bws').h")) >= 2)
         E("S.prog=prBlank('x',mkey(0));S.prog.ld={pu:{e:['ipu'],h:[]}}")
         check('T1 program wins over built-in', E("ladFor('pu').e.join()") == 'ipu')
