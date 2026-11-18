@@ -17,8 +17,9 @@ with sync_playwright() as p:
         A = phone(); E = A.evaluate
         # ---------- Task 1 ----------
         check('T1 chain ids exist', E("LAD_CHAINS.flat().filter(id=>!EX[id])").__len__() == 0)
-        check('T1 new exercises', E("['ipu','kpu','bapu','npu'].every(id=>EX[id]&&EX[id].steps.length>=3)"))
+        check('T1 new exercises', E("['ipu','kpu','bapu','npu','spsq'].every(id=>EX[id]&&EX[id].steps.length>=3)"))
         check('T1 pu built-in', E("JSON.stringify(ladFor('pu'))") == '{"e":["kpu"],"h":["hrpu"]}')
+        check('T1 researched order', E("ladFor('pull').e.join()") == 'npu,bapu' and E("ladFor('ipu').e.join()") == 'plank' and E("ladFor('bws').h[0]") == 'lm_gsq' and E("ladFor('kbdl').h.includes('bb_rackpull')") and E("ladFor('rlng').e.join()") == 'spsq')
         check('T1 merges chains', len(E("ladFor('bws').h")) >= 2)
         E("S.prog=prBlank('x',mkey(0));S.prog.ld={pu:{e:['ipu'],h:[]}}")
         check('T1 program wins over built-in', E("ladFor('pu').e.join()") == 'ipu')
