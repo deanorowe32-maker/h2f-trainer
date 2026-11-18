@@ -1707,9 +1707,8 @@ function listFor(kind){
   const arr=kind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];
   if(!arr.length&&kind==='pt')return '<div class="empty">No exercises on this day yet. Add one below.</div>';
   if(kind==='pt')return arr.map((it,i)=>itemRow(kind,it,i)).join('');
-  if(isPrW(S,S.day,S.week))return prCardHtml(S.week,S.day);
   const stDayOn=isSt(S.day),ciOn=isCi(S.day);
-  return ['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${s==='M'?`<div class="chips mainquick" role="group" aria-label="Other workouts"><button class="chip" data-a="stopen">Stations</button><button class="chip" data-a="cibuild">Circuit</button><button class="chip" data-a="propen">Integrator program</button></div>`:''}${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')}
+  return (isPrW(S,S.day,S.week)?prCardHtml(S.week,S.day):'')+['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${s==='M'?`<div class="chips mainquick" role="group" aria-label="Other workouts"><button class="chip" data-a="stopen">Stations</button><button class="chip" data-a="cibuild">Circuit</button><button class="chip" data-a="propen">Integrator program</button></div>`:''}${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')}
 function dayCiHtml(i){const c=dayCiCfg(i),ids=ciIds(S,i),f=(k,lab,u)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="${i}" value="${c[k]}" aria-label="${lab} in ${u}"></label>`;
   return `<div class="sec cicard"><div class="sechead"><h3>Circuit</h3></div>
   <p class="tag">Do the main exercises above in order, one after another, then repeat for each round.</p>
@@ -1741,7 +1740,7 @@ function wkCopy(){const w=wkPack();w.plan.forEach(d=>d.forEach(i=>{delete i.done
 function wkGo(to){S.weeks[S.curKey]=wkPack();const k=mkey(to),w=S.weeks[k];
   if(w){wkUnpack(w);delete S.weeks[k]}else{S.plan.forEach(d=>d.forEach(i=>{delete i.done}));S.ptFrom=null}
   S.week=to;S.curKey=k;S.ptPrev=null;
-  if(!w&&S.prog)for(let i=0;i<5;i++){if(prDayAt(prDate(to,i)))S.fmt[i]='p';else if(S.fmt[i]==='p')S.fmt[i]='n'}
+  if(!w&&S.prog&&S.progLoaded)for(let i=0;i<5;i++){if(prDayAt(prDate(to,i)))S.fmt[i]='p';else if(S.fmt[i]==='p')S.fmt[i]='n'}
   const keep=Object.keys(S.weeks).filter(x=>wkOff(x)>=-8).sort();Object.keys(S.weeks).forEach(x=>{if(!keep.includes(x))delete S.weeks[x]});
   keep.slice(0,Math.max(0,keep.length-30)).forEach(x=>delete S.weeks[x])}
 /* circuit: day's main exercises in order, timed (work/rest) or reps (tap Next), rounds with rest between */
@@ -1844,7 +1843,7 @@ function viewTrain(){
   ${(t==='upper'||t==='lower'||prOn)?`<h3 style="margin-top:14px">Workout format</h3><div class="chips" role="group" aria-label="Workout format"><button class="chip" aria-pressed="${S.fmt[S.day]==='n'||S.fmt[S.day]==='p'&&!prOn}" data-a="fmt" data-v="n">Normal</button>${t==='upper'||t==='lower'?`<button class="chip" aria-pressed="${S.fmt[S.day]==='s'}" data-a="fmt" data-v="s">Stations</button><button class="chip" aria-pressed="${S.fmt[S.day]==='c'}" data-a="fmt" data-v="c">Circuit</button>`:''}${prOn?`<button class="chip" aria-pressed="${S.fmt[S.day]==='p'}" data-a="fmt" data-v="p">Program</button>`:''}</div>`:''}
   </details>
   <div id="wkout">${listFor('train')}</div>
-  ${isPrW(S,S.day,S.week)?'':`<div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>`}
+  <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
   <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="propen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg>Integrator program</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
 
 function injForm(j,q,n){
@@ -2243,6 +2242,7 @@ S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'||x===
 S.circuit=S.circuit?ciQClean(S.circuit):null;
 S.prog=S.prog?prClean(S.prog,id=>typeof id==='string'):null;
 S.grp=grpClean(S.grp);
+if(S.prog&&S.progLoaded===undefined){S.progLoaded=false;for(const fm of [S.fmt].concat(Object.values(S.weeks||{}).map(w=>w&&w.fmt))){if(Array.isArray(fm))for(let i=0;i<fm.length;i++)if(fm[i]==='p')fm[i]='n'}}
 S.lad=ladClean(S.lad,id=>typeof id==='string'&&/^[\w-]{1,40}$/.test(id));
 S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
@@ -4167,7 +4167,7 @@ function prParse(txt){const i=typeof txt==='string'?txt.indexOf(PR_TAG):-1;if(i<
 function prMark(){const set=(fm,off)=>{for(let i=0;i<5;i++)if(prDayAt(prDate(off,i)))fm[i]='p'};
   set(S.fmt,S.week);Object.keys(S.weeks).forEach(k=>{const w=S.weeks[k];if(w&&Array.isArray(w.fmt)&&w.fmt.length===5)set(w.fmt,wkOff(k))})}
 function prApply(prog,cu){S.custom=S.custom||[];(cu||[]).forEach(x=>{if(!S.custom.some(y=>y.id===x.id)&&S.custom.length<200){S.custom.push(x);EX[x.id]=Object.assign({},x,{custom:true})}});
-  S.progPrev=S.prog||null;S.prog=prog;prMark();save();render()}
+  S.progPrev=S.prog||null;S.prog=prog;S.progLoaded=true;prMark();save();render()}
 function prUnmark(){const un=fm=>{for(let i=0;i<5;i++)if(fm[i]==='p')fm[i]='n'};un(S.fmt);Object.values(S.weeks).forEach(w=>{if(w&&Array.isArray(w.fmt))un(w.fmt)})}
 function prSplit(v){return v>0?Math.floor(v/60)+':'+String(Math.round(v%60)).padStart(2,'0'):''}
 function prDayHtml(d){const wu=d.wu||{},L=[['Raise',wu.r],['Activate/Mobilize',wu.a],['Potentiate',wu.p]].filter(x=>x[1]);
@@ -4240,7 +4240,7 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='prback'){prMode='';prBody()}
   else if(a==='prload'){const el=document.getElementById('prIn'),er=document.getElementById('prErr');try{const r=prParse(el.value);prApply(r.prog,r.cu);prMode='';prWk=Math.max(0,prWeekOf(today()));prEd=null;prBody()}catch(e){er.textContent=e.message;er.hidden=false}}
   else if(a==='prundo'){if(S.progPrev===undefined)return;S.prog=S.progPrev;delete S.progPrev;if(S.prog)prMark();save();render();prWk=0;prEd=null;prBody()}
-  else if(a==='prnew'){if(S.prog&&prArm!=='new'){prArm='new';prBody();return}prArm='';S.prog=prBlank('',mkey(0));prWk=0;prEd=null;save();prBody()}
+  else if(a==='prnew'){if(S.prog&&prArm!=='new'){prArm='new';prBody();return}prArm='';S.prog=prBlank('',mkey(0));S.progLoaded=false;prWk=0;prEd=null;save();prBody()}
   else if(!S.prog)return;
   else if(a==='prday'){prEd=v===''||v===undefined?null:+v;prBody()}
   else if(a==='pradd'){prPart=PR_PART[b.dataset.sec]?b.dataset.sec:'M';pickKind='prog';pickQ='';pickC='';

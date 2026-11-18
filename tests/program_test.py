@@ -184,7 +184,7 @@ with sync_playwright() as p:
         H("wkGo(3);render()")
         check('F1 day back on after off week', H("S.fmt.join('')") == 'ppppp')
         H("wkGo(1);S.day=0;S.tab='train';render()"); D.wait_for_timeout(100)
-        check('F3 no own-plan buttons on program day', D.locator('#view [data-a=tmopen]').count() == 0 and D.locator('#view .actrow [data-a=add]').count() == 0)
+        check('F3 program day keeps Main workout', 'Main workout' in D.locator('#view').text_content() and D.locator('#view [data-a=add][data-sec=M]').count() == 1 and 'Program · Week' in D.locator('#view').text_content())
         H("prOpen();document.querySelector('#prBody [data-a=prdel]').click();document.querySelector('#prBody [data-a=prdel]').click()"); D.wait_for_timeout(100)
         check('F2 undo offered after remove', H("S.prog") is None and D.locator('#prBody [data-a=prundo]').count() == 1)
         H("document.querySelector('#prBody [data-a=prundo]').click()"); D.wait_for_timeout(100)
@@ -249,6 +249,14 @@ with sync_playwright() as p:
         U("S.prog=null")
         check('GT no program uses RTP tests', 'Ruck' in U("prGrpHtml()"))
         T.close()
+        # ---------- Building a program never hides your own workout ----------
+        V = phone(); W2 = V.evaluate
+        W2("S.tab='train';S.prog=null;render();document.querySelector('#view [data-a=propen]').click()"); V.wait_for_timeout(100)
+        W2("document.querySelector('#prBody [data-a=prnew]').click();document.querySelector('#prBody [data-a=pgclose]').click();wkGo(1);wkGo(0);wkGo(1);render()"); V.wait_for_timeout(100)
+        check('B own build does not mark days', 'p' not in W2("S.fmt.join('')") and 'Main workout' in V.locator('#view').text_content())
+        W2("S.fmt=['p','p','n','p','p'];delete S.progLoaded;save()"); V.reload(); V.wait_for_timeout(900)
+        check('B startup cleanup of own-built program days', W2("S.fmt.join('')") == 'nnnnn' and W2("S.progLoaded") == False and W2("BOOTED"))
+        V.close()
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)
