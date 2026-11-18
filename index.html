@@ -1776,7 +1776,25 @@ const LAD_CHAINS=[['plank','ipu'],['ipu','kpu','pu','hrpu','pplu'],['bapu','npu'
   ['chsq','bws','lm_gsq','gsq','bsq'],['bws','kbgsq','kbrsq'],['bws','jsq','boxj'],['jsq','brdj','latb'],['hhdow','kbdl','bb_rackpull','dl'],['kbdl','dbrdl','rdl'],['dbrdl','slrdl'],['kbdl','kbs','kbssw'],
   ['spsq','rlng','lnwlk','bss','bb_bss'],['stdn','stup','bb_stup'],['brdg','slbr','hthr'],['calf','slcalf','bb_calf'],['dbfc','suit'],['mtnc','burp','bb8'],
   ['ptilt','mcgcu','dbug','plank','ltuck'],['dbug','pallof'],['splank','plank','shtap'],['qset','slr','tke','wsit'],['clam','hydr','latbw'],['sbal','sbrch','slhop'],['aabc','bev','calf'],
-  ['isoer','ier','er90'],['scap','prtr','pty'],['wsl','serrws'],['isowe','wext','ecwr'],['chin','nisom'],['ewalk','z2','tempo','r400','spr']];
+  ['isoer','ier','er90'],['scap','prtr','pty'],['wsl','serrws'],['isowe','wext','ecwr'],['chin','nisom'],['ewalk','z2','tempo','r400','spr'],
+  /* warm-up and power */
+  ['catcow','bird'],['rlng','lungtw','lm_twl'],['jjack','hkskip','hknee','spr'],['jjack','ropej'],['inch','bcrawl'],['kbhalo','kbatb','kbf8'],['scap','bpa','bfp'],['bpa','dbrfly'],
+  ['mslam','spth'],['mslam','mrot'],['kbs','kbamsw'],['kbs','kbcl','kbsn'],['kbcl','hpc'],['kbcl','kbcp'],['kbsp','kbcp'],['kbsp','kbpp','ppress'],['gsq','dbthr','kbthr','bb_thr'],['kbgsq','kbthr'],['lm_thr','bb_thr'],['lm_thr','lm_rsp'],
+  /* barbell, dumbbell, kettlebell */
+  ['sarow','bor'],['sarow','kbrow'],['kbdl','tbdl','dl'],['dbdl','tbdl'],['kbdl','dbdl'],['tbdl','tbjs'],['jsq','tbjs'],['rdl','bb_sldl'],
+  ['lnwlk','dbwlunge','bb_wlunge'],['rlng','kbrl','bb_rl','bb_flunge'],['rlng','lm_grl','lm_rl'],['spsq','bb_ss','bb_ohss'],['gsq','bb_sumo'],['lm_glat','bb_coss'],['lm_glat','lm_skat'],
+  ['lm_hack','bb_hack'],['lm_gsq','lm_hack'],['bsq','bb_ohsq'],['bb_kneel','bsq'],['lm_gsq','lm_siss'],
+  ['dbinc','bb_incbp'],['bb_pinbp','bench'],['bench','bb_spoto','bb_larsen'],['bench','bb_chain'],['kbpo','dbpo','bb_pull'],
+  ['bndcurl','dbcurl','dbicurl'],['bndcurl','kbcur'],['dblte','dbote','kbtx'],['dbrdl','kbsdl'],['lm_stag','lm_pslrdl'],['lm_rdl','lm_slrdl'],
+  ['kbcar','kbsc','kbrc'],['kbcar','sbcar'],['kbarm','kbwin','tgu'],['dbug','fltk'],['kbrt','lm_rt'],
+  /* landmine */
+  ['lm_altp','lm_hkp','lm_press','lm_pp','lm_pj','lm_sj'],['lm_press','lm_zp'],['lm_opsq','lm_apsq'],['lm_grl','lm_curt'],['lm_grl','lm_l2p'],['lm_twist','lm_twl'],
+  ['pallof','lm_arhk','lm_aro','lm_arsq'],['lm_oar','lm_tbr'],['lm_oar','lm_per'],['mcgcu','lm_sup'],['bird','lm_qkb'],['slbr','lm_slht'],['calf','lm_calf'],
+  /* conditioning */
+  ['z2','fartl','tempo'],['tempo','twomi'],['spr','hill'],['ewalk','ruck'],['lic','z2'],['stair','hill'],['sldrg','sldpsh','sdcc'],['shut','sdcc'],
+  /* rehab */
+  ['pend','isoer'],['slier','er90'],['shcars','wsl'],['chin','dnf'],['wflc','ecwf'],['tgl','gripsq','wflc'],['elbrom','bndcurl'],
+  ['slr2','sthab','latbw'],['phe','brdg'],['hslide','sarcq','tke'],['qset','sarcq'],['bdpf','bev'],['hewalk','tibr'],['tscr','marb'],['kts','ptilt']];
 function ladClean(o,known){known=known||(id=>!!EX[id]);const out={};if(!o||typeof o!=='object')return out;
   Object.keys(o).filter(k=>known(k)).slice(0,300).forEach(k=>{const x=o[k];if(!x||typeof x!=='object')return;
     const f=a=>(Array.isArray(a)?a:[]).filter((id,i,arr)=>typeof id==='string'&&id!==k&&known(id)&&arr.indexOf(id)===i).slice(0,3);out[k]={e:f(x.e),h:f(x.h)}});return out}
