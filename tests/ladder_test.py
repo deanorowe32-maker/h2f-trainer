@@ -23,6 +23,8 @@ with sync_playwright() as p:
         check('C coverage', E("(()=>{const inC=new Set(LAD_CHAINS.flat());return Object.values(EX).filter(e=>!e.custom&&inC.has(e.id)).length})()") >= 230)
         check('C examples', E("ladFor('tgu').e.includes('kbwin')") and E("ladFor('kbcl').h.includes('kbsn')") and E("ladFor('tbdl').h.includes('dl')") and E("ladFor('lm_press').e.includes('lm_hkp')") and E("ladFor('er90').e.includes('ier')") and E("ladFor('dbote').e.includes('dblte')"))
         check('C no exercise is its own neighbor or in a loop', E("LAD_CHAINS.every(c=>new Set(c).size===c.length)") and E("(()=>{const h={};LAD_CHAINS.forEach(c=>c.forEach((x,i)=>{if(i<c.length-1)(h[x]=h[x]||new Set).add(c[i+1])}));const seen={},bad=[];const dfs=(x,st)=>{if(st.has(x)){bad.push(x);return}if(seen[x])return;seen[x]=1;st.add(x);(h[x]||[]).forEach(y=>dfs(y,st));st.delete(x)};Object.keys(h).forEach(x=>dfs(x,new Set()));return bad.length===0})()"))
+        check('C hang power clean both ways', E("ladFor('hpc').e.length>0&&ladFor('hpc').h.includes('pcl')") and E("ladFor('hpc').e.includes('hhp')"))
+        check('C wide-grip bench both ways', E("ladFor('bb_widebp').e.length>0&&ladFor('bb_widebp').h.length>0"))
         check('T1 merges chains', len(E("ladFor('bws').h")) >= 2)
         E("S.prog=prBlank('x',mkey(0));S.prog.ld={pu:{e:['ipu'],h:[]}}")
         check('T1 program wins over built-in', E("ladFor('pu').e.join()") == 'ipu')
