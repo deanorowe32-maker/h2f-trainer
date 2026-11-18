@@ -210,6 +210,15 @@ with sync_playwright() as p:
         p2 = J("prHtml('pr',false)")
         check('W printed', wn in p2 and dn in p2)
         M.close()
+        # ---------- Quick buttons under Main workout ----------
+        Q = phone(); R = Q.evaluate
+        R("S.week=0;S.day=0;S.types[0]='upper';S.plan[0]=genDay('upper');S.fmt=['n','n','n','n','n'];S.tab='train';render()"); Q.wait_for_timeout(150)
+        qa = R("[...document.querySelectorAll('#view .mainquick [data-a]')].map(b=>b.dataset.a).join()")
+        check('Q quick buttons', qa == 'stopen,cibuild,propen')
+        for a, sid in [('stopen', 'stSheet'), ('cibuild', 'ciSheet'), ('propen', 'pgSheet')]:
+            R(f"document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);document.querySelector('#view .mainquick [data-a={a}]').click()"); Q.wait_for_timeout(150)
+            check('Q opens ' + a, R(f"!document.getElementById('{sid}').hidden"))
+        Q.close()
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)
