@@ -194,6 +194,22 @@ with sync_playwright() as p:
             I("(()=>{const P=prBlank('Now',mkey(0));P.w.forEach(w=>w.d.forEach(x=>x.r.push({p:'M',id:'bench',rx:'3 x 5',rs:''})));prApply(P,[]);S.tab='today';render()})()"); K.wait_for_timeout(150)
             check('F3 no own timer on program today', K.locator('#view [data-a=tdtimer]').count() == 0 and 'Week 1 of 8' in K.locator('#view').text_content())
             K.close()
+        # ---------- Warm-up and cool down exercises ----------
+        M = phone(); J = M.evaluate
+        J("S.prog=prBlank('WU',mkey(0));prOpen();prWk=0;prEd=1;prBody()"); M.wait_for_timeout(100)
+        check('W add buttons', M.locator('#prBody [data-a=pradd][data-sec=W]').count() == 1 and M.locator('#prBody [data-a=pradd][data-sec=D]').count() == 1)
+        J("document.querySelector('#prBody [data-a=pradd][data-sec=W]').click()"); M.wait_for_timeout(100)
+        J("document.querySelector('#pickList [data-a=pick]').click()"); M.wait_for_timeout(100)
+        J("document.querySelector('#prBody [data-a=pradd][data-sec=D]').click()"); M.wait_for_timeout(100)
+        J("document.querySelectorAll('#pickList [data-a=pick]')[1].click()"); M.wait_for_timeout(100)
+        check('W rows saved', J("S.prog.w[0].d[1].r.map(r=>r.p).join()") == 'W,D')
+        wn = J("esc(EX[S.prog.w[0].d[1].r[0].id].name)"); dn = J("esc(EX[S.prog.w[0].d[1].r[1].id].name)")
+        h = J("prDayHtml(S.prog.w[0].d[1])")
+        check('W shown in order', 'Warm-up' in h and 'Cool down' in h and h.index('Warm-up') < h.index(wn) < h.index('Cool down') < h.index(dn))
+        check('W survives clean and code', J("prParse(prCode()).prog.w[0].d[1].r.map(r=>r.p).join()") == 'W,D')
+        p2 = J("prHtml('pr',false)")
+        check('W printed', wn in p2 and dn in p2)
+        M.close()
         check('no page errors', not errs)
     except Exception as e:
         check('exception: ' + str(e)[:300], False)
