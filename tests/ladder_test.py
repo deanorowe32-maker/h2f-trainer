@@ -32,6 +32,8 @@ with sync_playwright() as p:
         check('H hex bar category', E("CATS.hexbar")=='Hex bar' and E("Object.values(EX).filter(e=>e.cat==='hexbar').length") == 11 and E("Object.values(EX).filter(e=>/trap bar/i.test(e.name)).length") == 0)
         E("S.tab='lib';render()"); A.wait_for_timeout(100)
         check('H library chip', E("!!document.querySelector('#view [data-a=libcat][data-v=hexbar]')"))
+        SWD = ['ipu','kpu','bapu','npu','spsq','pcl','bb_fsq','bb_pend','bb_gm','bb_box','bb_skull','bb_curl','db_hammer','db_conc','db_arnold','db_floor','db_snatch','tb_shrug','bb_shrug','db_shrug','db_kick']
+        check('D SmartWorkout demos for new exercises', E(f"{json.dumps(SWD)}.every(id=>DEMO[id]&&demoLink(id).includes('Watch demo on SmartWorkout'))"))
         check('T1 merges chains', len(E("ladFor('bws').h")) >= 2)
         E("S.prog=prBlank('x',mkey(0));S.prog.ld={pu:{e:['ipu'],h:[]}}")
         check('T1 program wins over built-in', E("ladFor('pu').e.join()") == 'ipu')
