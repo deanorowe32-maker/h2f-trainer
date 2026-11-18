@@ -1029,6 +1029,10 @@ sarow|Single-Arm Dumbbell Row|unilateral|M|Dumbbell, bench|Place one hand and kn
 suit|Suitcase Carry|unilateral|M|Dumbbell or kettlebell|Hold a heavy weight in one hand at your side.;Stand tall without leaning.;Walk 30–40 m, then switch hands.|Resist the lean.
 pu|Push-Up|bodyweight|M|None|Hands slightly wider than shoulders, body in a straight line.;Lower your chest to just above the floor.;Press back to full arm extension.|Squeeze glutes and brace.
 pull|Pull-Up|bodyweight|M|Pull-up bar|Hang with an overhand grip, shoulders engaged.;Pull your chest toward the bar.;Lower to a full hang.|Start every rep from a controlled hang.
+ipu|Incline Push-Up|bodyweight|M|Bench, box or wall|Put your hands on a bench or box, slightly wider than shoulders.;Walk your feet back until your body is one straight line from head to heels.;Lower your chest to the edge, then press back up. The higher the hands, the easier it is.|Keep your hips in line; don't let them sag.
+kpu|Knee Push-Up|bodyweight|M|None|Start in a push-up position, then lower your knees to the floor.;Keep a straight line from knees to head, hands slightly wider than shoulders.;Lower your chest to just above the floor and press back up.|Squeeze glutes so the hips stay in line.
+bapu|Band-Assisted Pull-Up|bodyweight|M|Pull-up bar and band|Loop a resistance band over the bar and put one foot or knee in it.;Hang with arms straight, shoulders pulled down and back.;Pull until your chin clears the bar, then lower with control. Use a lighter band as you get stronger.|Start each rep by pulling your shoulder blades down.
+npu|Negative Pull-Up|bodyweight|M|Pull-up bar|Step up on a box so your chin is above the bar.;Step off and hold the top for a moment.;Lower yourself slowly, 3 to 5 seconds, until your arms are straight. Step back up and repeat.|Fight the bar the whole way down.
 plank|Front Plank|bodyweight|M|None|Forearms down, elbows under shoulders.;Body in one straight line from head to heels.;Hold, breathing steadily.|Do not let hips sag.
 dbug|Dead Bug|bodyweight|M|None|Lie on your back, arms up, knees bent over hips.;Lower the opposite arm and leg slowly toward the floor.;Return and switch sides, keeping your low back flat.|Press your low back into the floor.
 bpa|Band Pull-Apart|band|M|Resistance band|Hold a band at chest height with straight arms.;Pull it apart until it touches your chest.;Return slowly.|Squeeze shoulder blades together.
@@ -1766,6 +1770,17 @@ function prTestsClean(t){if(!Array.isArray(t))return JSON.parse(JSON.stringify(P
 function prTests(){return S.prog&&Array.isArray(S.prog.t)?S.prog.t:PR_TESTS}
 function prGrade(t,v){if(!(v>0)||!(t.a>0)||!(t.b>0))return '';const x=t.rm?(au()==='kg'?v/0.45359237:v)*(1+5/30):v;return t.hi?(x>=t.a?'A':x>=t.b?'B':'C'):(x<=t.a?'A':x<=t.b?'B':'C')}
 function prCut(t,v){return v>0?(t.tm?prSplit(v):String(v)):''}
+/* exercise ladders: ordered easiest -> hardest. A card's easier option is the step before it, harder the step after; an exercise in several chains merges them */
+const LAD_CHAINS=[['ipu','kpu','pu','hrpu','pplu'],['bapu','npu','pull'],['bndrow','sarow','dbrenrow'],['bb_floor','bench','bb_pausebp'],['dbp','bench'],['dbsp','ohp','ppress'],['kbsp','kbbup'],
+  ['chsq','bws','gsq','bsq'],['bws','kbgsq','kbrsq'],['bws','jsq','boxj'],['jsq','brdj','latb'],['hhdow','kbdl','dbrdl','rdl','dl'],['dbrdl','slrdl'],['kbdl','kbs','kbssw'],
+  ['rlng','lnwlk','bss','bb_bss'],['stdn','stup','bb_stup'],['brdg','slbr','hthr'],['calf','slcalf','bb_calf'],['dbfc','suit'],['mtnc','burp','bb8'],
+  ['ptilt','mcgcu','dbug','plank','ltuck'],['splank','plank','shtap'],['qset','slr','tke','wsit'],['clam','hydr','latbw'],['sbal','sbrch','slhop'],['aabc','bev','calf'],
+  ['isoer','ier','er90'],['scap','prtr','pty'],['wsl','serrws'],['isowe','wext','ecwr'],['chin','nisom'],['ewalk','z2','tempo','r400','spr']];
+function ladClean(o,known){known=known||(id=>!!EX[id]);const out={};if(!o||typeof o!=='object')return out;
+  Object.keys(o).filter(k=>known(k)).slice(0,300).forEach(k=>{const x=o[k];if(!x||typeof x!=='object')return;
+    const f=a=>(Array.isArray(a)?a:[]).filter((id,i,arr)=>typeof id==='string'&&id!==k&&known(id)&&arr.indexOf(id)===i).slice(0,3);out[k]={e:f(x.e),h:f(x.h)}});return out}
+function ladFor(id){const own=S.lad&&S.lad[id],pl=S.prog&&S.prog.ld&&S.prog.ld[id];if(own)return own;if(pl)return pl;const e=[],h=[];
+  LAD_CHAINS.forEach(c=>{const i=c.indexOf(id);if(i<0)return;if(i>0&&!e.includes(c[i-1]))e.push(c[i-1]);if(i<c.length-1&&!h.includes(c[i+1]))h.push(c[i+1])});return {e:e.slice(0,3),h:h.slice(0,3)}}
 function prHead(k){return k==='W'?'Warm-up (RAMP)':PR_PART[k]}
 function prBlank(name,start){return {v:1,n:String(name||'').slice(0,60),s:start,fr:'',w:Array.from({length:8},()=>({dl:false,d:PR_FOCUS.map(f=>({f,wu:{r:'',a:'',p:''},cd:'',off:false,r:[]}))})),t:prTestsClean()}}
 function prClean(o,known){known=known||(id=>!!EX[id]);const t=(x,n)=>typeof x==='string'?x.replace(/[\u0000-\u001f]/g,' ').slice(0,n):'';
@@ -2207,6 +2222,7 @@ S.fmt=Array.isArray(S.fmt)&&S.fmt.length===5?S.fmt.map(x=>x==='s'||x==='c'||x===
 S.circuit=S.circuit?ciQClean(S.circuit):null;
 S.prog=S.prog?prClean(S.prog,id=>typeof id==='string'):null;
 S.grp=grpClean(S.grp);
+S.lad=ladClean(S.lad,id=>typeof id==='string'&&/^[\w-]{1,40}$/.test(id));
 S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
 S.weeks=S.weeks&&typeof S.weeks==='object'&&!Array.isArray(S.weeks)?S.weeks:{};
@@ -3582,7 +3598,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -3640,6 +3656,7 @@ function cleanBackup(raw){
   if(o.circuit&&typeof o.circuit==='object')out.circuit=ciQClean(o.circuit);
   if(o.prog){const pg=prClean(o.prog,known);if(pg)out.prog=pg}
   if(o.grp)out.grp=grpClean(o.grp);
+  if(o.lad)out.lad=ladClean(o.lad,known);
   if(Array.isArray(o.dcir)&&o.dcir.length===5)out.dcir=o.dcir.map(d=>d?ciClean(d):null);
   if(Array.isArray(o.dst)&&o.dst.length===5)out.dst=o.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}});
   if(o.journal&&typeof o.journal==='object'&&Array.isArray(o.journal.entries)){
@@ -3683,6 +3700,7 @@ function applyBackup(c){
   if(c.circuit)S.circuit=c.circuit;
   if(c.prog)S.prog=c.prog;
   if(c.grp)S.grp=c.grp;
+  if(c.lad)S.lad=c.lad;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
