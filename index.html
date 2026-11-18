@@ -1936,9 +1936,7 @@ function libList(q,cat){
 let libQ='',libC='';
 function viewLib(){
   return `<h2>Exercise Library</h2><p>Tap any exercise for steps and coaching cues, or add your own.</p>
-  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button><label class="btn ghost" style="position:relative;overflow:hidden">Import photos<input class="vh" type="file" accept="image/*" multiple data-f="bulk"></label></div><div class="row" style="margin:6px 0"><button class="btn ghost" data-a="cmopen">Add a shared exercise</button></div>
-  <details class="howto" id="bulkHelpD"><summary>How photo import works</summary><p class="tag" id="bulkHelp">Import many photos at once. Name each file after the exercise, ending in -start or -finish, for example back-squat-start.jpg and back-squat-finish.jpg. A file with no ending becomes the start photo.</p></details>
-  <div class="note" id="bulkRes" aria-live="polite" style="display:none"></div>
+  <div class="row" style="margin:6px 0"><button class="btn" data-a="newex" data-k="lib">Add your exercise</button></div><div class="row" style="margin:6px 0"><button class="btn ghost" data-a="cmopen">Add a shared exercise</button></div>
   <input type="search" id="libQ" data-f="libq" placeholder="Search exercises or equipment" value="${esc(libQ)}" aria-label="Search exercises">
   <div class="chips cats" id="libChips" role="group" aria-label="Filter by category">${chipsHtml(libC,'libcat')}</div>
   <div class="list" id="libList">${libList(libQ,libC)}</div>`}
@@ -3520,7 +3518,7 @@ function openForm(ctx,sec){
     <label>Start photo (optional)<input type="file" id="nxPhA" accept="image/*"></label>
     <label>Finish photo (optional)<input type="file" id="nxPhB" accept="image/*"></label>
   </div>
-  <p class="tag">Photos are saved on this phone only. To add many at once, use Import photos in the Exercise Library.</p>
+  <p class="tag">Photos are saved on this phone only.</p>
   <div class="note warn" id="nxErr" hidden></div>
   <div class="row"><button class="btn" data-a="savex">Save exercise</button><button class="btn ghost" data-a="closeform">Cancel</button></div>`;
   document.getElementById('formSheet').hidden=false;
@@ -3693,7 +3691,7 @@ function bkRemindHtml(){let at='',later='';try{at=localStorage.getItem('h2f.bkAt
 function openBackup(){
   const txt=makeBackup();
   document.getElementById('bkBody').innerHTML=`<h2>Backup</h2>
-  <p>Copy your backup code and keep it somewhere safe, such as a note to yourself. Photos are not part of the code, so move them with Import photos. To move to another phone, open the app there and paste it under Restore.</p>
+  <p>Copy your backup code and keep it somewhere safe, such as a note to yourself. Photos are not part of the code, so add them again on the new phone from each exercise. To move to another phone, open the app there and paste it under Restore.</p>
   <h3>Your backup code</h3>
   <textarea id="bkOut" readonly aria-label="Backup code" style="min-height:90px;font:12px var(--mono)">${esc(txt)}</textarea>
   <div class="row"><button class="btn" data-a="bkcopy" id="bkCopyBtn">Copy backup code</button></div>
@@ -4793,36 +4791,6 @@ document.addEventListener('click',async ev=>{
   phArm='';await phRemove(k);openInfo(k.split(':')[0]);
 });
 phInit();
-
-/* bulk photo import: match file names to exercises */
-const slug=s=>String(s).toLowerCase().replace(/\.[a-z0-9]+$/,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-function nameIndex(){const m={};Object.values(EX).forEach(e=>{m[slug(e.name)]=e.id;m[slug(e.id)]=e.id});return m}
-function matchFile(fn,idx){
-  let b=slug(fn),w='a';
-  const sfx=b.match(/-(start|begin|beginning|a|1|finish|end|ending|b|2)$/);
-  if(sfx){b=b.slice(0,-sfx[0].length);w=/^(finish|end|ending|b|2)$/.test(sfx[1])?'b':'a'}
-  const id=idx[b];return id?{id,w}:null;
-}
-document.addEventListener('change',async ev=>{
-  const t=ev.target;if(!t.dataset||t.dataset.f!=='bulk')return;
-  const files=[...t.files],out=document.getElementById('bulkRes');
-  t.value='';
-  if(!files.length)return;
-  if(phState==='no'){out.textContent='Photos cannot be saved in this browser.';out.style.display='block';return}
-  const idx=nameIndex(),miss=[],bad=[];let ok=0;
-  for(let i=0;i<files.length;i++){
-    const f=files[i];out.textContent=`Importing ${i+1} of ${files.length}...`;out.style.display='block';
-    if(!/^image\//.test(f.type)){bad.push(f.name);continue}
-    const m=matchFile(f.name,idx);
-    if(!m){miss.push(f.name);continue}
-    try{await phSave(m.id+':'+m.w,await toJpeg(f));ok++}catch(e){bad.push(f.name)}
-  }
-  let msg=`Imported ${ok} photo${ok===1?'':'s'}.`;
-  if(miss.length)msg+=` No exercise matched: ${miss.slice(0,8).join(', ')}${miss.length>8?' and '+(miss.length-8)+' more':''}.`;
-  if(bad.length)msg+=` Could not read: ${bad.slice(0,5).join(', ')}.`;
-  out.textContent=msg;out.style.display='block';
-  refreshInfo();
-});
 
 showGate(!unlocked());
 </script>
