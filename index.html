@@ -375,6 +375,7 @@ ol.steps li::marker{font-weight:700;color:var(--muted)}
 .plate{display:flex;height:24px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;margin:8px 0 8px}
 .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:8px;vertical-align:-1px}
+.lad .ladrow{display:flex;gap:10px;align-items:baseline;margin:6px 0}.lad .ladrow>b{min-width:58px}.lad .ladchip{display:inline-flex;align-items:center}.lad .chips{margin:0}
 .stclock{font:700 72px/1 var(--display);text-align:center;margin:8px 0}
 .ciph{font:700 28px/1.1 var(--display);text-align:center;margin-top:10px;text-transform:uppercase;letter-spacing:.04em}.ciph.rest{opacity:.7}.cinm{text-align:center;margin:6px 0 0}
 .stbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 12px}
@@ -2107,10 +2108,19 @@ function openInfo(id){
   ${illHtml(e.id)}${demoLink(e.id)}
   <h3>How to perform</h3><ol class="steps">${e.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
   <div class="cue"><b>Cue:</b> ${esc(e.cue)}</div>
+  ${ladHtml(e.id)}
   <div class="row"><button class="btn ghost" data-a="closeinfo">Close</button>${e.custom?`<button class="btn ghost" data-a="cmshare" data-v="${e.id}">Share</button><button class="btn ghost" data-a="delex" data-v="${e.id}">Delete exercise</button>`:''}</div>${e.custom?'<div class="note" id="cmMsg" hidden aria-live="polite"></div>':''}`;
   document.getElementById('infoSheet').hidden=false;
 }
-let pickKind='train',pickQ='',pickC='',pickSec='M';
+let pickKind='train',pickQ='',pickC='',pickSec='M',ladEd=null,ladK='e';
+function ladHtml(id){const L=ladFor(id),ed=ladEd===id,own=!!(S.lad&&S.lad[id]),pl=!own&&!!(S.prog&&S.prog.ld&&S.prog.ld[id]);
+  const X='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const line=(k,lab)=>{const ids=L[k].filter(x=>EX[x]);if(!ids.length&&!ed)return '';
+    return `<div class="ladrow"><b>${lab}</b><div class="chips">${ids.map(x=>`<span class="ladchip"><button class="chip" data-a="info" data-v="${x}">${esc(EX[x].name)}</button>${ed?`<button class="x" data-a="ladrm" data-k="${k}" data-v="${x}" aria-label="Remove ${esc(EX[x].name)}">${X}</button>`:''}</span>`).join('')}${ed&&ids.length<3?`<button class="chip" data-a="ladadd" data-k="${k}">+ Add</button>`:''}</div></div>`};
+  const body=line('e','Easier')+line('h','Harder');
+  return `<div class="lad">${body?`<h3>Easier and harder</h3>${own?'<p class="tag">Your version.</p>':pl?'<p class="tag">From your leader’s Integrator program.</p>':''}${body}`:''}
+  <div class="row">${ed?`<button class="btn ghost small" data-a="laddone">Done</button>${own?'<button class="btn ghost small" data-a="ladreset">Reset to default</button>':''}`:'<button class="linkbtn" data-a="ladedit">Edit easier/harder</button>'}</div></div>`}
+function ladMine(id){if(!S.lad[id]){const L=ladFor(id);S.lad[id]={e:L.e.filter(x=>EX[x]),h:L.h.filter(x=>EX[x])}}return S.lad[id]}
 function pickList(){
   const rows=Object.values(EX).filter(e=>(!pickC||e.cat===pickC)&&(!pickQ||(e.name+' '+e.eq+' '+CATS[e.cat]).toLowerCase().includes(pickQ.toLowerCase())));
   return rows.length?rows.map(e=>`<div class="item"><button class="nm" data-a="info" data-v="${e.id}">${esc(e.name)}<small>${CATS[e.cat]} · ${esc(e.eq)}${e.custom?' · Yours':''}</small></button><button class="btn" data-a="pick" data-v="${e.id}" style="padding:6px 14px;min-height:40px">${pickKind==='assess'?'Track':pickKind==='station'?'Choose':'Add'}</button></div>`).join(''):'<div class="empty">No exercises match.</div>'}
@@ -2175,7 +2185,15 @@ document.addEventListener('click',ev=>{
   else if(a==='rm'){(k==='train'?S.plan[S.day]:S.pt.plan[S.ptDay]).splice(+v,1);render()}
   else if(a==='add')openPick(k,b.dataset.sec);
   else if(a==='info')openInfo(v);
-  else if(a==='closeinfo')document.getElementById('infoSheet').hidden=true;
+  else if(a==='closeinfo'){ladEd=null;document.getElementById('infoSheet').hidden=true}
+  else if(a==='ladedit'){ladEd=window.__infoId;openInfo(ladEd)}
+  else if(a==='laddone'){const id=ladEd;ladEd=null;openInfo(id)}
+  else if(a==='ladreset'){if(ladEd){delete S.lad[ladEd];save();openInfo(ladEd)}}
+  else if(a==='ladrm'){if(ladEd){const L=ladMine(ladEd),k=b.dataset.k==='h'?'h':'e';L[k]=L[k].filter(x=>x!==v);save();openInfo(ladEd)}}
+  else if(a==='ladadd'){if(ladEd){ladK=b.dataset.k==='h'?'h':'e';pickKind='lad';pickQ='';pickC='';
+    document.getElementById('pickBody').innerHTML=`<h2>Add ${ladK==='e'?'an easier':'a harder'} option for ${esc(EX[ladEd].name)}</h2><input type="search" id="pickQ" data-f="pickq" placeholder="Search exercises" aria-label="Search exercises"><div class="chips cats" id="pickChips" role="group" aria-label="Filter by category">${chipsHtml('','pickcat')}</div><div id="pickList">${pickList()}</div><div class="row"><button class="btn ghost" data-a="closepick">Cancel</button></div>`;
+    const ps=document.getElementById('pickSheet');ps.style.zIndex=70;ps.hidden=false}}
+  else if(a==='pick'&&pickKind==='lad'){if(ladEd&&EX[v]&&v!==ladEd){const L=ladMine(ladEd);if(!L[ladK].includes(v)&&L[ladK].length<3)L[ladK].push(v);save()}const ps=document.getElementById('pickSheet');ps.hidden=true;ps.style.zIndex='';if(ladEd)openInfo(ladEd)}
   else if(a==='closepick')document.getElementById('pickSheet').hidden=true;
   else if(a==='pick'&&pickKind==='station'){const c=stCfg(),arr=c.st[stCtx.s];if(arr){arr[stCtx.i]=v;c.st[stCtx.s]=arr.filter(x=>x).slice(0,ST_MAXE)}save();document.getElementById('pickSheet').hidden=true;stBody()}
   else if(a==='pick'&&pickKind==='prog'){const d=prEdDay();if(d&&d.r.length<15&&EX[v])d.r.push({p:prPart,id:v,rx:(RXC[EX[v].cat]||'').slice(0,30),rs:''});save();document.getElementById('pickSheet').hidden=true;prBody()}
