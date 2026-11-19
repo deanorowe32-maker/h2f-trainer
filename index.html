@@ -1523,7 +1523,7 @@ function viewUnit(){const row=(a,ic,t,d,cls='')=>`<button type="button" class="u
   ${rbCaseHtml()}
   <section class="grp"><h3>Squad</h3><div class="ulist">${row('sqopen','unit','Squad','Send your weekly summary, collect your Soldiers’ codes and share a PT plan.')}</div></section>
   <section class="grp"><h3>Your data</h3><p class="tag">Everything you log stays on this phone. There is no account. Nothing is sent anywhere unless you share it, and a live squad shares only what you choose, only with your leader. Make a backup before you change phones.</p><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
-  <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('touropen','tour','App tour','A one-minute walk through every tab.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
+  <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('touropen','tour','App tour','A two-minute video of every tab, with sound.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
 
 function moreShow(){document.getElementById('moreList').innerHTML=TABS.filter(t=>!PRIMARY.includes(t[0])).map(([id,n])=>`<button type="button" data-a="tab" data-v="${id}" aria-current="${S.tab===id?'page':'false'}">${ico(id)}${n}</button>`).join('');document.getElementById('moreSheet').hidden=false}
 const GROUPED=['assess','nut','sleep','mind','spirit','creator'];
@@ -3113,20 +3113,13 @@ function sqLinkUpd(){document.querySelectorAll('#sqBody a[data-sl]').forEach(l=>
 function sqShow(){document.getElementById('sqBody').innerHTML=sqHtml();document.getElementById('sqSheet').hidden=false;sqLinkUpd()}
 
 /* First-time walkthrough */
-var tourI=0;
-const TOUR=[
- ['Welcome to H2F Trainer','A training tool for Soldiers and leaders, built around Holistic Health and Fitness. This short tour shows where things are. It takes under a minute.'],
- ['Five tabs along the bottom','<b>Today</b> is your daily briefing. <b>Train</b> holds your weekly plan, the exercise library and your AFT test scores. <b>Rehab</b> builds a PT plan from the body map. <b>Readiness</b> covers sleep, fuel, mind and spirit. <b>Unit</b> holds squad sharing, backup and settings.'],
- ['Sections at the top','Train, Readiness and Unit have a switcher at the top of the screen. Long pages also show a row of section links so you can jump straight to what you need.'],
- ['Your data stays with you','Everything saves on this phone automatically. Use <b>Backup</b> under Unit to move it to a new phone.'],
- ['Share only if you choose','<b>Squad</b> under Unit lets leaders send the week\'s PT plan to Soldiers, and lets you send a weekly summary to your leader. Nothing is shared unless you copy and send it. You can replay this tour from <b>App tour</b>.']
-];
-function tourHtml(){const t=TOUR[tourI],last=tourI===TOUR.length-1;
-  return `<div class="tag">Step ${tourI+1} of ${TOUR.length}</div><h2 style="margin-top:4px">${t[0]}</h2><p>${t[1]}</p>
-  <div style="display:flex;gap:6px;margin:14px 0" aria-hidden="true">${TOUR.map((x,i)=>`<span style="flex:1;height:4px;border-radius:2px;background:${i<=tourI?'var(--accent)':'var(--line)'}"></span>`).join('')}</div>
-  <div class="row">${tourI?'<button class="btn ghost" data-a="tourback">Back</button>':''}<button class="btn" data-a="${last?'tourdone':'tournext'}">${last?'Start training':'Next'}</button>${last?'':'<button class="btn ghost" data-a="tourdone">Skip</button>'}</div>`}
-function tourShow(){document.getElementById('tourBody').innerHTML=tourHtml();document.getElementById('tourSheet').hidden=false}
-function tourMaybe(){try{if(unlocked()&&!localStorage.getItem('h2f.tour')){tourI=0;tourShow()}}catch(e){}}
+function tourHtml(){return `<h2>App tour</h2><p class="tag">Under two minutes, with sound. Every tab, step by step.</p>
+  <video src="video/tour.mp4" poster="video/tour.jpg" controls playsinline preload="metadata" style="display:block;width:100%;max-height:68vh;aspect-ratio:9/16;object-fit:contain;background:#0e1f16;border-radius:var(--r);margin:10px 0"></video>
+  <p class="tag" id="tourOff" hidden>The tour needs an internet connection. You can watch it later from Unit, App tour.</p>
+  <div class="row"><button class="btn" data-a="tourdone">Start training</button></div>`}
+function tourShow(){const b=document.getElementById('tourBody');b.innerHTML=tourHtml();const v=b.querySelector('video');if(v)v.addEventListener('error',()=>{const o=document.getElementById('tourOff');if(o)o.hidden=false},{once:true});document.getElementById('tourSheet').hidden=false}
+try{new MutationObserver(()=>{const sh=document.getElementById('tourSheet');if(sh.hidden){const v=sh.querySelector('video');if(v&&!v.paused)v.pause()}}).observe(document.getElementById('tourSheet'),{attributes:true,attributeFilter:['hidden']})}catch(e){}
+function tourMaybe(){try{if(unlocked()&&!localStorage.getItem('h2f.tour'))tourShow()}catch(e){}}
 
 /* Food recommendations. Values are approximate per serving, rounded from USDA FoodData Central typical values. [id,name,serving,kcal,protein,carbs,fat,group] */
 const FOODS=[
@@ -4670,10 +4663,8 @@ document.addEventListener('click',ev=>{
     const say=t=>{if(msg){msg.textContent=t;msg.hidden=false}},sel=()=>{ta.focus();ta.select();say('Copying is blocked here. The code is selected: press and hold it, choose Copy, then paste it into a text or email.')};
     try{navigator.clipboard.writeText(txt).then(()=>{b.textContent='Copied ✓';say('Copied. Paste it into a text or email to your leader.')},sel)}catch(e){sel()}return}
   if(a==='sqrm'){if(sqArm!==v){sqArm=v;sqMsg='';sqShow()}else{S.squad.members=S.squad.members.filter(m=>m.k!==v);sqArm='';sqMsg='';save();sqShow()}return}
-  if(a==='touropen'){tourI=0;tourShow();return}
-  if(a==='tournext'){tourI=Math.min(TOUR.length-1,tourI+1);tourShow();return}
-  if(a==='tourback'){tourI=Math.max(0,tourI-1);tourShow();return}
-  if(a==='tourdone'){try{localStorage.setItem('h2f.tour','1')}catch(e){}document.getElementById('tourSheet').hidden=true;return}
+  if(a==='touropen'){tourShow();return}
+  if(a==='tourdone'){try{localStorage.setItem('h2f.tour','1')}catch(e){}const v=document.querySelector('#tourSheet video');if(v)v.pause();document.getElementById('tourSheet').hidden=true;return}
   if(a==='slr'){const d=slDay||today(),dr=slGet(d);dr.r=dr.r===+v?0:+v;const hv=document.getElementById('sl_h').value;render();document.getElementById('sl_h').value=hv;return}
   if(a==='slc'||a==='sls'){const d=slDay||today(),dr=slGet(d);const k=a==='slc'?'c':'s';dr[k]=!dr[k];const hv=document.getElementById('sl_h').value;render();document.getElementById('sl_h').value=hv;return}
   if(a==='slrange'){slRange=+v===30?30:7;render();return}
