@@ -4383,8 +4383,10 @@ document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.datase
 var remVw=null,remDet=null,remSwK=null;
 function remSessRow(sid,w,lead,day){const X=REM_BY[sid],R=remSess(sid,w),op=remDet===sid;
   return `<div class="item"><button class="nm" data-a="remdet" data-v="${sid}" aria-expanded="${op}">${lead?esc(lead)+': ':''}${esc(X.n)}<small>${REM_KIND[X.k]} · about ${R.min} min${day?' · '+day:''}</small></button><button class="btn small" data-a="remgo" data-v="${sid}" data-w="${w}">Start</button></div>${op?remDetHtml(sid,w):''}`}
-function remDetHtml(sid,w){const X=REM_BY[sid],lv=REM_LV[w-1],sw=S.rem.sw;
-  return `<div class="remdet">${X.b.map((bl,bi)=>{const head=bl.t==='c'?`${REM_KIND.c}: ${bl.m+(bl.k||3)*lv} min at an easy, talk-test pace`:bl.t==='i'?`${REM_KIND.i}: ${6+lv} rounds, ${bl.w}s hard, ${bl.r}s easy`:`${REM_KIND.s}: ${(bl.r0||3)+Math.floor(lv/(bl.rs||2))} rounds, 40s work, 20s rest`;
+function remHead(bl,w){const lv=REM_LV[w-1];return bl.t==='c'?`${REM_KIND.c}: ${bl.m+(bl.k||3)*lv} min at an easy, talk-test pace`:bl.t==='i'?`${REM_KIND.i}: ${6+lv} rounds, ${bl.w}s hard, ${bl.r}s easy`:`${REM_KIND.s}: ${(bl.r0||3)+Math.floor(lv/(bl.rs||2))} rounds, 40s work, 20s rest`}
+function remIdAt(sid,bi,e,id){const v=S.rem.sw[sid+'.'+bi+'.'+e];return v&&EX[v]?v:id}
+function remDetHtml(sid,w){const X=REM_BY[sid],sw=S.rem.sw;
+  return `<div class="remdet">${X.b.map((bl,bi)=>{const head=remHead(bl,w);
     return `<p class="tag"><b>${esc(head)}</b></p>`+bl.ids.map((id,e)=>{const k=sid+'.'+bi+'.'+e,v=sw[k]&&EX[sw[k]]?sw[k]:id;return `<div class="item"><button class="nm" data-a="info" data-v="${v}">${esc(EX[v]?EX[v].name:v)}${v!==id?'<small>Swapped</small>':''}</button>${v!==id?`<button class="btn ghost small" data-a="remsw0" data-v="${k}">Undo</button>`:''}<button class="btn ghost small" data-a="remsw" data-v="${k}">Swap</button></div>`}).join('')}).join('')}
   <p class="tag">Tap an exercise for easier and harder versions. Starts and ends with 5 minutes of warm-up and cool-down.</p></div>`}
 function remHtml(){const st=S.rem.st,w=remVw||remWeek(st),light=[4,8,12].includes(w),raw=remRaw(st),days=S.rem.days,pl=remPlan(w);
@@ -4397,7 +4399,11 @@ function remHtml(){const st=S.rem.st,w=remVw||remWeek(st),light=[4,8,12].include
   <p class="tag">${st?'On these days the session shows in Train after the main workout.':'Set a start date to show sessions in Train on these days.'}</p>
   <h3>This week</h3><div class="list">${pl.map((sid,j)=>remSessRow(sid,w,'Session '+(j+1),dayOf(j))).join('')}</div>
   <details class="howto"><summary>Pick a session</summary><p class="tag">Run any session at week ${w} level, for example a ruck when the track is closed.</p>${Object.keys(REM_KIND).map(k=>`<h3>${REM_KIND[k]}</h3><div class="list">${REM_LIB.filter(x=>x.k===k).map(x=>remSessRow(x.id,w,'')).join('')}</div>`).join('')}</details>
+  <div class="row"><button class="btn ghost" data-a="print" data-k="rem">Print this week</button><button class="btn ghost" data-a="print" data-k="rem12">Print all 12 weeks</button></div>
   <div class="row"><button class="btn ghost" data-a="ciclose">Close</button></div>`}
+function remPrintWeek(w,brk){const days=S.rem.days,dayOf=j=>days.filter((d,x)=>x%5===j).map(d=>DN[d]).join(', ');
+  return `<div class="pr-wk${brk?' brk':''}"><h2>Week ${w} of 12${[4,8,12].includes(w)?' · Lighter week':''}</h2>`+remPlan(w).map((sid,j)=>{const X=REM_BY[sid],dy=dayOf(j);
+    return `<div class="pr-day"><h3>Session ${j+1}${dy?' · '+dy:''} · ${esc(X.n)} · about ${remSess(sid,w).min} min</h3><div class="pr-mline"><span class="pr-box"></span> Warm-up: 5 min easy walk or jog, arm circles, leg swings</div>${X.b.map((bl,bi)=>`<div class="pr-mline"><b>${esc(remHead(bl,w))}:</b> ${bl.ids.map((id,e)=>`<span class="pr-box"></span> ${esc(EX[remIdAt(sid,bi,e,id)].name)}`).join(' ')}</div>`).join('')}<div class="pr-mline"><span class="pr-box"></span> Cool-down: 5 min walk, then stretch</div></div>`}).join('')+'</div>'}
 function remShow(){const b=document.getElementById('ciBody');if(b)b.innerHTML=remHtml()}
 function remDayHtml(){const R=S.rem;if(!R||!R.st||!R.days.includes(S.day))return '';const d=prDate(S.week,S.day),raw=remRaw(R.st,d);if(raw<1||raw>12)return '';
   const j=R.days.indexOf(S.day)%5,sid=remPlan(raw)[j],X=REM_BY[sid],m=remSess(sid,raw).min;
@@ -4749,6 +4755,10 @@ function prHtml(kind,steps){
     out+=`<h1>${esc(P.n||'Integrator program')}</h1><p class="prsub">8 weeks from the week of ${esc(fmt(new Date(P.s+'T12:00:00')))}${P.fr?' · '+esc(P.fr):''}</p>`;
     P.w.forEach((w,n)=>{out+=`<div class="pr-wk${n?' brk':''}"><h2>Week ${n+1}${w.dl?' · Deload':''}</h2>`;
       w.d.forEach((d,i)=>{out+=`<div class="pr-day"><h3>${DN[i]} · ${esc(DTYPES[d.f])}</h3>${d.off||!d.r.length?'<div class="pr-empty">No session.</div>':prPrintDay(d,true)}</div>`});out+='</div>'});
+  }else if(kind==='rem'||kind==='rem12'){const st=S.rem.st,w0=remVw||remWeek(st);
+    out+=`<h1>Remedial PT</h1><p class="prsub">${kind==='rem'?'One week of sessions':'12-week plan'}${st?' · plan started '+esc(fmt(new Date(st+'T12:00:00')))+', '+st.slice(0,4):''} · extra sessions on top of regular PT</p>`;
+    (kind==='rem'?[w0]:[1,2,3,4,5,6,7,8,9,10,11,12]).forEach((w,n)=>{out+=remPrintWeek(w,n>0)});
+    out+='<div class="pr-note">Steady cardio at a talk-test pace: you can speak in full sentences. Circuits: 40 seconds work, 20 seconds rest. Stop if something hurts, and drink water. Tick each box as you finish.</div>';
   }else if(kind==='sq'){
     const ms=S.squad.members.slice().sort((a,b)=>a.n.toLowerCase()<b.n.toLowerCase()?-1:1);
     out+=`<h1>H2F Squad Roster</h1><p class="prsub">${ms.length} Soldier${ms.length===1?'':'s'} · printed ${esc(jrLabel(today()))}</p>`;
@@ -4814,7 +4824,7 @@ function prShow(){document.getElementById('prDoc').innerHTML=prHtml(prKind,docum
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a;
-  if(a==='print'){prKind=b.dataset.k==='pt'?'pt':b.dataset.k==='st'?'st':b.dataset.k==='sl'?'sl':b.dataset.k==='nu'?'nu':b.dataset.k==='sq'?'sq':b.dataset.k==='mo'?'mo':b.dataset.k==='pr'?'pr':/^jr-/.test(b.dataset.k||'')?b.dataset.k:'train';document.getElementById('prSteps').checked=false;document.getElementById('prSteps').parentElement.style.display=/^jr-/.test(prKind)||prKind==='sl'||prKind==='nu'||prKind==='sq'||prKind==='mo'||prKind==='pr'?'none':'';prShow();const s=document.getElementById('prSheet');s.hidden=false;s.scrollTop=0}
+  if(a==='print'){prKind=b.dataset.k==='pt'?'pt':b.dataset.k==='st'?'st':b.dataset.k==='sl'?'sl':b.dataset.k==='nu'?'nu':b.dataset.k==='sq'?'sq':b.dataset.k==='mo'?'mo':b.dataset.k==='pr'?'pr':b.dataset.k==='rem'||b.dataset.k==='rem12'?b.dataset.k:/^jr-/.test(b.dataset.k||'')?b.dataset.k:'train';document.getElementById('prSteps').checked=false;document.getElementById('prSteps').parentElement.style.display=/^jr-/.test(prKind)||prKind==='sl'||prKind==='nu'||prKind==='sq'||prKind==='mo'||prKind==='pr'||/^rem/.test(prKind)?'none':'';prShow();const s=document.getElementById('prSheet');s.hidden=false;s.scrollTop=0}
   else if(a==='prclose')document.getElementById('prSheet').hidden=true;
   else if(a==='prgo'){sgPrintOff();try{window.print()}catch(e){}}
 });
