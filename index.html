@@ -1736,7 +1736,7 @@ function listFor(kind){
   if(!arr.length&&kind==='pt')return '<div class="empty">No exercises on this day yet. Add one below.</div>';
   if(kind==='pt')return arr.map((it,i)=>itemRow(kind,it,i)).join('');
   const stDayOn=isSt(S.day),ciOn=isCi(S.day);
-  return (isPrW(S,S.day,S.week)?prCardHtml(S.week,S.day):'')+['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${s==='M'?`<div class="chips mainquick" role="group" aria-label="Other workouts"><button class="chip" data-a="stopen">Stations</button><button class="chip" data-a="cibuild">Circuit</button><button class="chip" data-a="propen">Integrator program</button></div>`:''}${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')}
+  return (isPrW(S,S.day,S.week)?prCardHtml(S.week,S.day):'')+['W','M','C'].map(s=>{if(s==='M'&&stDayOn)return dayStHtml(S.day);const rows=arr.map((it,i)=>({it,i})).filter(o=>EX[o.it.id]&&(o.it.s||EX[o.it.id].sec)===s);return `<div class="sec"><div class="sechead"><h3>${SECNAME[s]}</h3><button class="btn ghost small" data-a="add" data-k="train" data-sec="${s}">+ Add</button></div>${s==='M'?`<div class="chips mainquick" role="group" aria-label="Other workouts"><button class="chip" data-a="stopen">Stations</button><button class="chip" data-a="cibuild">Circuit</button><button class="chip" data-a="propen">Integrator program</button><button class="chip" data-a="remopen">Remedial PT</button></div>`:''}${rows.length?rows.map(o=>itemRow(kind,o.it,o.i)).join(''):'<div class="empty">Nothing here yet.</div>'}</div>`+(s==='M'&&ciOn?dayCiHtml(S.day):'')}).join('')+remDayHtml()}
 function dayCiHtml(i){const c=dayCiCfg(i),ids=ciIds(S,i),f=(k,lab,u)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="${i}" value="${c[k]}" aria-label="${lab} in ${u}"></label>`;
   return `<div class="sec cicard"><div class="sechead"><h3>Circuit</h3></div>
   <p class="tag">Do the main exercises above in order, one after another, then repeat for each round.</p>
@@ -1787,6 +1787,41 @@ function ciRep(c,id){return c.reps[id]||10}
 function ciLine(c,n){return `${n} exercise${n===1?'':'s'} × ${c.rounds} round${c.rounds===1?'':'s'}, `+(c.mode==='t'?`${c.work}s work, ${c.rest}s rest`:'reps')+(c.rounds>1&&c.rrest?`, ${c.rrest}s between rounds`:'')}
 function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id,e)=>{ph.push({k:'w',id,r,e,s:c.mode==='t'?c.work:null,reps:c.mode==='r'?ciRep(c,id):null});if(c.mode==='t'&&c.rest&&e<ids.length-1)ph.push({k:'r',r,e,s:c.rest})});
   if(r<c.rounds-1&&c.rrest)ph.push({k:'R',r,s:c.rrest})}return ph}
+/* remedial PT (ABCP): extra sessions on top of regular PT, led by the leader. Workouts only: no names, weights or body fat.
+   12 sessions in 4 kinds; a 12-week plan of 3 a week scales time and rounds by week level (weeks 4, 8, 12 lighter). Runs on the circuit runner (CI.ctx 'rem'). */
+const REM_KIND={c:'Steady cardio',s:'Strength circuit',i:'Intervals',m:'Mixed'};
+const REM_LIB=[
+  {id:'c_run',k:'c',n:'Steady run, bike or row',b:[{t:'c',ids:['z2'],m:20}]},
+  {id:'c_ruck',k:'c',n:'Ruck march',b:[{t:'c',ids:['ruck'],m:20}]},
+  {id:'c_swim',k:'c',n:'Easy pool swim',b:[{t:'c',ids:['pswim'],m:20}]},
+  {id:'s_bw',k:'s',n:'Bodyweight circuit',b:[{t:'s',ids:['ipu','rlng','stup','plank','mtnc']}]},
+  {id:'s_db',k:'s',n:'Dumbbell circuit',b:[{t:'s',ids:['gsq','db_floor','sarow','dbrdl','dbfc']}]},
+  {id:'s_kb',k:'s',n:'Kettlebell circuit',b:[{t:'s',ids:['kbs','kbgsq','kbrow','kbpp','kbcar']}]},
+  {id:'i_run',k:'i',n:'Run intervals',b:[{t:'c',ids:['z2'],m:10,k:1},{t:'i',ids:['spr'],w:30,r:60}]},
+  {id:'i_bike',k:'i',n:'Bike or row intervals',b:[{t:'c',ids:['z2'],m:10,k:1},{t:'i',ids:['abike'],w:30,r:30}]},
+  {id:'i_hill',k:'i',n:'Hill or stair repeats',b:[{t:'c',ids:['z2'],m:10,k:1},{t:'i',ids:['hill'],w:45,r:75}]},
+  {id:'m_core',k:'m',n:'Cardio and core',b:[{t:'c',ids:['z2'],m:12,k:1},{t:'s',ids:['plank','dbug','fltk','shtap'],r0:2,rs:3}]},
+  {id:'m_carry',k:'m',n:'Carries and crawls',b:[{t:'c',ids:['z2'],m:12,k:1},{t:'s',ids:['kbcar','bcrawl','suit','mtnc'],r0:2,rs:3}]},
+  {id:'m_ruck',k:'m',n:'Ruck and lunges',b:[{t:'c',ids:['ruck'],m:15,k:1},{t:'s',ids:['lnwlk','ipu','plank'],r0:2,rs:3}]}];
+const REM_BY={};REM_LIB.forEach(x=>{REM_BY[x.id]=x});
+const REM_LV=[0,1,2,0,2,3,4,2,4,5,6,3];
+function remClean(o){const r={st:'',days:[0,2,4],sw:{}};if(!o||typeof o!=='object')return r;
+  if(typeof o.st==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.st))r.st=o.st;
+  if(Array.isArray(o.days))r.days=[...new Set(o.days.filter(d=>Number.isInteger(d)&&d>=0&&d<5))].sort();
+  if(o.sw&&typeof o.sw==='object')Object.keys(o.sw).slice(0,200).forEach(k=>{const v=o.sw[k],m=/^([a-z]_[a-z]+)\.(\d)\.(\d{1,2})$/.exec(k);
+    if(m&&REM_BY[m[1]]&&typeof v==='string'&&(EX[v]||/^c_[a-z0-9]+$/.test(v)))r.sw[k]=v});
+  return r}
+function remRaw(st,d){if(!st)return 1;return Math.floor((new Date((d||today())+'T12:00:00')-new Date(st+'T12:00:00'))/(7*864e5))+1}
+function remWeek(st,d){return Math.min(12,Math.max(1,remRaw(st,d)))}
+function remPlan(w){const i=(w-1)%3;return [REM_LIB.filter(x=>x.k==='c')[i].id,REM_LIB.filter(x=>x.k==='s')[i].id,REM_LIB.filter(x=>x.k===(w%2?'i':'m'))[i].id]}
+function remSess(sid,w){const X=REM_BY[sid],lv=REM_LV[Math.min(12,Math.max(1,w|0))-1],sw=(S.rem&&S.rem.sw)||{},ph=[{k:'w',id:'z2',nm:'Easy walk or jog, arm circles, leg swings',s:300,r:0,e:0,R:1,N:1,lab:'Warm-up'}];
+  X.b.forEach((bl,bi)=>{const ids=bl.ids.map((id,e)=>{const v=sw[sid+'.'+bi+'.'+e];return v&&EX[v]?v:id});
+    if(bi)ph.push({k:'r',s:60,r:0,e:0,R:1,N:1,lab:'Get ready for the next part'});
+    if(bl.t==='c')ph.push({k:'w',id:ids[0],s:(bl.m+(bl.k||3)*lv)*60,reps:null,r:0,e:0,R:1,N:1,lab:REM_KIND.c});
+    else{const c=bl.t==='i'?{mode:'t',work:bl.w,rest:0,rounds:6+lv,rrest:bl.r,reps:{}}:{mode:'t',work:40,rest:20,rounds:(bl.r0||3)+Math.floor(lv/(bl.rs||2)),rrest:60,reps:{}};
+      ciPhases(c,ids).forEach(p=>ph.push(Object.assign(p,{R:c.rounds,N:ids.length,lab:bl.t==='i'?REM_KIND.i:REM_KIND.s})))}});
+  ph.push({k:'w',id:'z2',nm:'Walk it out, then stretch',s:300,r:0,e:0,R:1,N:1,lab:'Cool-down'});
+  return {ph,min:Math.round(ph.reduce((a,p)=>a+(p.s||0),0)/60)}}
 /* integrator program: 8 weeks (5 weekdays each) a leader builds and pushes; separate from the Soldier's own plan.
    Short keys travel in the share code. Must not use consts defined later (startup normalization calls prClean). */
 const PR_FOCUS=['anaerobic','upper','lower','stretch','aerobic'];
@@ -1894,7 +1929,7 @@ function viewTrain(){
   </details>
   <div id="wkout">${listFor('train')}</div>
   <div class="row actrow"><button class="btn" data-a="tmopen">${active()?'Open workout timer':'Start workout timer'}</button><button class="btn ghost" data-a="add" data-k="train">Add exercise</button></div>
-  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="propen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg>Integrator program</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
+  <div class="menulist tools"><button type="button" data-a="genweek"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Rebuild whole week</button><button type="button" data-a="sqopen" data-v="pt"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share week with Soldiers</button><button type="button" id="stOpenBtn" data-a="stopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stations</button><button type="button" id="ciOpenBtn" data-a="cibuild"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><circle cx="12" cy="12" r="2"/></svg>${CI.started&&!CI.done?'Open circuit timer':'Circuit'}</button><button type="button" data-a="propen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg>Integrator program</button><button type="button" data-a="remopen"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg>Remedial PT</button><button type="button" data-a="print" data-k="train"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Print week plan</button></div>${monthHtml()}${histHtml()}`}
 
 function injForm(j,q,n){
   const s=j||'';
@@ -2253,6 +2288,7 @@ document.addEventListener('click',ev=>{
   else if(a==='closepick'){document.getElementById('pickSheet').hidden=true;if(pickKind==='lad'&&ladEd)openInfo(ladEd)}
   else if(a==='pick'&&pickKind==='station'){const c=stCfg(),arr=c.st[stCtx.s];if(arr){arr[stCtx.i]=v;c.st[stCtx.s]=arr.filter(x=>x).slice(0,ST_MAXE)}save();document.getElementById('pickSheet').hidden=true;stBody()}
   else if(a==='pick'&&pickKind==='prog'){const d=prEdDay();if(d&&d.r.length<15&&EX[v])d.r.push({p:prPart,id:v,rx:(RXC[EX[v].cat]||'').slice(0,30),rs:''});save();document.getElementById('pickSheet').hidden=true;prBody()}
+  else if(a==='pick'&&pickKind==='rem'){if(remSwK&&EX[v]){S.rem.sw[remSwK]=v;save()}document.getElementById('pickSheet').hidden=true;remShow()}
   else if(a==='pick'&&pickKind==='circuit'){const c=ciCfgOf('q');if(c.ids.length<12&&EX[v])c.ids.push(v);save();document.getElementById('pickSheet').hidden=true;ciBuild()}
   else if(a==='pick'&&pickKind==='assess'){if(addEvent(v)){b.textContent='Added ✓';render()}else b.textContent='Already added'}
   else if(a==='pick'){const arr=pickKind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];arr.push(pickKind==='train'?{id:v,rx:RXC[EX[v].cat],s:pickSec}:{id:v,rx:RXC[EX[v].cat]});render();b.textContent='Added ✓'}
@@ -2297,6 +2333,7 @@ S.circuit=S.circuit?ciQClean(S.circuit):null;
 S.prog=S.prog?prClean(S.prog,id=>typeof id==='string'):null;
 S.grp=grpClean(S.grp);
 if(S.prog&&S.progLoaded===undefined){S.progLoaded=false;for(const fm of [S.fmt].concat(Object.values(S.weeks||{}).map(w=>w&&w.fmt))){if(Array.isArray(fm))for(let i=0;i<fm.length;i++)if(fm[i]==='p')fm[i]='n'}}
+S.rem=remClean(S.rem);
 S.lad=ladClean(S.lad,id=>typeof id==='string'&&/^[\w-]{1,40}$/.test(id));
 S.dcir=Array.isArray(S.dcir)&&S.dcir.length===5?S.dcir.map(d=>d?ciClean(d):null):[null,null,null,null,null];
 S.dst=Array.isArray(S.dst)&&S.dst.length===5?S.dst:[null,null,null,null,null];
@@ -3679,7 +3716,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -3738,6 +3775,7 @@ function cleanBackup(raw){
   if(o.prog){const pg=prClean(o.prog,known);if(pg)out.prog=pg}
   if(o.grp)out.grp=grpClean(o.grp);
   if(o.lad)out.lad=ladClean(o.lad,known);
+  if(o.rem)out.rem=remClean(o.rem);
   if(Array.isArray(o.dcir)&&o.dcir.length===5)out.dcir=o.dcir.map(d=>d?ciClean(d):null);
   if(Array.isArray(o.dst)&&o.dst.length===5)out.dst=o.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}});
   if(o.journal&&typeof o.journal==='object'&&Array.isArray(o.journal.entries)){
@@ -3782,6 +3820,7 @@ function applyBackup(c){
   if(c.prog)S.prog=c.prog;
   if(c.grp)S.grp=c.grp;
   if(c.lad)S.lad=c.lad;
+  if(c.rem)S.rem=c.rem;
   if(c.journal)S.journal=c.journal;
   if(c.aft)S.aft=c.aft;
   if(c.cft)S.cft={hist:c.cft.hist,run:null};
@@ -4191,15 +4230,16 @@ function ciEl(){return CI.acc+(CI.on?Date.now()-CI.start:0)}
 function ciNm(id){return EX[id]?esc(EX[id].name):'Exercise'}
 function ciBuzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 function ciBody(){const b=document.getElementById('ciBody');if(!b||!CI.started)return;const P=CI.ph,p=P[CI.idx];
+  if(CI.done&&CI.ctx==='rem'){b.innerHTML=`<h2>Session done</h2><p>${esc(CI.title||'Remedial PT')} finished. Nice work.</p><div class="row"><button class="btn ghost" data-a="cistop">Close</button></div>`;return}
   if(CI.done){const wd=(new Date().getDay()+6)%7,mine=CI.wk===0&&CI.ctx===wd&&wd<5,dn=mine&&doneOn(today()).length;
     b.innerHTML=`<h2>Circuit done</h2><p>${CI.n} exercise${CI.n===1?'':'s'} × ${CI.rounds} round${CI.rounds===1?'':'s'} finished. Nice work.</p><div class="row">${mine?(dn?`<span class="tddone">${TICK}Done today</span>`:`<button class="btn" data-a="tddone">Mark today's workout done</button>`):''}<button class="btn ghost" data-a="cistop">Close</button></div>`;return}
   const nx=P.slice(CI.idx+1).find(x=>x.k==='w');
-  b.innerHTML=`<div class="tag">Round ${p.r+1} of ${CI.rounds}${p.k==='w'?` · Exercise ${p.e+1} of ${CI.n}`:''}</div>
+  b.innerHTML=`<div class="tag">${p.lab?esc(p.lab)+(p.R>1?` · Round ${p.r+1} of ${p.R}`:'')+(p.k==='w'&&p.N>1?` · Exercise ${p.e+1} of ${p.N}`:''):`Round ${p.r+1} of ${CI.rounds}${p.k==='w'?` · Exercise ${p.e+1} of ${CI.n}`:''}`}</div>
   <div class="ciph ${p.k==='w'?'work':'rest'}">${p.k==='w'?'Work':p.k==='r'?'Rest':'Round rest'}</div>
-  ${p.k==='w'?`<h2 class="cinm">${ciNm(p.id)}</h2>`:''}
+  ${p.k==='w'?`<h2 class="cinm">${p.nm?esc(p.nm):ciNm(p.id)}</h2>`:''}
   ${p.s===null?`<div class="stclock">${p.reps} reps</div>`:`<div class="stclock" id="ciClock" role="timer">${fmtHMS(Math.max(0,Math.ceil(p.s-ciEl()/1000)))}</div>`}
   <div class="stbar"><i style="width:${(CI.idx/P.length*100).toFixed(1)}%"></i></div>
-  <div class="tag" style="margin-top:8px">${nx?'Next: '+ciNm(nx.id)+(nx.r!==p.r?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
+  <div class="tag" style="margin-top:8px">${nx?'Next: '+(nx.nm?esc(nx.lab):ciNm(nx.id))+(nx.r!==p.r&&!nx.lab?`, round ${nx.r+1}`:''):'This is the last one.'}</div>
   <div class="row">${p.s===null?'<button class="btn" data-a="cinext">Next</button>':`<button class="btn" data-a="cigo">${CI.on?'Pause':'Resume'}</button><button class="btn ghost" data-a="ciskip">Skip</button>`}<button class="btn ghost" data-a="cistop">${CI.arm?'Tap again to stop':'Stop'}</button></div>`}
 var prTOpen=false,prWk=0,prEd=null,prPart='M',prArm='',prMode='';
 const PR_TAG='H2FPROG1:';
@@ -4339,6 +4379,28 @@ document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||t.datase
   const v=prNum(raw,T.tm);
   if(!raw)delete w[k];else if(v>0&&v<=100000){w[k]=v;if(T.rm)S.maxes[T.rm]={v:wRound(v*(1+5/30)),u:au(),d:today()}}else return;
   save();const sg=document.getElementById('prSug');if(sg)sg.innerHTML=prSugHtml(grpSuggest(w))});
+var remVw=null,remDet=null,remSwK=null;
+function remSessRow(sid,w,lead,day){const X=REM_BY[sid],R=remSess(sid,w),op=remDet===sid;
+  return `<div class="item"><button class="nm" data-a="remdet" data-v="${sid}" aria-expanded="${op}">${lead?esc(lead)+': ':''}${esc(X.n)}<small>${REM_KIND[X.k]} · about ${R.min} min${day?' · '+day:''}</small></button><button class="btn small" data-a="remgo" data-v="${sid}" data-w="${w}">Start</button></div>${op?remDetHtml(sid,w):''}`}
+function remDetHtml(sid,w){const X=REM_BY[sid],lv=REM_LV[w-1],sw=S.rem.sw;
+  return `<div class="remdet">${X.b.map((bl,bi)=>{const head=bl.t==='c'?`${REM_KIND.c}: ${bl.m+(bl.k||3)*lv} min at an easy, talk-test pace`:bl.t==='i'?`${REM_KIND.i}: ${6+lv} rounds, ${bl.w}s hard, ${bl.r}s easy`:`${REM_KIND.s}: ${(bl.r0||3)+Math.floor(lv/(bl.rs||2))} rounds, 40s work, 20s rest`;
+    return `<p class="tag"><b>${esc(head)}</b></p>`+bl.ids.map((id,e)=>{const k=sid+'.'+bi+'.'+e,v=sw[k]&&EX[sw[k]]?sw[k]:id;return `<div class="item"><button class="nm" data-a="info" data-v="${v}">${esc(EX[v]?EX[v].name:v)}${v!==id?'<small>Swapped</small>':''}</button>${v!==id?`<button class="btn ghost small" data-a="remsw0" data-v="${k}">Undo</button>`:''}<button class="btn ghost small" data-a="remsw" data-v="${k}">Swap</button></div>`}).join('')}).join('')}
+  <p class="tag">Tap an exercise for easier and harder versions. Starts and ends with 5 minutes of warm-up and cool-down.</p></div>`}
+function remHtml(){const st=S.rem.st,w=remVw||remWeek(st),light=[4,8,12].includes(w),raw=remRaw(st),days=S.rem.days,pl=remPlan(w);
+  const dayOf=j=>days.length?days.filter((d,x)=>x%3===j).map(d=>DN[d]).join(', '):'';
+  return `<h2>Remedial PT</h2><p class="tag">Extra sessions on top of regular PT for Soldiers on the Army Body Composition Program (ABCP): steady cardio, full-body strength circuits and intervals, building over 12 weeks. Workouts only. No names or weigh-ins are kept.</p>
+  <div class="form"><label>Plan start date<input type="date" data-f="remst" value="${st}" aria-label="Remedial plan start date"></label></div>
+  ${!st?'<p class="tag">No start date yet, so you see week 1. Set a date to follow the plan.</p>':raw<1?'<p class="tag">The plan has not started yet.</p>':raw>12?'<p class="tag">The 12 weeks are done. Set a new start date to run it again.</p>':''}
+  <div class="row" style="align-items:center;justify-content:space-between"><button class="btn ghost small" data-a="remwk" data-v="-1" aria-label="Previous week"${w<=1?' disabled':''}>‹</button><b>Week ${w} of 12${light?' · Lighter week':''}</b><button class="btn ghost small" data-a="remwk" data-v="1" aria-label="Next week"${w>=12?' disabled':''}>›</button></div>
+  <h3>Remedial days</h3><div class="chips" role="group" aria-label="Remedial days">${DN.map((d,i)=>`<button class="chip" aria-pressed="${days.includes(i)}" data-a="remday" data-v="${i}">${d}</button>`).join('')}</div>
+  <p class="tag">${st?'On these days the session shows in Train after the main workout.':'Set a start date to show sessions in Train on these days.'}</p>
+  <h3>This week</h3><div class="list">${pl.map((sid,j)=>remSessRow(sid,w,'Session '+(j+1),dayOf(j))).join('')}</div>
+  <details class="howto"><summary>Pick a session</summary><p class="tag">Run any session at week ${w} level, for example a ruck when the track is closed.</p>${Object.keys(REM_KIND).map(k=>`<h3>${REM_KIND[k]}</h3><div class="list">${REM_LIB.filter(x=>x.k===k).map(x=>remSessRow(x.id,w,'')).join('')}</div>`).join('')}</details>
+  <div class="row"><button class="btn ghost" data-a="ciclose">Close</button></div>`}
+function remShow(){const b=document.getElementById('ciBody');if(b)b.innerHTML=remHtml()}
+function remDayHtml(){const R=S.rem;if(!R||!R.st||!R.days.includes(S.day))return '';const d=prDate(S.week,S.day),raw=remRaw(R.st,d);if(raw<1||raw>12)return '';
+  const j=R.days.indexOf(S.day)%3,sid=remPlan(raw)[j],X=REM_BY[sid],m=remSess(sid,raw).min;
+  return `<div class="sec remcard"><div class="sechead"><h3>Remedial PT</h3></div><p class="tag">After PT · Week ${raw} of 12 · Session ${j+1}</p><div class="item"><button class="nm" data-a="remopen">${esc(X.n)}<small>${REM_KIND[X.k]} · about ${m} min</small></button><button class="btn small" data-a="remgo" data-v="${sid}" data-w="${raw}">Start</button></div></div>`}
 function ciBtn(){const b=document.getElementById('ciOpenBtn');if(b&&b.lastChild)b.lastChild.textContent=CI.started&&!CI.done?'Open circuit timer':'Circuit'}
 function ciBuild(){const b=document.getElementById('ciBody');if(!b)return;const c=ciCfgOf('q'),f=(k,lab)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="q" value="${c[k]}"></label>`;
   b.innerHTML=`<h2>Circuit</h2><p class="tag">Build a quick circuit: pick the exercises, choose timed or reps, and go. To plan a circuit on a training day, use Edit day, then Workout format.</p>
@@ -4362,6 +4424,18 @@ document.addEventListener('click',ev=>{
       CI={started:true,done:false,on:true,ph:ciPhases(c,ids),idx:0,acc:0,start:Date.now(),ctx:i,wk:b.dataset.w==='0'?0:S.week,arm:false,tick:CI.tick,n:ids.length,rounds:c.rounds};
       if(!CI.tick)CI.tick=setInterval(ciTick,250);lockScreen(true);beep();ciBtn()}
     sh.hidden=false;ciBody()}
+  else if(a==='remopen'){if(CI.started&&!CI.done)ciBody();else{CI.started=false;remVw=null;remDet=null;remShow()}sh.hidden=false}
+  else if(a==='remgo'){if(!(CI.started&&!CI.done)){const sid=b.dataset.v,w=+b.dataset.w||1;if(!REM_BY[sid])return;const R=remSess(sid,w);
+      CI={started:true,done:false,on:true,ph:R.ph,idx:0,acc:0,start:Date.now(),ctx:'rem',wk:-1,arm:false,tick:CI.tick,n:0,rounds:1,title:REM_BY[sid].n};
+      if(!CI.tick)CI.tick=setInterval(ciTick,250);lockScreen(true);beep();ciBtn()}
+    sh.hidden=false;ciBody()}
+  else if(a==='remwk'){const cur=remVw||remWeek(S.rem.st);remVw=Math.min(12,Math.max(1,cur+(+b.dataset.v)));remDet=null;remShow()}
+  else if(a==='remday'){const d=+b.dataset.v,D=S.rem.days;S.rem.days=D.includes(d)?D.filter(x=>x!==d):[...D,d].sort();save();remShow();render()}
+  else if(a==='remdet'){remDet=remDet===b.dataset.v?null:b.dataset.v;remShow()}
+  else if(a==='remsw'){remSwK=b.dataset.v;pickKind='rem';pickQ='';pickC='';
+    document.getElementById('pickBody').innerHTML=`<h2>Swap exercise</h2><input type="search" id="pickQ" data-f="pickq" placeholder="Search exercises" aria-label="Search exercises"><div class="chips cats" id="pickChips" role="group" aria-label="Filter by category">${chipsHtml('','pickcat')}</div><div id="pickList">${pickList()}</div><div class="row"><button class="btn ghost" data-a="closepick">Cancel</button></div>`;
+    document.getElementById('pickSheet').hidden=false}
+  else if(a==='remsw0'){delete S.rem.sw[b.dataset.v];save();remShow()}
   else if(a==='cibuild'){if(CI.started&&!CI.done)ciBody();else{CI.started=false;ciBuild()}sh.hidden=false}
   else if(a==='ciclose'){sh.hidden=true}
   else if(a==='ciadd'){pickKind='circuit';pickQ='';pickC='';
@@ -4374,9 +4448,10 @@ document.addEventListener('click',ev=>{
   else if(a==='cigo'){if(CI.on){CI.acc+=Date.now()-CI.start;CI.on=false;lockScreen(false)}else{CI.start=Date.now();CI.on=true;lockScreen(true)}CI.arm=false;ciBody()}
   else if(a==='ciskip'||a==='cinext'){if(CI.started&&!CI.done)ciNext()}
   else if(a==='cistop'){if(CI.started&&!CI.done&&!CI.arm){CI.arm=true;ciBody();return}
-    const q=CI.ctx===null;CI.started=false;CI.on=false;CI.arm=false;lockScreen(false);ciBtn();if(q){ciBuild()}else{sh.hidden=true;render()}}
+    const q=CI.ctx===null,rm=CI.ctx==='rem';CI.started=false;CI.on=false;CI.arm=false;lockScreen(false);ciBtn();if(rm){remShow();render()}else if(q){ciBuild()}else{sh.hidden=true;render()}}
   else if(a==='tddone'&&!sh.hidden){sh.hidden=true;CI.started=false}
 });
+document.addEventListener('change',ev=>{const t=ev.target;if(!t.dataset||t.dataset.f!=='remst')return;const v=t.value;S.rem.st=/^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';remVw=null;remDet=null;save();remShow();render()});
 document.addEventListener('input',ev=>{const t=ev.target,f=t.dataset&&t.dataset.f;if(f!=='ci'&&f!=='cirep')return;const d=t.dataset.d==='q'?'q':+t.dataset.d;if(d!=='q'&&!(d>=0&&d<5))return;const c=ciCfgOf(d),v=parseInt(t.value,10);
   if(f==='ci'){const k=t.dataset.k;if(!['work','rest','rounds','rrest'].includes(k))return;if(ciClean(Object.assign({},c,{[k]:v}))[k]===v)c[k]=v}
   else if(v>=1&&v<=200)c.reps[t.dataset.v]=v;

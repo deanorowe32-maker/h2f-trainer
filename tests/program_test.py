@@ -49,7 +49,7 @@ with sync_playwright() as p:
         # ---------- Task 2: sheet + My group ----------
         E("S.prog=null;S.grp={g:'',w0:{}};S.tab='train';render()"); A.wait_for_timeout(150)
         order = E("[...document.querySelectorAll('#view .menulist.tools button')].map(b=>b.dataset.a).join(',')")
-        check('T2 tools order', ',cibuild,propen,print' in order)
+        check('T2 tools order', ',cibuild,propen,remopen,print' in order)
         E("document.querySelector('#view [data-a=propen]').click()"); A.wait_for_timeout(150)
         t = A.locator('#prBody').text_content()
         check('T2 empty state', not E("document.getElementById('pgSheet').hidden") and 'Paste a program from your leader' in t and 'Build a program' in t)
@@ -215,7 +215,7 @@ with sync_playwright() as p:
         Q = phone(); R = Q.evaluate
         R("S.week=0;S.day=0;S.types[0]='upper';S.plan[0]=genDay('upper');S.fmt=['n','n','n','n','n'];S.tab='train';render()"); Q.wait_for_timeout(150)
         qa = R("[...document.querySelectorAll('#view .mainquick [data-a]')].map(b=>b.dataset.a).join()")
-        check('Q quick buttons', qa == 'stopen,cibuild,propen')
+        check('Q quick buttons', qa == 'stopen,cibuild,propen,remopen')
         for a, sid in [('stopen', 'stSheet'), ('cibuild', 'ciSheet'), ('propen', 'pgSheet')]:
             R(f"document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);document.querySelector('#view .mainquick [data-a={a}]').click()"); Q.wait_for_timeout(150)
             check('Q opens ' + a, R(f"!document.getElementById('{sid}').hidden"))
