@@ -1788,7 +1788,7 @@ function ciLine(c,n){return `${n} exercise${n===1?'':'s'} × ${c.rounds} round${
 function ciPhases(c,ids){const ph=[];for(let r=0;r<c.rounds;r++){ids.forEach((id,e)=>{ph.push({k:'w',id,r,e,s:c.mode==='t'?c.work:null,reps:c.mode==='r'?ciRep(c,id):null});if(c.mode==='t'&&c.rest&&e<ids.length-1)ph.push({k:'r',r,e,s:c.rest})});
   if(r<c.rounds-1&&c.rrest)ph.push({k:'R',r,s:c.rrest})}return ph}
 /* remedial PT (ABCP): extra sessions on top of regular PT, led by the leader. Workouts only: no names, weights or body fat.
-   12 sessions in 4 kinds; a 12-week plan of 3 a week scales time and rounds by week level (weeks 4, 8, 12 lighter). Runs on the circuit runner (CI.ctx 'rem'). */
+   12 sessions in 4 kinds; a 12-week plan of up to 5 a week scales time and rounds by week level (weeks 4, 8, 12 lighter). Runs on the circuit runner (CI.ctx 'rem'). */
 const REM_KIND={c:'Steady cardio',s:'Strength circuit',i:'Intervals',m:'Mixed'};
 const REM_LIB=[
   {id:'c_run',k:'c',n:'Steady run, bike or row',b:[{t:'c',ids:['z2'],m:20}]},
@@ -1805,15 +1805,16 @@ const REM_LIB=[
   {id:'m_ruck',k:'m',n:'Ruck and lunges',b:[{t:'c',ids:['ruck'],m:15,k:1},{t:'s',ids:['lnwlk','ipu','plank'],r0:2,rs:3}]}];
 const REM_BY={};REM_LIB.forEach(x=>{REM_BY[x.id]=x});
 const REM_LV=[0,1,2,0,2,3,4,2,4,5,6,3];
-function remClean(o){const r={st:'',days:[0,2,4],sw:{}};if(!o||typeof o!=='object')return r;
+function remClean(o){const r={st:'',days:[0,1,2,3,4],sw:{},v:2};if(!o||typeof o!=='object')return r;
   if(typeof o.st==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.st))r.st=o.st;
   if(Array.isArray(o.days))r.days=[...new Set(o.days.filter(d=>Number.isInteger(d)&&d>=0&&d<5))].sort();
+  if(o.v!==2&&r.days.join()==='0,2,4')r.days=[0,1,2,3,4];/* v1 default was Mon/Wed/Fri */
   if(o.sw&&typeof o.sw==='object')Object.keys(o.sw).slice(0,200).forEach(k=>{const v=o.sw[k],m=/^([a-z]_[a-z]+)\.(\d)\.(\d{1,2})$/.exec(k);
     if(m&&REM_BY[m[1]]&&typeof v==='string'&&(EX[v]||/^c_[a-z0-9]+$/.test(v)))r.sw[k]=v});
   return r}
 function remRaw(st,d){if(!st)return 1;return Math.floor((new Date((d||today())+'T12:00:00')-new Date(st+'T12:00:00'))/(7*864e5))+1}
 function remWeek(st,d){return Math.min(12,Math.max(1,remRaw(st,d)))}
-function remPlan(w){const i=(w-1)%3;return [REM_LIB.filter(x=>x.k==='c')[i].id,REM_LIB.filter(x=>x.k==='s')[i].id,REM_LIB.filter(x=>x.k===(w%2?'i':'m'))[i].id]}
+function remPlan(w){const i=(w-1)%3,j=(i+1)%3,K=k=>REM_LIB.filter(x=>x.k===k);return [K('c')[i].id,K('s')[i].id,K(w%2?'i':'m')[i].id,K('c')[j].id,K('s')[j].id]}
 function remSess(sid,w){const X=REM_BY[sid],lv=REM_LV[Math.min(12,Math.max(1,w|0))-1],sw=(S.rem&&S.rem.sw)||{},ph=[{k:'w',id:'z2',nm:'Easy walk or jog, arm circles, leg swings',s:300,r:0,e:0,R:1,N:1,lab:'Warm-up'}];
   X.b.forEach((bl,bi)=>{const ids=bl.ids.map((id,e)=>{const v=sw[sid+'.'+bi+'.'+e];return v&&EX[v]?v:id});
     if(bi)ph.push({k:'r',s:60,r:0,e:0,R:1,N:1,lab:'Get ready for the next part'});
@@ -4387,8 +4388,8 @@ function remDetHtml(sid,w){const X=REM_BY[sid],lv=REM_LV[w-1],sw=S.rem.sw;
     return `<p class="tag"><b>${esc(head)}</b></p>`+bl.ids.map((id,e)=>{const k=sid+'.'+bi+'.'+e,v=sw[k]&&EX[sw[k]]?sw[k]:id;return `<div class="item"><button class="nm" data-a="info" data-v="${v}">${esc(EX[v]?EX[v].name:v)}${v!==id?'<small>Swapped</small>':''}</button>${v!==id?`<button class="btn ghost small" data-a="remsw0" data-v="${k}">Undo</button>`:''}<button class="btn ghost small" data-a="remsw" data-v="${k}">Swap</button></div>`}).join('')}).join('')}
   <p class="tag">Tap an exercise for easier and harder versions. Starts and ends with 5 minutes of warm-up and cool-down.</p></div>`}
 function remHtml(){const st=S.rem.st,w=remVw||remWeek(st),light=[4,8,12].includes(w),raw=remRaw(st),days=S.rem.days,pl=remPlan(w);
-  const dayOf=j=>days.length?days.filter((d,x)=>x%3===j).map(d=>DN[d]).join(', '):'';
-  return `<h2>Remedial PT</h2><p class="tag">Extra sessions on top of regular PT for Soldiers on the Army Body Composition Program (ABCP): steady cardio, full-body strength circuits and intervals, building over 12 weeks. Workouts only. No names or weigh-ins are kept.</p>
+  const dayOf=j=>days.length?days.filter((d,x)=>x%5===j).map(d=>DN[d]).join(', '):'';
+  return `<h2>Remedial PT</h2><p class="tag">Extra sessions on top of regular PT for Soldiers on the Army Body Composition Program (ABCP): steady cardio, full-body strength circuits and intervals, building over 12 weeks. Up to 5 sessions a week: pick fewer days if your Soldiers need more recovery. Workouts only. No names or weigh-ins are kept.</p>
   <div class="form"><label>Plan start date<input type="date" data-f="remst" value="${st}" aria-label="Remedial plan start date"></label></div>
   ${!st?'<p class="tag">No start date yet, so you see week 1. Set a date to follow the plan.</p>':raw<1?'<p class="tag">The plan has not started yet.</p>':raw>12?'<p class="tag">The 12 weeks are done. Set a new start date to run it again.</p>':''}
   <div class="row" style="align-items:center;justify-content:space-between"><button class="btn ghost small" data-a="remwk" data-v="-1" aria-label="Previous week"${w<=1?' disabled':''}>‹</button><b>Week ${w} of 12${light?' · Lighter week':''}</b><button class="btn ghost small" data-a="remwk" data-v="1" aria-label="Next week"${w>=12?' disabled':''}>›</button></div>
@@ -4399,7 +4400,7 @@ function remHtml(){const st=S.rem.st,w=remVw||remWeek(st),light=[4,8,12].include
   <div class="row"><button class="btn ghost" data-a="ciclose">Close</button></div>`}
 function remShow(){const b=document.getElementById('ciBody');if(b)b.innerHTML=remHtml()}
 function remDayHtml(){const R=S.rem;if(!R||!R.st||!R.days.includes(S.day))return '';const d=prDate(S.week,S.day),raw=remRaw(R.st,d);if(raw<1||raw>12)return '';
-  const j=R.days.indexOf(S.day)%3,sid=remPlan(raw)[j],X=REM_BY[sid],m=remSess(sid,raw).min;
+  const j=R.days.indexOf(S.day)%5,sid=remPlan(raw)[j],X=REM_BY[sid],m=remSess(sid,raw).min;
   return `<div class="sec remcard"><div class="sechead"><h3>Remedial PT</h3></div><p class="tag">After PT · Week ${raw} of 12 · Session ${j+1}</p><div class="item"><button class="nm" data-a="remopen">${esc(X.n)}<small>${REM_KIND[X.k]} · about ${m} min</small></button><button class="btn small" data-a="remgo" data-v="${sid}" data-w="${raw}">Start</button></div></div>`}
 function ciBtn(){const b=document.getElementById('ciOpenBtn');if(b&&b.lastChild)b.lastChild.textContent=CI.started&&!CI.done?'Open circuit timer':'Circuit'}
 function ciBuild(){const b=document.getElementById('ciBody');if(!b)return;const c=ciCfgOf('q'),f=(k,lab)=>`<label>${lab}<input type="text" inputmode="numeric" autocomplete="off" data-f="ci" data-k="${k}" data-d="q" value="${c[k]}"></label>`;

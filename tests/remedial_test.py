@@ -11,7 +11,7 @@ with sync_playwright() as p:
     pg.goto('http://localhost:8765/'); pg.wait_for_timeout(600)
     pg.evaluate("localStorage.clear();localStorage.setItem('h2f.access',CODE_HASH);localStorage.setItem('h2f.tour','1')"); pg.reload(); pg.wait_for_timeout(900)
     E = pg.evaluate
-    check('clean gives defaults for junk', E("JSON.stringify(remClean('x'))") == '{"st":"","days":[0,2,4],"sw":{}}')
+    check('clean gives defaults for junk', E("JSON.stringify(remClean('x'))") == '{"st":"","days":[0,1,2,3,4],"sw":{},"v":2}')
     check('clean keeps good data, drops bad', E("(()=>{const r=remClean({st:'2026-11-02',days:[1,1,9,3],sw:{'s_db.0.0':'pu','bad':'pu','s_db.0.1':'nope'}});return r.st==='2026-11-02'&&r.days.join()==='1,3'&&Object.keys(r.sw).join()==='s_db.0.0'})()"))
     check('library: 12 sessions, 3 per kind, all exercises exist', E("REM_LIB.length===12&&['c','s','i','m'].every(k=>REM_LIB.filter(x=>x.k===k).length===3)&&REM_LIB.every(x=>x.b.every(bl=>bl.ids.every(id=>EX[id])))"))
     dur = "(id,w)=>remSess(id,w).ph.reduce((a,p)=>a+(p.s||0),0)"
@@ -19,12 +19,13 @@ with sync_playwright() as p:
     check('week 11 is longer than week 1', E(f"(()=>{{const d={dur};return REM_LIB.every(x=>d(x.id,11)>d(x.id,1))}})()"))
     check('sessions run 25 to 50 minutes', E(f"(()=>{{const d={dur};return REM_LIB.every(x=>[1,11].every(w=>d(x.id,w)>=1500&&d(x.id,w)<=3000))}})()"))
     check('week number from start date', E("remWeek(today())===1&&remWeek(dk(new Date(Date.now()-8*864e5)))===2&&remWeek(dk(new Date(Date.now()-200*864e5)))===12&&remWeek(dk(new Date(Date.now()+20*864e5)))===1&&remWeek('')===1"))
-    check('week plan: cardio, strength, then intervals or mixed', E("remPlan(1).map(s=>REM_BY[s].k).join()==='c,s,i'&&remPlan(2).map(s=>REM_BY[s].k).join()==='c,s,m'&&remPlan(1)[0]!==remPlan(2)[0]"))
+    check('week plan: 5 sessions, Tue and Thu get their own', E("remPlan(1).map(s=>REM_BY[s].k).join()==='c,s,i,c,s'&&remPlan(2).map(s=>REM_BY[s].k).join()==='c,s,m,c,s'&&new Set(remPlan(1)).size===5&&remPlan(1)[0]!==remPlan(2)[0]"))
+    check('old saved Mon/Wed/Fri default becomes all five days', E("remClean({st:'',days:[0,2,4],sw:{}}).days.join()==='0,1,2,3,4'&&remClean({st:'',days:[0,2,4],sw:{},v:2}).days.join()==='0,2,4'"))
     # open from the Main workout quick row
     E("S.tab='train';S.types[0]='upper';S.day=0;render()"); pg.wait_for_timeout(200)
     pg.click('#view .mainquick [data-a=remopen]'); pg.wait_for_timeout(200)
     body = pg.inner_text('#ciBody')
-    check('sheet opens with Week 1 of 12 and three sessions', 'Remedial PT' in body and 'Week 1 of 12' in body and body.count('Session ') >= 3)
+    check('sheet opens with Week 1 of 12 and three sessions', 'Remedial PT' in body and 'Week 1 of 12' in body and body.count('Session ') >= 5)
     check('no personal data fields', pg.locator('#ciBody input:not([type=date])').count() == 0)
     plan_before = E("JSON.stringify([S.plan,S.types,S.fmt])")
     pg.click('#ciBody [data-a=remgo] >> nth=0'); pg.wait_for_timeout(300)
@@ -40,9 +41,11 @@ with sync_playwright() as p:
     # day cards
     E("S.rem=remClean({st:prDate(0,0),days:[0,2,4],sw:{}});S.week=0;S.day=0;S.tab='train';render()")
     check('day card on a remedial day', pg.locator('#wkout .remcard').count() == 1)
+    E("S.day=3;render()")
+    check('Thursday card is session 4', pg.locator('#wkout .remcard').count() == 1 and 'Session 4' in pg.inner_text('#wkout .remcard'))
     E("S.day=2;S.rem.st=prDate(0,3);render()")
     check('no day card before the start date', pg.locator('#wkout .remcard').count() == 0)
-    E("S.rem.st=prDate(0,0);S.day=1;render()")
+    E("S.rem.st=prDate(0,0);S.rem.days=[0,2,4];S.day=1;render()")
     check('no day card on other days', pg.locator('#wkout .remcard').count() == 0)
     E("S.rem.days=[];S.day=0;render()")
     check('no day cards when no days chosen', pg.locator('#wkout .remcard').count() == 0)
@@ -58,7 +61,7 @@ with sync_playwright() as p:
     # junk in storage does not crash startup
     E("S.rem={days:'x',sw:5};save()")
     pg.reload(); pg.wait_for_timeout(900)
-    check('junk saved data still starts', E("S.rem.days.join()==='0,2,4'") and pg.locator('#view').count() == 1)
+    check('junk saved data still starts', E("S.rem.days.join()==='0,1,2,3,4'") and pg.locator('#view').count() == 1)
     check('no page errors', not errs)
     if errs: print(errs[:3])
     b.close()
