@@ -31,6 +31,14 @@ with sync_playwright() as p:
         check('every code maps to a real hidden ribbon', E("CRE_CODES.length>=1&&CRE_CODES.every(c=>/^[0-9a-f]{64}$/.test(c.h)&&RB_BY[c.id]&&RB_BY[c.id].area==='Hidden')"))
         check('Ribbon earned pop-up shows Creator', 'Creator' in E("document.getElementById('rbSheet').innerText"))
         check('kept in backup', E("cleanBackup(makeBackup()).rb.tally.cre") == 1)
+        # Squad Leader: black and blue, its own code
+        SQL = open('/home/claude/.code_sql').read().strip()
+        check('Squad Leader ribbon exists, hidden', E("!!RB_BY.sql&&RB_BY.sql.area==='Hidden'&&RB_BY.sql.name==='Squad Leader'"))
+        check('Squad Leader is black and blue only', E("[...new Set(RB_BY.sql.stripes.map(x=>x[1]))].sort().join()") == 'bk,ro')
+        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)"); pg.click('main [data-a=shareapp]'); pg.wait_for_timeout(300)
+        pg.fill('#creCode', SQL); pg.click('[data-a=crego]'); pg.wait_for_timeout(1500)
+        check('its code unlocks Squad Leader', E("!!S.rb.aw.sql"))
+        check('Squad Leader code is not in the app', SQL not in E("document.documentElement.outerHTML") and SQL.replace('-','') not in E("document.documentElement.outerHTML"))
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
     check('no page errors', not errs)
