@@ -1,4 +1,4 @@
-"""Creator ribbon: hidden, gold and black, earned only with the creator's private code on the Creator page. Server on :8765."""
+"""Creator codes: a box under Share the app; each private code unlocks one special ribbon (first: Creator, gold and black). Server on :8765."""
 import sys
 from playwright.sync_api import sync_playwright
 CODE = open('/home/claude/.creator_code').read().strip()
@@ -18,14 +18,17 @@ with sync_playwright() as p:
         check('gold and black, gold widest', E("(()=>{const s=RB_BY.cre.stripes;const c=new Set(s.map(x=>x[1]));const w=s.reduce((a,x)=>x[0]>a[0]?x:a);return c.has('go')&&c.has('bk')&&w[1]==='go'})()"))
         check('not in the medal case until earned', not E("RB_SHOW.some(r=>r.id==='cre')"))
         check('the code itself is not in the app', CODE not in E("document.documentElement.outerHTML") and CODE.replace('-', '') not in E("document.documentElement.outerHTML"))
-        E("S.tab='creator';render()"); pg.wait_for_timeout(200)
-        pg.click('[data-a=crecode]'); pg.wait_for_timeout(200)
-        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)")
+        E("S.tab='unit';render()"); pg.wait_for_timeout(200)
+        pg.click('main [data-a=shareapp]'); pg.wait_for_timeout(300)
+        check('Share the app has a Creator code box', E("!!document.querySelector('#hsBody #creCode')"))
+        E("S.tab='creator';render()")
+        check('no code box on the Creator page any more', not E("!!document.querySelector('main #creCode')"))
+        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);S.tab='unit';render()"); pg.click('main [data-a=shareapp]'); pg.wait_for_timeout(300)
         pg.fill('#creCode', 'CRT-WRON-GCOD'); pg.click('[data-a=crego]'); pg.wait_for_timeout(600)
         check('a wrong code does nothing', not E("!!S.rb.aw.cre") and "isn't right" in E("document.getElementById('creMsg').textContent"))
-        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)")  # Creator's Word may pop up at the end of the page
         pg.fill('#creCode', ' ' + CODE.lower() + ' '); pg.click('[data-a=crego]'); pg.wait_for_timeout(1500)
         check('the right code (any case, spaces ok) earns it', E("!!S.rb.aw.cre"))
+        check('every code maps to a real hidden ribbon', E("CRE_CODES.length>=1&&CRE_CODES.every(c=>/^[0-9a-f]{64}$/.test(c.h)&&RB_BY[c.id]&&RB_BY[c.id].area==='Hidden')"))
         check('Ribbon earned pop-up shows Creator', 'Creator' in E("document.getElementById('rbSheet').innerText"))
         check('kept in backup', E("cleanBackup(makeBackup()).rb.tally.cre") == 1)
     except Exception as e:

@@ -3526,8 +3526,7 @@ function viewCreator(){
   <h3>Get in Touch / Collaboration</h3>
   <p><b>SFC Deano Rowe</b><br>U.S. Army<br>Email: <a href="mailto:Deano.g.rowe.mil@army.mil" data-egg="1">Deano.g.rowe.mil@army.mil</a></p>
   <p><b>Lead from the front. Train with purpose.</b></p>
-
-  <div class="crebox"><button class="linkbtn" data-a="crecode">Creator code</button><div id="creForm" hidden><label class="tag" for="creCode">Creator code</label><div class="row"><input type="text" id="creCode" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Creator code"><button class="btn" data-a="crego">Add ribbon</button></div><p class="tag" id="creMsg" role="status"></p></div></div>`}
+`}
 
 function viewOther(t){return t==='unit'?viewUnit():t==='assess'?viewAssess():t==='fm'?viewFM():t==='nut'?viewNut():t==='sleep'?viewSleep():t==='mind'?viewMind():t==='creator'?viewCreator():viewSpirit()}
 
@@ -3660,8 +3659,11 @@ try{render()}catch(e){if(S.tab==='today')throw e;const bad=S.tab;S.tab='today';r
 setTimeout(()=>lsPush(false),1500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')lsPush(false)});
 
 /* access code gate. Soft lock only: the check runs in the page. Change the code by replacing CODE_HASH (SHA-256 of the code, uppercase, no spaces). */
-/* Creator ribbon: only the SHA-256 of the creator's private code is stored here, never the code. */
+/* Creator codes: each private code unlocks one special (hidden) ribbon. Only the SHA-256 of each code
+   (uppercase, no spaces or dashes) is stored here, never the code itself. To add one: add the ribbon to RB_RAW
+   (area Hidden), its id to RB_IDS and RB_META, then a line here. */
 const CRE_HASH="c1b337c4bd41507e1b1eb5baf3abf0b7698a663bf61cb467758e2f75fd4c6051";
+const CRE_CODES=[{h:CRE_HASH,id:'cre'}];
 const CODE_HASH="1747c2abe1eadcdea4b45504048cc40bbf661d06f5381c439efdcd436b0aad86";
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 function unlocked(){try{return localStorage.getItem('h2f.access')===CODE_HASH}catch(e){return false}}
@@ -4729,6 +4731,9 @@ function shareHtml(){const u=appLink(),m=encodeURIComponent(shareMsg()),canShare
   <div class="row">${canShare?'<button class="btn" data-a="sharenative">Share…</button>':''}<button class="btn${canShare?' ghost':''}" data-a="sharecopy">Copy link</button>
   <a class="btn ghost" data-pio="1" href="sms:?&body=${m}">Text</a><a class="btn ghost" data-pio="1" href="mailto:?subject=${encodeURIComponent('H2F Trainer')}&body=${m}">Email</a></div>
   <div class="note" id="shareMsg" hidden aria-live="polite"></div>
+  <h3>Creator code</h3><p class="tag">Got a code from the creator of H2F Trainer? Enter it to unlock a special ribbon.</p>
+  <div class="row"><input type="text" id="creCode" class="xscode" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Creator code" placeholder="CRT-XXXX-XXXX"><button class="btn" data-a="crego">Unlock</button></div>
+  <p class="tag" id="creMsg" role="status"></p>
   <div class="row"><button class="btn ghost" data-a="hsclose">Close</button></div>`}
 function qrDraw(){const box=document.getElementById('qrImg');if(!box)return;
   const go=()=>{try{const q=window.qrcode(0,'M');q.addData(appLink());q.make();const n=q.getModuleCount(),qz=4,N=n+qz*2;let d='';
@@ -4754,10 +4759,10 @@ function hidEarn(k){if(S.rb&&!S.rb.tally[k]){S.rb.tally[k]=1;save();rbSoon()}}
 document.addEventListener('click',ev=>{if(ev.target.closest('header.top .logo, header.top .appicon'))stTap(Date.now())});
 addEventListener('scroll',()=>{if(S.tab==='creator'&&S.rb&&!S.rb.tally.crw&&scrollY>200&&innerHeight+scrollY>=document.documentElement.scrollHeight-120)hidEarn('crw')},{passive:true});
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]');if(!b)return;
-  if(b.dataset.a==='crecode'){const f=document.getElementById('creForm');if(f){f.hidden=!f.hidden;if(!f.hidden)document.getElementById('creCode').focus()}}
-  else if(b.dataset.a==='crego'){const i=document.getElementById('creCode'),m=document.getElementById('creMsg');if(!i)return;
-    const v=i.value.replace(/[\s-]/g,'').toUpperCase();const ok=v&&(await sha(v))===CRE_HASH;
-    if(ok){i.value='';hidEarn('cre');m.textContent=S.rb.aw&&S.rb.aw.cre?'Creator ribbon added.':'Creator ribbon added.'}else m.textContent="That code isn't right."}});
+  if(b.dataset.a==='crego'){const i=document.getElementById('creCode'),m=document.getElementById('creMsg');if(!i)return;
+    const v=i.value.replace(/[\s-]/g,'').toUpperCase(),h=v?await sha(v):'',c=CRE_CODES.find(x=>x.h===h);
+    if(!c){m.textContent="That code isn't right. Check it with the person who sent it.";return}
+    i.value='';const had=!!(S.rb.tally&&S.rb.tally[c.id]);hidEarn(c.id);m.textContent=had?`You already have the ${RB_BY[c.id].name} ribbon.`:`${RB_BY[c.id].name} ribbon unlocked.`}});
 function pioEarn(){if(S.rb&&!S.rb.tally.pio){S.rb.tally.pio=1;save();rbSoon()}}
 document.addEventListener('click',ev=>{if(ev.target.closest('[data-pio]'))pioEarn()});
 function hsHtml(){
