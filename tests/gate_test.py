@@ -26,6 +26,7 @@ with sync_playwright() as p:
     check('typing works with a drawer open behind', pg.input_value('#gateCode') == 'XYZ')
     E("document.activeElement.blur()"); pg.click('#gate .mark'); pg.keyboard.type('Q', delay=30)
     check('clicking anywhere on the lock screen puts the cursor in the box', pg.input_value('#gateCode').endswith('Q'))
+    check('share link uses the h2ftrainer.com address', E("APP_LINK") == 'https://h2ftrainer.com/')
     check('no page errors', not errs)
     if errs: print(errs[:3])
     b.close()

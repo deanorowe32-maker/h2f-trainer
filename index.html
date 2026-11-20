@@ -4693,7 +4693,7 @@ document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset
 
 /* add to home screen help */
 /* Share the app: link, share buttons and a QR code to scan at PT */
-const APP_LINK='https://h2f-trainer.vercel.app/';
+const APP_LINK='https://h2ftrainer.com/';
 function appLink(){return xsSite()||APP_LINK}
 function shareMsg(){return `H2F Trainer: workouts, injury PT, CFT practice, sleep, fuel and readiness for Soldiers. No account, and your data stays on your phone. Open it here: ${appLink()} — ask ${S.squad&&S.squad.name?S.squad.name.trim():'me'} for the access code.`}
 function shareHtml(){const u=appLink(),m=encodeURIComponent(shareMsg()),canShare=!!(navigator.share&&xsSite());
