@@ -4747,7 +4747,7 @@ function hsHtml(){
   const andr=`<h3>Android (Chrome)</h3><ol class="tips"><li>Open the app in <b>Chrome</b>.</li><li>Tap the <b>⋮</b> menu at the top right.</li><li>Tap <b>Add to Home screen</b> (or <b>Install app</b> if you see it).</li><li>Name it <b>H2F Trainer</b> and tap <b>Add</b>.</li></ol>`;
   const first=ios?iph+andr:and?andr+iph:iph+andr;
   return `<h2>Add to Home Screen</h2><p>This puts H2F Trainer on your phone like an app, so you can open it with one tap.</p>${first}
-  <h3>Good to know</h3><ul class="tips"><li>You may be asked for the access code the first time.</li><li>Your plan saves on the phone when you close the app. Sign in to also keep a copy in your account.</li><li>The home-screen icon may be a plain page icon, depending on your phone and browser.</li></ul>
+  <h3>Good to know</h3><ul class="tips"><li>You may be asked for the access code the first time.</li><li>Everything saves on this phone as you go. There are no accounts, so make a backup code in Unit, Backup before you change phones.</li><li>The home-screen icon may be a plain page icon, depending on your phone and browser.</li></ul>
   <div class="row"><button class="btn" data-a="hsclose">Close</button></div>`}
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
@@ -4923,7 +4923,7 @@ document.addEventListener('click',ev=>{
 document.addEventListener('change',ev=>{if(ev.target.id==='prSteps')prShow()});
 
 
-/* autosave: always write to this phone when the app is hidden or closed, and keep a private copy in your account when signed in */
+/* autosave: always write to this phone when the app is hidden or closed, and a second copy inside the browser (IndexedDB) */
 function flushNow(){save();idbPut()}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushNow()});
 window.addEventListener('pagehide',flushNow);
