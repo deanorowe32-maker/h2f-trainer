@@ -22,12 +22,21 @@ with sync_playwright() as p:
         ctx.close()
         # R1: two copies open
         ctx = b.new_context(); a = ctx.new_page(); fresh(a); c = ctx.new_page(); c.goto(U); c.wait_for_timeout(1000)
-        a.evaluate("S.__probeA=1;save()"); c.wait_for_timeout(2500)
-        check('other copy picks up the change', c.evaluate("!!(typeof S!=='undefined'&&S.__probeA)"))
-        c.evaluate("S.__probeC=1;save()"); a.wait_for_timeout(2500)
-        check('both changes kept', a.evaluate("(()=>{const x=JSON.parse(localStorage.getItem('h2f.v1'));return !!(x.__probeA&&x.__probeC)})()"))
+        a.evaluate("S.sleep.wake='04:44';save()"); c.wait_for_timeout(2500)
+        check('other copy picks up the change', c.evaluate("typeof S!=='undefined'&&S.sleep.wake==='04:44'"))
+        c.evaluate("S.aft.age='33';save()"); a.wait_for_timeout(2500)
+        check('both changes kept', a.evaluate("(()=>{const x=JSON.parse(localStorage.getItem('h2f.v1'));return x.sleep.wake==='04:44'&&x.aft.age==='33'})()"))
         a.reload(); a.wait_for_timeout(900)
-        check('both changes survive a reload', a.evaluate("!!(S.__probeA&&S.__probeC)"))
+        check('both changes survive a reload', a.evaluate("S.sleep.wake==='04:44'&&S.aft.age==='33'"))
+        ctx.close()
+        # R1 follow-up: moving around (tab switches, no data change) must not make two copies reload each other
+        ctx = b.new_context(); a = ctx.new_page(); fresh(a); c = ctx.new_page(); c.goto(U); c.wait_for_timeout(1000)
+        n = {'a': 0, 'c': 0}
+        a.on('load', lambda: n.__setitem__('a', n['a'] + 1)); c.on('load', lambda: n.__setitem__('c', n['c'] + 1))
+        c.evaluate("S.tab='lib';render()"); c.wait_for_timeout(300); a.evaluate("S.tab='sleep';render();flushNow()"); c.wait_for_timeout(4000)
+        check(f'no reload loop between two copies ({n})', n['a'] == 0 and n['c'] == 0)
+        a.evaluate("S.sleep.wake='05:10';save()"); c.wait_for_timeout(2500)
+        check('a real change still reaches the other copy, once', c.evaluate("S.sleep.wake") == '05:10' and n['c'] == 1)
         ctx.close()
         # D1 and D2
         pg = b.new_page(viewport={'width': 390, 'height': 844}); fresh(pg)

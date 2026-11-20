@@ -1421,7 +1421,11 @@ try{localStorage.setItem('h2f.t','1');lsOK=localStorage.getItem('h2f.t')==='1'}c
    its data instead of later saving over it. A copy in the middle of a workout keeps going, and its saves win. */
 var STALE=false;
 function busyNow(){const m=document.getElementById('mini');if(m&&!m.hidden)return true;return ['timerSheet','ciSheet','stSheet'].some(id=>{const x=document.getElementById(id);return !!x&&!x.hidden})}
-addEventListener('storage',e=>{if(e.key!=='h2f.v1'||e.newValue==null||STALE)return;if(busyNow())return;STALE=true;location.reload()});
+/* compare only real data (the backup keys), not where each copy is looking, so moving around never triggers a reload */
+function dataSig(o){try{return JSON.stringify(BK_KEYS.map(k=>o?o[k]:null))}catch(e){return ''}}
+addEventListener('storage',e=>{if(e.key!=='h2f.v1'||e.newValue==null||STALE)return;if(busyNow())return;
+  let other=null;try{other=JSON.parse(e.newValue)}catch(_){return}if(dataSig(other)===dataSig(S))return;
+  STALE=true;location.reload()});
 function save(){if(STALE)return;
   try{const bk=makeBackup();if(lastBk===null)lastBk=bk;else if(bk!==lastBk){lastBk=bk;S.savedAt=Date.now()}}catch(e){}
   try{localStorage.setItem('h2f.v1',JSON.stringify(S))}catch(e){lsOK=false}
