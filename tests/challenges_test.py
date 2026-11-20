@@ -112,7 +112,7 @@ with sync_playwright() as p:
         try:
             fresh(pg)
             E("S.rb=rbClean(null);S.ch=chClean(null);S.tab='unit';render()")  # pagehide re-saves S on reload; pg.wait_for_timeout(300)
-            check('108 to earn', pg.locator('#rbcase .rbhead b').inner_text() == '108 ribbons to earn')
+            check('109 to earn', pg.locator('#rbcase .rbhead b').inner_text() == '109 ribbons to earn')
             check('challenge area listed', 'Challenge' in pg.locator('#rbcase').inner_text())
             ts0 = E("rbCount('tsol').n")
             E("chLog('pu',50,'2026-01-05');rbCheck()")
@@ -170,7 +170,7 @@ with sync_playwright() as p:
             check('h id4 ribbon', E("!!S.rb.aw.chid4"))
             E("S.ch.sp['2026-xm']={items:Array(12).fill(true),lvl:1};rbCheck()")
             check('h xmas ribbon', E("!!S.rb.aw.chxm"))
-            check('h 108 shown', E("RB_SHOW.length") == 108)
+            check('h 109 shown', E("RB_SHOW.length") == 109)
             check('h md vd ribbons still', E("(()=>{S.ch.sp['2027-md']={items:[true,true,true,true,true],lvl:1};chLog('stepup',250,'2026-11-10');return [rbChCount('chmd'),rbChCount('chvd')]})()") == [1, 1])
             E("S.ch=chClean(null);S.ch.fold=false;window.chSpecial=()=>({id:'xm',year:2026,date:'2026-12-25',from:'2026-12-22',to:'2026-12-28'});S.tab='today';render()"); pg.wait_for_timeout(200)
             check('h xmas 12 chips', pg.locator('#chcard [data-row=xm] [data-a=chmditem]').count() == 12)
