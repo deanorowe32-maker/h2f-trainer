@@ -4733,10 +4733,14 @@ function qrDraw(){const box=document.getElementById('qrImg');if(!box)return;
   const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';sc.async=true;sc.onload=go;
   sc.onerror=()=>{box.innerHTML='<span class="tag">The QR code needs a signal the first time. Use Copy link or Text instead.</span>'};document.head.appendChild(sc)}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-  if(a==='shareapp'){document.getElementById('hsBody').innerHTML=shareHtml();document.getElementById('hsSheet').hidden=false;qrDraw()}
+  if(a==='shareapp'){document.getElementById('hsBody').innerHTML=shareHtml();document.getElementById('hsSheet').hidden=false;qrDraw();pioQrWatch()}
   else if(a==='sharecopy'){const t=document.getElementById('shareLink'),m=document.getElementById('shareMsg');const ok=()=>{pioEarn();b.textContent='Copied';if(m){m.textContent='Link copied. Paste it into a text, email or group chat.';m.hidden=false}};
     try{navigator.clipboard.writeText(t.value).then(ok,()=>{t.focus();t.select()})}catch(e){t.focus();t.select()}}
-  else if(a==='sharenative'){navigator.share({title:'H2F Trainer',text:shareMsg(),url:appLink()}).then(pioEarn,()=>{})}});
+  else if(a==='sharenative')pioNative()});
+/* Pass It On counts as soon as the phone's Share sheet opens: some phones never report back when the share finishes */
+function pioNative(){pioEarn();try{navigator.share({title:'H2F Trainer',text:shareMsg(),url:appLink()}).catch(()=>{})}catch(e){}}
+/* ...and when the QR code stays on screen for 6 seconds, long enough for someone to scan it at PT */
+let pioQrT=0;function pioQrWatch(){clearTimeout(pioQrT);pioQrT=setTimeout(()=>{const s=document.getElementById('hsSheet'),q=document.querySelector('#hsBody #qrImg svg');if(s&&!s.hidden&&q)pioEarn()},6000)}
 /* hidden Pass It On ribbon: first time the app is shared by Share, Copy link, Text or Email */
 /* hidden Seven Taps: 7 taps on the header logo, each within 1.5 s of the last; hidden Creator's Word: scroll to the end of From the Creator */
 var stTaps=[];

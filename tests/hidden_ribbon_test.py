@@ -25,6 +25,17 @@ with sync_playwright() as p:
         check('text and email links count too', E("(()=>{document.querySelector('[data-a=shareapp]').click();return [...document.querySelectorAll('#hsBody a[href^=sms],#hsBody a[href^=mailto]')].every(a=>a.hasAttribute('data-pio'))})()"))
         check('kept in backup', E("cleanBackup(makeBackup()).rb.tally.pio") == 1)
         check('both hidden still count', E("(()=>{S.rb.tally.egg=1;rbCheck();return RB.filter(r=>r.area==='Hidden'&&S.rb.aw[r.id]).length})()") == 2)
+        # Pass It On: the phone's Share sheet (even when it doesn't report back) and showing the QR code both count
+        E("S.rb.tally.pio=0;delete S.rb.aw.pio;document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)")
+        E("navigator.share=()=>new Promise(()=>{});document.querySelector('[data-a=shareapp]').click()"); pg.wait_for_timeout(300)
+        E("pioNative()"); pg.wait_for_timeout(1300)
+        check('tapping Share earns it even if the share sheet never reports back', E("!!S.rb.aw.pio"))
+        E("S.rb.tally.pio=0;delete S.rb.aw.pio;document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)")
+        pg.clock.install(); E("window.qrcode=()=>({addData(){},make(){},getModuleCount:()=>21,isDark:()=>false});document.querySelector('[data-a=shareapp]').click()"); pg.clock.run_for(3000)
+        check('QR code on screen for 3 s is not enough', not E("S.rb.tally.pio"))
+        pg.clock.run_for(4000); pg.wait_for_timeout(100)
+        check('QR code on screen for 6 s earns it (someone scanned it)', E("S.rb.tally.pio") == 1)
+        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true)")
         # Seven Taps
         E("document.getElementById('rbSheet')&&(document.getElementById('rbSheet').hidden=true);document.getElementById('hsSheet').hidden=true")
         logo = "document.querySelector('header.top .logo, header.top .appicon')"
