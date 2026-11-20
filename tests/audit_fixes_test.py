@@ -43,6 +43,12 @@ with sync_playwright() as p:
         pg.evaluate("S.tab='unit';render()"); pg.wait_for_timeout(200)
         check('Squad sits above the medal case', pg.evaluate("document.querySelector('main [data-a=sqopen]').getBoundingClientRect().top < document.querySelector('#rbcase').getBoundingClientRect().top"))
         check('no visible Rehab wording left', 'Rehab' not in pg.evaluate("(()=>{let s='';['today','pt','unit','train'].forEach(t=>{S.tab=t;render();s+=document.body.innerText});return s})()"))
+        # A1: tour video has captions
+        pg.evaluate("tourShow()"); pg.wait_for_timeout(300)
+        tr = pg.evaluate("(()=>{const t=document.querySelector('#tourBody video track');return t?[t.kind,t.getAttribute('src'),t.srclang,t.default]:null})()")
+        check('tour video has an English captions track', bool(tr) and tr[0] == 'captions' and tr[2] == 'en')
+        vtt = pg.evaluate("fetch('video/tour.vtt').then(r=>r.ok?r.text():'')")
+        check('captions file is WebVTT with the opening line', vtt.startswith('WEBVTT') and 'This is H2F Trainer.' in vtt)
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
     b.close()
