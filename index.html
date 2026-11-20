@@ -4517,7 +4517,8 @@ function xsDec(code){try{const s=atob(code.replace(/-/g,'+').replace(/_/g,'/'));
   const ex=o.ex.slice(0,40).map((x,i)=>{const c=cmClean(x);if(c&&Array.isArray(o.ld)&&o.ld[i]&&typeof o.ld[i]==='object'){const f=a=>(Array.isArray(a)?a:[]).filter(v=>typeof v==='string'&&/^(#\d{1,2}|[\w-]{1,40})$/.test(v)).slice(0,3);c.ld={e:f(o.ld[i].e),h:f(o.ld[i].h)}}return c});
   return {from:cmStr(o.from,40),ex:ex.filter(Boolean)}}catch(e){return null}}
 /* A link only makes sense on the app's own website, where the page can read it back */
-function xsSite(){try{return window.top===window&&location.protocol==='https:'?location.origin+location.pathname:''}catch(e){return ''}}
+/* links we send always use the official address, even when this copy was opened from the old vercel.app one */
+function xsSite(){try{return window.top===window&&location.protocol==='https:'?APP_LINK:''}catch(e){return ''}}
 function xsMine(){return (S.custom||[]).map(c=>EX[c.id]).filter(Boolean)}
 function xsMsg(list){const code=xsEnc(list,S.squad&&S.squad.name),site=xsSite(),one=list.length===1;
   const what=one?`the exercise "${list[0].name}"`:`${list.length} exercises`;
@@ -4710,8 +4711,8 @@ document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset
 /* add to home screen help */
 /* Share the app: link, share buttons and a QR code to scan at PT */
 const APP_LINK='https://h2ftrainer.com/';
-function appLink(){return xsSite()||APP_LINK}
-function shareMsg(){return `H2F Trainer: workouts, injury PT, CFT practice, sleep, fuel and readiness for Soldiers. No account, and your data stays on your phone. Open it here: ${appLink()} — ask ${S.squad&&S.squad.name?S.squad.name.trim():'me'} for the access code.`}
+function appLink(){return APP_LINK}
+function shareMsg(){return `H2F Trainer: workouts, recovery plans, CFT practice, sleep, fuel and readiness for Soldiers. No account, and your data stays on your phone. Open it here: ${appLink()} — ask ${S.squad&&S.squad.name?S.squad.name.trim():'me'} for the access code.`}
 function shareHtml(){const u=appLink(),m=encodeURIComponent(shareMsg()),canShare=!!(navigator.share&&xsSite());
   return `<h2>Share the app</h2><p>Send H2F Trainer to another Soldier. They will need the access code to open it, so give them that in person.</p>
   <div class="qrbox"><div class="qr" id="qrImg" role="img" aria-label="QR code for the app link"><span class="tag">Loading QR code…</span></div><p class="tag">Have them point their phone camera at this code.</p></div>

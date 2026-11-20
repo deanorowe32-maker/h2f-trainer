@@ -27,6 +27,8 @@ with sync_playwright() as p:
     E("document.activeElement.blur()"); pg.click('#gate .mark'); pg.keyboard.type('Q', delay=30)
     check('clicking anywhere on the lock screen puts the cursor in the box', pg.input_value('#gateCode').endswith('Q'))
     check('share link uses the h2ftrainer.com address', E("APP_LINK") == 'https://h2ftrainer.com/')
+    check('shared links never use the address the app was opened from', not E("xsSite.toString().includes('location.origin')") and not E("appLink.toString().includes('xsSite')"))
+    check('share message says recovery, not injury PT', 'injury PT' not in E("shareMsg()") and 'h2ftrainer.com' in E("shareMsg()"))
     check('no page errors', not errs)
     if errs: print(errs[:3])
     b.close()
