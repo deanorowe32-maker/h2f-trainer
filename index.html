@@ -225,7 +225,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .chhead{display:flex;align-items:center;justify-content:space-between}.chhead h3{margin:0}.chfold{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:600 14px var(--body)}
 .chrow{padding:12px 0;border-top:1px solid var(--line)}.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.chtop span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .chtop small{font:700 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.chtop b,.chlink{font:700 16px var(--body);color:var(--fg)}
-.chlink{padding:0;border:0;background:none;text-align:left;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2)}
+.chlink{padding:14px 0;margin:-14px 0;position:relative;border:0;background:none;text-align:left;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2)}
 .chlog{flex:none;min-height:40px;padding:0 14px}.chnum{display:block;margin-top:6px;font:500 14px var(--body);color:var(--muted)}.chok{color:var(--fg)}
 .chbar{position:relative;display:block;height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--fg) 10%,transparent);overflow:hidden}.chbar>i{display:block;height:100%;background:var(--gold)}
 .chbar em{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--surface)}
@@ -309,7 +309,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .tdgrid .tdbtn{grid-area:b;justify-self:end;align-self:start}
 .tdbtn{padding:8px 12px;font-size:14px;min-height:40px}
 .tdrows{margin:4px 0 8px}
-.tdrows .item{padding:8px 0}
+.tdrows .item{padding:0}
+/* every exercise name is a 44 px tap target, even in the compact Today list */
+.item .nm{min-height:44px;display:flex;flex-wrap:wrap;align-items:center;align-content:center;column-gap:4px}.item .nm small{flex-basis:100%}
 .tdrows .rxv{flex:none;font:650 14px var(--body);color:var(--fg);text-align:right}
 .tdstreak{margin-top:8px}
 .tddots{display:none}
@@ -840,6 +842,7 @@ nav#tabs.tabs{display:block;grid-template-columns:none;padding:6px max(6px,env(s
 .ulist{display:flex;flex-direction:column}
 .urow{display:grid;grid-template-columns:38px 1fr 18px;gap:12px;align-items:center;width:100%;min-height:66px;padding:8px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;color:var(--fg)}
 .urow:first-child{border-top:0}
+.rmdrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid var(--line);padding:6px 0}.rmdon{display:flex;align-items:center;gap:10px;min-height:44px}.rmdon input{width:22px;height:22px}.rmdrow input[type=time]{min-height:44px;font:inherit}.rmddays{margin:2px 0 8px}
 .urow.sqhero{background:var(--ink);color:#fff;border-radius:var(--r);padding:12px 14px;min-height:78px;grid-template-columns:42px 1fr 18px}.urow.sqhero small{color:rgba(255,255,255,.82)}.urow.sqhero b{font-size:1.15em}.urow.sqhero .ico{color:var(--gold)}.sqtop{margin-top:4px}
 .urow>.ico:first-child{width:38px;height:38px;padding:8px;border-radius:12px;background:var(--raised);color:var(--fg)}
 .urow b{display:block;font-weight:700}.urow small{display:block;color:var(--muted);font-size:14px;line-height:1.35}
@@ -993,6 +996,7 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 <div id="prSheet" hidden><div class="prbar"><button class="btn" type="button" data-a="prgo">Print</button><button class="btn ghost" type="button" data-a="prclose">Close</button><label><input type="checkbox" id="prSteps" data-f="prsteps"> Include steps and cues</label></div><div id="prDoc"></div></div>
 <div class="sheet" id="sqSheet" hidden style="z-index:77"><div class="panel" role="dialog" aria-label="Squad"><div id="sqBody"></div></div></div>
 <div class="sheet" id="tourSheet" hidden style="z-index:78"><div class="panel" role="dialog" aria-label="App tour"><div id="tourBody"></div></div></div>
+<div class="sheet" id="rmdSheet" hidden style="z-index:76"><div class="panel" role="dialog" aria-label="Reminders"><div id="rmdBody"></div></div></div>
 <div class="sheet" id="hsSheet" hidden style="z-index:76"><div class="panel" role="dialog" aria-label="Help"><div id="hsBody"></div></div></div>
 <div class="sheet" id="pgSheet" hidden style="z-index:48"><div class="panel" role="dialog" aria-label="Integrator program"><div id="prBody"></div></div></div>
 <div class="sheet" id="ciSheet" hidden style="z-index:49"><div class="panel" role="dialog" aria-label="Circuit"><div id="ciBody" aria-live="polite"></div></div></div>
@@ -1484,7 +1488,7 @@ const GROUPS=[['today','Today',['today']],['train','Train',['train','lib','asses
 const SUBLAB={train:'Plan',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
 Object.assign(TAB_ICON,{rehab:TAB_ICON.pt,ready:'<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',unit:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M16 14.2c2.4.1 4.1 1.7 4.6 4.3"/>',
  backup:'<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>',heart:'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>',home:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/>',
- tour:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',chev:'<path d="M9 6l6 6-6 6"/>'});
+ bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',chev:'<path d="M9 6l6 6-6 6"/>'});
 function grpOf(t){return Math.max(0,GROUPS.findIndex(g=>g[2].includes(t)))}
 let navPrev=null;
 function renderTabs(){const gi=grpOf(S.tab),g=GROUPS[gi];S.lastSub=S.lastSub||{};S.lastSub[g[0]]=S.tab;
@@ -1530,7 +1534,7 @@ function viewUnit(){const row=(a,ic,t,d,cls='')=>`<button type="button" class="u
   <section class="grp sqtop"><div class="ulist">${row('sqopen','unit','Squad','Share your week with your leader. Leaders: see your Soldiers and send them a training plan.',' sqhero')}</div></section>
   ${rbCaseHtml()}
   <section class="grp"><h3>Your data</h3><p class="tag">Everything you log stays on this phone. There is no account. Nothing is sent anywhere unless you share it, and a live squad shares only what you choose, only with your leader. Make a backup before you change phones.</p><div class="ulist">${row('bkopen','backup','Backup','Copy a backup code to move everything to a new phone.')}</div></section>
-  <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('touropen','tour','App tour','A 100-second video of the app, with captions. Earns a ribbon.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
+  <section class="grp"><h3>App</h3><div class="ulist">${row('shareapp','share','Share the app','Send H2F Trainer to another Soldier by text, email or QR code.')}${row('hsopen','home','Add to Home Screen','Open H2F Trainer full screen, like any other app.')}${row('rmdopen','bell','Reminders','Workout, bedtime and backup reminders, in your calendar or as notifications.')}${row('touropen','tour','App tour','A 100-second video of the app, with captions. Earns a ribbon.')}${row('lockapp','lock','Lock app','Ask for the access code the next time the app opens.')}</div></section>`}
 
 function moreShow(){document.getElementById('moreList').innerHTML=TABS.filter(t=>!PRIMARY.includes(t[0])).map(([id,n])=>`<button type="button" data-a="tab" data-v="${id}" aria-current="${S.tab===id?'page':'false'}">${ico(id)}${n}</button>`).join('');document.getElementById('moreSheet').hidden=false}
 const GROUPED=['assess','nut','sleep','mind','spirit','creator'];
@@ -4751,6 +4755,68 @@ document.addEventListener('click',ev=>{
   else if(b.dataset.a==='hsclose')document.getElementById('hsSheet').hidden=true;
 });
 document.getElementById('hsSheet').addEventListener('click',ev=>{if(ev.target.id==='hsSheet')ev.target.hidden=true});
+/* Reminders: workout, bedtime and a weekly backup nudge. Two ways: repeating events in the phone's calendar (.ics, works
+   everywhere, nothing leaves the phone), or push notifications sent by the small "push" server function, which stores only
+   this phone's notification address and the times picked. */
+const RMD_DN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],RMD_IC=['MO','TU','WE','TH','FR','SA','SU'];
+let rmdMsg='';
+function rmdBedDefault(){const w=(S.sleep&&/^\d\d:\d\d$/.test(S.sleep.wake||''))?S.sleep.wake:'06:00';let m=(+w.slice(0,2)*60+ +w.slice(3)-495+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function rmdS(){const r=S.rmd&&typeof S.rmd==='object'?S.rmd:(S.rmd={});
+  if(!r.wk||typeof r.wk!=='object')r.wk={on:false,t:'06:00',days:[1,2,3,4,5]};
+  if(!Array.isArray(r.wk.days))r.wk.days=[1,2,3,4,5];r.wk.days=r.wk.days.filter(d=>Number.isInteger(d)&&d>=1&&d<=7).sort();
+  if(!/^\d\d:\d\d$/.test(r.wk.t||''))r.wk.t='06:00';
+  if(!r.bed||typeof r.bed!=='object')r.bed={on:false,t:rmdBedDefault()};if(!/^\d\d:\d\d$/.test(r.bed.t||''))r.bed.t=rmdBedDefault();
+  if(!r.bk||typeof r.bk!=='object')r.bk={on:false};r.push=!!r.push;return r}
+function rmdAny(){const r=rmdS();return r.wk.on&&r.wk.days.length||r.bed.on||r.bk.on}
+function rmdPushable(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
+function rmdHtml(){const r=rmdS(),ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  return `<h2>Reminders</h2><p class="tag">Pick what you want a nudge for. Change it any time.</p>
+  <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdWk" data-f="rmd" data-k="wk"${r.wk.on?' checked':''}> <b>Workout</b></label><input type="time" id="rmdWkT" data-f="rmdt" data-k="wk" value="${r.wk.t}" aria-label="Workout reminder time"></div>
+  <div class="chips rmddays" role="group" aria-label="Workout reminder days">${RMD_DN.map((d,i)=>`<button type="button" class="chip" data-a="rmdday" data-day="${i+1}" aria-pressed="${r.wk.days.includes(i+1)}">${d}</button>`).join('')}</div>
+  <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdBed" data-f="rmd" data-k="bed"${r.bed.on?' checked':''}> <b>Bedtime</b></label><input type="time" id="rmdBedT" data-f="rmdt" data-k="bed" value="${r.bed.t}" aria-label="Bedtime reminder time"></div>
+  <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdBk" data-f="rmd" data-k="bk"${r.bk.on?' checked':''}> <b>Weekly backup</b></label><span class="tag">Sundays, 1800</span></div>
+  <h3>Add them to your calendar</h3><p class="tag">Works on every phone. Your calendar app shows the alerts, and you can change or delete them there.</p>
+  <div class="row"><button class="btn" data-a="rmdics"${rmdAny()?'':' disabled'}>Add to my calendar</button></div>
+  <h3>Or get notifications</h3><p class="tag">H2F Trainer sends the reminders itself. A small server keeps only this phone's notification address and the times you picked, never your name or training.${ios&&!standalone?' <b>On iPhone, add the app to your Home Screen first</b> (Unit, Add to Home Screen), then open it from there.':''}</p>
+  <div class="row"><button class="btn${r.push?' ghost':''}" data-a="rmdpush"${rmdAny()||r.push?'':' disabled'}>${r.push?'Update notifications':'Turn on notifications'}</button>${r.push?'<button class="btn ghost" data-a="rmdoff">Turn off notifications</button>':''}</div>
+  <div class="note" id="rmdMsg" role="status"${rmdMsg?'':' hidden'}>${esc(rmdMsg)}</div>
+  <div class="row"><button class="btn ghost" data-a="rmdclose">Close</button></div>`}
+function rmdShow(){document.getElementById('rmdBody').innerHTML=rmdHtml();document.getElementById('rmdSheet').hidden=false}
+function rmdIcs(){const r=rmdS(),now=new Date(),z=n=>String(n).padStart(2,'0');
+  const stamp=now.getUTCFullYear()+z(now.getUTCMonth()+1)+z(now.getUTCDate())+'T'+z(now.getUTCHours())+z(now.getUTCMinutes())+'00Z';
+  const first=(t,days)=>{const d=new Date();d.setHours(0,0,0,0);for(let i=0;i<8;i++){const x=new Date(d.getTime()+i*864e5),dow=(x.getDay()+6)%7+1;if(!days||days.includes(dow))return x.getFullYear()+z(x.getMonth()+1)+z(x.getDate())+'T'+t.replace(':','')+'00'}};
+  const ev=(id,t,days,rule,title,desc)=>['BEGIN:VEVENT','UID:h2f-'+id+'@h2ftrainer.com','DTSTAMP:'+stamp,'DTSTART:'+first(t,days),'DURATION:PT15M',rule,'SUMMARY:'+title,'DESCRIPTION:'+desc+' https://h2ftrainer.com/','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+title,'TRIGGER:PT0M','END:VALARM','END:VEVENT'];
+  let L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//H2F Trainer//Reminders//EN','CALSCALE:GREGORIAN'];
+  if(r.wk.on&&r.wk.days.length)L=L.concat(ev('workout',r.wk.t,r.wk.days,'RRULE:FREQ=WEEKLY;BYDAY='+r.wk.days.map(d=>RMD_IC[d-1]).join(','),'H2F Trainer: workout','Today\'s workout is ready. Open H2F Trainer.'));
+  if(r.bed.on)L=L.concat(ev('bedtime',r.bed.t,null,'RRULE:FREQ=DAILY','H2F Trainer: wind down for bed','Lights out soon. Sleep is part of your training.'));
+  if(r.bk.on)L=L.concat(ev('backup','18:00',[7],'RRULE:FREQ=WEEKLY;BYDAY=SU','H2F Trainer: back up your data','Copy a fresh backup code in Unit, Backup.'));
+  return L.concat(['END:VCALENDAR']).join('\r\n')+'\r\n'}
+function rmdPrefs(){const r=rmdS();return {wk_on:!!r.wk.on,wk_time:r.wk.t,wk_days:r.wk.days.slice(),bed_on:!!r.bed.on,bed_time:r.bed.t,bk_on:!!r.bk.on}}
+function rmdKey(k){const p='='.repeat((4-k.length%4)%4),b=atob((k+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+async function rmdCall(body){const r=await fetch(CLOUD.url+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+async function rmdPushOn(){const r=rmdS();
+  if(!rmdPushable()){rmdMsg='This browser can\'t show notifications. Use Add to my calendar instead.';rmdShow();return}
+  try{const perm=await Notification.requestPermission();if(perm!=='granted'){rmdMsg='Notifications are blocked for H2F Trainer. Allow them in your phone settings, or use Add to my calendar.';rmdShow();return}
+    const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
+    if(!sub){const k=await (await fetch(CLOUD.url+'/functions/v1/push')).json();sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:rmdKey(k.key)})}
+    const first=!r.push;await rmdCall({action:'save',sub:sub.toJSON(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',prefs:rmdPrefs(),test:first});
+    r.push=true;save();rmdMsg=first?'Notifications are on. A test one is on its way.':'Notification times updated.'}
+  catch(e){rmdMsg='Could not turn on notifications ('+String(e.message||e).slice(0,60)+'). Check your signal, or use Add to my calendar.'}
+  rmdShow()}
+async function rmdPushOff(){const r=rmdS();try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){await rmdCall({action:'delete',endpoint:sub.endpoint}).catch(()=>{});await sub.unsubscribe()}}catch(e){}
+  r.push=false;save();rmdMsg='Notifications are off.';rmdShow()}
+let rmdT=0;function rmdSync(){const r=rmdS();if(!r.push)return;clearTimeout(rmdT);rmdT=setTimeout(async()=>{try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await rmdCall({action:'save',sub:sub.toJSON(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',prefs:rmdPrefs()})}catch(e){}},800)}
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='rmdopen'){rmdMsg='';rmdShow()}
+  else if(a==='rmdclose')document.getElementById('rmdSheet').hidden=true;
+  else if(a==='rmdday'){const r=rmdS(),d=+b.dataset.day;r.wk.days=r.wk.days.includes(d)?r.wk.days.filter(x=>x!==d):r.wk.days.concat(d).sort();save();rmdSync();rmdShow()}
+  else if(a==='rmdics'){if(!rmdAny())return;const url=URL.createObjectURL(new Blob([rmdIcs()],{type:'text/calendar'})),x=document.createElement('a');x.href=url;x.download='h2f-reminders.ics';document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);rmdMsg='Calendar file made. Open it and choose Add all, or Add to calendar.';rmdShow()}
+  else if(a==='rmdpush')rmdPushOn();
+  else if(a==='rmdoff')rmdPushOff()});
+document.getElementById('rmdSheet').addEventListener('change',ev=>{const t=ev.target,r=rmdS();
+  if(t.dataset.f==='rmd'){r[t.dataset.k].on=t.checked}else if(t.dataset.f==='rmdt'&&/^\d\d:\d\d$/.test(t.value)){r[t.dataset.k].t=t.value}else return;
+  save();rmdSync();rmdShow()});
+document.getElementById('rmdSheet').addEventListener('click',ev=>{if(ev.target.id==='rmdSheet')ev.target.hidden=true});
 document.getElementById('sqSheet').addEventListener('click',ev=>{if(ev.target.id==='sqSheet')ev.target.hidden=true});
 tourMaybe();
 

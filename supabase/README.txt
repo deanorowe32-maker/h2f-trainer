@@ -1,1 +1,2 @@
 -- Applied to Supabase project h2f-trainer (ensaxbeodtpdlcqplzhy) on 2026-11-17 via migrations live_squad, live_squad_anon_only, live_squad_my_squad. See docs/superpowers/specs/2026-11-17-live-squad-design.md
+-- Reminder notifications: see push.sql and functions/push (2026-11-20).

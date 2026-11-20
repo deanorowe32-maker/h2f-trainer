@@ -1,5 +1,5 @@
-/* H2F Trainer offline cache, version c3a1e7m75 */
-const V='h2f-c3a1e7m75',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/archivo-latin.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
+/* H2F Trainer offline cache, version c3a1e7m76 */
+const V='h2f-c3a1e7m76',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/archivo-latin.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
@@ -14,3 +14,8 @@ self.addEventListener('fetch',e=>{
   if(!keep)return;
   e.respondWith(caches.match(r).then(hit=>hit||fetch(r).then(res=>{if(res.ok||res.type==='opaque'){const c=res.clone();caches.open(V).then(x=>x.put(r,c))}return res})));
 });
+/* Reminder notifications sent by the push server function */
+self.addEventListener('push',e=>{let m={};try{m=e.data?e.data.json():{}}catch(_){m={body:e.data&&e.data.text()}}
+  e.waitUntil(self.registration.showNotification(m.title||'H2F Trainer',{body:m.body||'',icon:'/icons/icon-192.png',badge:'/icons/favicon-32.png',tag:'h2f-'+(m.url||'r'),data:{url:m.url||'/'}}))});
+self.addEventListener('notificationclick',e=>{e.notification.close();const url=(e.notification.data&&e.notification.data.url)||'/';
+  e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{for(const c of cs){if('focus' in c){c.navigate(url).catch(()=>{});return c.focus()}}return self.clients.openWindow(url)}))});
