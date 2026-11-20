@@ -3619,10 +3619,10 @@ document.addEventListener('click',ev=>{
   const top=()=>[...document.querySelectorAll('.sheet:not([hidden])')].sort((a,b)=>(+getComputedStyle(b).zIndex||0)-(+getComputedStyle(a).zIndex||0))[0];
   const focusables=el=>[...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);
   const mo=new MutationObserver(ms=>ms.forEach(m=>{const sh=m.target;if(!sh.classList||!sh.classList.contains('sheet'))return;const pn=sh.querySelector('.panel');
-    if(!sh.hidden){if(!opener.has(sh))opener.set(sh,document.activeElement);if(pn){pn.setAttribute('aria-modal','true');if(!pn.hasAttribute('tabindex'))pn.tabIndex=-1;requestAnimationFrame(()=>{if(!pn.contains(document.activeElement)){const h=pn.querySelector('h2,h3');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}else pn.focus({preventScroll:true})}})}}
+    if(!sh.hidden){if(!opener.has(sh))opener.set(sh,document.activeElement);if(pn){pn.setAttribute('aria-modal','true');if(!pn.hasAttribute('tabindex'))pn.tabIndex=-1;requestAnimationFrame(()=>{if(typeof gateOn==='function'&&gateOn())return;if(!pn.contains(document.activeElement)){const h=pn.querySelector('h2,h3');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}else pn.focus({preventScroll:true})}})}}
     else{const o=opener.get(sh);opener.delete(sh);if(o&&o.isConnected&&!top())try{o.focus({preventScroll:true})}catch(e){}}}));
   document.querySelectorAll('.sheet').forEach(sh=>mo.observe(sh,{attributes:true,attributeFilter:['hidden']}));
-  document.addEventListener('keydown',e=>{const sh=top();if(!sh)return;
+  document.addEventListener('keydown',e=>{if(typeof gateOn==='function'&&gateOn())return;const sh=top();if(!sh)return;
     if(e.key==='Escape'){const c=[...sh.querySelectorAll('[data-a$="close"],[data-a="closeinfo"],[data-a="cmclose"]')].find(x=>x.offsetParent!==null);if(c)c.click();else sh.hidden=true;e.preventDefault();return}
     if(e.key==='Tab'){const f=focusables(sh);if(!f.length)return;const a=f[0],z=f[f.length-1];
       if(e.shiftKey&&(document.activeElement===a||!sh.contains(document.activeElement))){z.focus();e.preventDefault()}
@@ -3640,7 +3640,10 @@ setTimeout(()=>lsPush(false),1500);document.addEventListener('visibilitychange',
 const CODE_HASH="1747c2abe1eadcdea4b45504048cc40bbf661d06f5381c439efdcd436b0aad86";
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 function unlocked(){try{return localStorage.getItem('h2f.access')===CODE_HASH}catch(e){return false}}
-function showGate(on){document.getElementById('gate').hidden=!on;document.querySelector('main').hidden=on;if(on)setTimeout(()=>document.getElementById('gateCode').focus(),50)}
+function gateOn(){const g=document.getElementById('gate');return !!g&&!g.hidden}
+function showGate(on){if(on)document.querySelectorAll('.sheet:not([hidden])').forEach(x=>x.hidden=true);document.getElementById('gate').hidden=!on;document.querySelector('main').hidden=on;if(on)setTimeout(()=>document.getElementById('gateCode').focus(),50)}
+/* lock screen keeps the keyboard: a click anywhere on it puts the cursor in the code box */
+document.getElementById('gate').addEventListener('mousedown',e=>{if(e.target.closest('input,button,a'))return;e.preventDefault();document.getElementById('gateCode').focus()});
 document.getElementById('gateForm').addEventListener('submit',async ev=>{
   ev.preventDefault();
   const v=document.getElementById('gateCode').value.trim().toUpperCase().replace(/\s+/g,''),err=document.getElementById('gateErr');
