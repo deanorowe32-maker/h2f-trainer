@@ -1013,8 +1013,7 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
   box-shadow:0 12px 32px rgba(0,0,0,.45)}
 .grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp{background:rgba(36,85,58,.14) padding-box!important;border-color:rgba(232,191,85,.08)!important;box-shadow:none}
 @media (prefers-reduced-motion:no-preference){
- .grp,.tdwide,.sec,.coach,.chcard,.rbnext,.tdgrid,.start,section.card,.strip,.sched,.inj,.plan,.editday{animation:etrace 7s linear infinite}
- .coach,.tdgrid,.sched,.inj{animation-duration:9s;animation-direction:reverse}
+ /* the current is turned by a script (eaRun): Safari does not reliably repaint a CSS animation of --ea, so the outline froze on iPhone */
 }
 @keyframes etrace{to{--ea:360deg}}
 :root[data-theme="dark"]{--vz-1:#2f7a4f;--vz-veg:#2f7a4f;--vz-carb:#e8bf55;--vz-pro:#cfd6cc}
@@ -3973,11 +3972,11 @@ function cleanBackup(raw){
     let link='';if(isStr(c.link)&&c.link){try{const u=new URL(c.link);if(/^https?:$/.test(u.protocol))link=u.href}catch(e){}}
     return {id:c.id,name:c.name.slice(0,60),cat:CATS[c.cat]?c.cat:'bodyweight',sec:SECNAME[c.sec]?c.sec:'M',eq:isStr(c.eq)?c.eq.slice(0,60):'None',steps:c.steps.slice(0,30).map(x=>x.slice(0,300)),cue:isStr(c.cue)?c.cue.slice(0,120):'',link}});
   const known=id=>EX[id]||custom.some(c=>c.id===id);
-  const cleanDay=d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).map(i=>{const r={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))r.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))r.w=i.w;if(isStr(i.a)&&/^[a-z,]{1,60}$/.test(i.a))r.a=i.a;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)r.pct=i.pct;return r});
+  const cleanDay=d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).map(i=>{const r={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))r.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))r.w=i.w;if(isStr(i.a)&&/^[a-z,]{1,60}$/.test(i.a))r.a=i.a;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)r.pct=i.pct;if(i.done===true)r.done=true;if(isStr(i.rx0))r.rx0=i.rx0.slice(0,60);return r});
   if(!Array.isArray(o.plan)||o.plan.length!==5||!Array.isArray(o.types)||o.types.length!==5||!o.types.every(t=>DTYPES[t]))throw new Error('The workout plan in this code is not valid.');
   const pt=o.pt;if(!pt||!pt.p||!Array.isArray(pt.plan)||pt.plan.length!==5||!Array.isArray(pt.focus)||pt.focus.length!==5||!AREAS[pt.p.area]||!pt.focus.every(f=>FOCI[f]))throw new Error('The injury plan in this code is not valid.');
   const out={types:o.types.slice(),plan:o.plan.map(cleanDay),custom,
-    pt:{p:{name:isStr(pt.p.name)?pt.p.name.slice(0,40):'',area:pt.p.area,side:SIDES.includes(pt.p.side)?pt.p.side:'Right',phase:[0,1,2].includes(+pt.p.phase)?+pt.p.phase:1,pain:Math.max(0,Math.min(10,+pt.p.pain||0)),more:(Array.isArray(pt.p.more)?pt.p.more:[]).filter(m=>m&&AREAS[m.area]).slice(0,2).map(m=>({area:m.area,side:SIDES.includes(m.side)?m.side:'Right',phase:[0,1,2].includes(+m.phase)?+m.phase:1,pain:Math.max(0,Math.min(10,+m.pain||0))}))},focus:pt.focus.slice(),plan:pt.plan.map(cleanDay)},
+    pt:{p:{name:isStr(pt.p.name)?pt.p.name.slice(0,40):'',area:pt.p.area,side:SIDES.includes(pt.p.side)?pt.p.side:'Right',phase:[0,1,2].includes(+pt.p.phase)?+pt.p.phase:1,pain:Math.max(0,Math.min(10,+pt.p.pain||0)),more:(Array.isArray(pt.p.more)?pt.p.more:[]).filter(m=>m&&AREAS[m.area]).slice(0,2).map(m=>({area:m.area,side:SIDES.includes(m.side)?m.side:'Right',phase:[0,1,2].includes(+m.phase)?+m.phase:1,pain:Math.max(0,Math.min(10,+m.pain||0))}))},focus:pt.focus.slice(),plan:pt.plan.map(cleanDay),sig:isStr(pt.sig)?pt.sig.slice(0,200):null},
     hist:(Array.isArray(o.hist)?o.hist:[]).filter(x=>x&&isStr(x.id)&&Number.isFinite(x.ts)&&Number.isFinite(x.ms)).slice(0,200).map(x=>({id:x.id.slice(0,20),ts:x.ts,day:isStr(x.day)?x.day.slice(0,5):'',type:isStr(x.type)?x.type.slice(0,30):'',ms:x.ms,d:+x.d||0,n:+x.n||0,man:x.man?1:undefined}))};
   if(o.assess&&typeof o.assess==='object'){const M=['load','reps','time','dist'],seen=new Set();
     const ev=(Array.isArray(o.assess.ev)?o.assess.ev:[]).filter(x=>x&&isStr(x.id)&&known(x.id)&&M.includes(x.m)&&!seen.has(x.id)&&seen.add(x.id)).slice(0,40).map(x=>({id:x.id,m:x.m}));
@@ -3989,7 +3988,7 @@ function cleanBackup(raw){
   if(isStr(o.curKey)&&/^\d{4}-\d\d-\d\d$/.test(o.curKey))out.curKey=o.curKey;
   if(o.weeks&&typeof o.weeks==='object'&&!Array.isArray(o.weeks)){out.weeks={};Object.entries(o.weeks).slice(0,40).forEach(([k,w])=>{
     if(!/^\d{4}-\d\d-\d\d$/.test(k)||!w||typeof w!=='object'||!Array.isArray(w.types)||w.types.length!==5||!w.types.every(t=>DTYPES[t])||!Array.isArray(w.plan)||w.plan.length!==5)return;
-    const plan=w.plan.map(d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).slice(0,40).map(i=>{const q={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))q.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))q.w=i.w;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)q.pct=i.pct;return q}));
+    const plan=w.plan.map(d=>(Array.isArray(d)?d:[]).filter(i=>i&&isStr(i.id)&&known(i.id)).slice(0,40).map(i=>{const q={id:i.id,rx:isStr(i.rx)?i.rx.slice(0,60):''};if(['W','M','C'].includes(i.s))q.s=i.s;if(isStr(i.w)&&/^[0-9.\/ ,-]{1,10}$/.test(i.w))q.w=i.w;if(isStr(i.pct)&&/^\d{1,3}(\.\d{1,2})?$/.test(i.pct)&&+i.pct>0&&+i.pct<=120)q.pct=i.pct;if(i.done===true)q.done=true;if(isStr(i.rx0))q.rx0=i.rx0.slice(0,60);return q}));
     const fm=Array.isArray(w.fmt)&&w.fmt.length===5?w.fmt.map(x=>x==='s'||x==='c'||x==='p'?x:'n'):['n','n','n','n','n'];
     const ds=Array.isArray(w.dst)&&w.dst.length===5?w.dst.map(d=>{if(!d||typeof d!=='object'||!Array.isArray(d.st)||d.st.length<1)return null;const m=parseInt(d.mins,10);return {mins:m>=1&&m<=60?m:10,st:d.st.slice(0,10).map(a=>(Array.isArray(a)?a:[]).filter(id=>isStr(id)&&known(id)).slice(0,8))}}):[null,null,null,null,null];
     out.weeks[k]={types:w.types.slice(),plan,fmt:fm,dst:ds,dcir:fm.map((f,i)=>f==='c'?ciClean(Array.isArray(w.dcir)?w.dcir[i]:null):null),from:null,note:w.note==='Lighter week'?w.note:undefined}})}
@@ -5188,6 +5187,13 @@ showGate(!unlocked());
 
 <script>
 /* Offline: keep the app and its images on the phone after the first visit */
+/* gold current around the cards: one frame loop updates the angle in a single style rule (30 fps, stops while hidden, off for reduced motion) */
+(function eaRun(){let ra=null,rb=null,last=0;const A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday',B='.coach,.tdgrid,.sched,.inj';
+  const mq=matchMedia('(prefers-reduced-motion: reduce)');
+  function f(t){if(mq.matches){if(ra){ra.style.removeProperty('--ea');rb.style.removeProperty('--ea')}return}requestAnimationFrame(f);if(t-last<33)return;last=t;
+    if(!ra){const st=document.createElement('style');st.id='eaStyle';document.head.appendChild(st);const sh=st.sheet;sh.insertRule(A+'{}',0);sh.insertRule(B+'{}',1);ra=sh.cssRules[0];rb=sh.cssRules[1]}
+    ra.style.setProperty('--ea',(t/7000*360%360).toFixed(1)+'deg');rb.style.setProperty('--ea',(360-t/9000*360%360).toFixed(1)+'deg')}
+  requestAnimationFrame(f);try{mq.addEventListener('change',()=>{if(!mq.matches)requestAnimationFrame(f)})}catch(_){}})();
 if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});
   /* a new version took over in the background: offer a refresh instead of waiting for the next launch */
   let swHad=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!swHad){swHad=true;return}updBar()})}

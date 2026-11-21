@@ -1,5 +1,5 @@
 /* H2F Trainer offline cache, version e1ec7r1c9 */
-const V='h2f-e1ec7r1c15',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/manrope-latin.woff2", "/fonts/chakra-petch-600.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
+const V='h2f-e1ec7r1c16',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/manrope-latin.woff2", "/fonts/chakra-petch-600.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
