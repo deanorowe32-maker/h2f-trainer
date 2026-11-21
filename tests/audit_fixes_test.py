@@ -57,7 +57,7 @@ with sync_playwright() as p:
         tr = pg.evaluate("(()=>{const t=document.querySelector('#tourBody video track');return t?[t.kind,t.getAttribute('src'),t.srclang,t.default]:null})()")
         check('tour video has an English captions track', bool(tr) and tr[0] == 'captions' and tr[2] == 'en')
         vtt = pg.evaluate("fetch('video/tour.vtt').then(r=>r.ok?r.text():'')")
-        check('captions file is WebVTT with the opening line', vtt.startswith('WEBVTT') and 'This is H2F Trainer.' in vtt)
+        check('captions file is WebVTT with the opening line', vtt.startswith('WEBVTT') and 'Your whole H2F program.' in vtt)
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
     b.close()
