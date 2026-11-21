@@ -1,5 +1,5 @@
 /* H2F Trainer offline cache, version e1ec7r1c9 */
-const V='h2f-e1ec7r1c14',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/manrope-latin.woff2", "/fonts/chakra-petch-600.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
+const V='h2f-e1ec7r1c15',SHELL=["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/fonts/manrope-latin.woff2", "/fonts/chakra-petch-600.woff2", "/ph/body-m-front.webp?v=4", "/ph/body-m-back.webp?v=4", "/ph/body-f-front.webp?v=4", "/ph/body-f-back.webp?v=4"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
@@ -8,7 +8,10 @@ self.addEventListener('fetch',e=>{
   /* Tour video: straight to the network so phones can stream it in ranges */
   if(u.origin===location.origin&&u.pathname.startsWith('/video/'))return;
   /* The page itself: fresh when online, saved copy when not */
-  if(r.mode==='navigate'){e.respondWith(fetch(r).then(res=>{const c=res.clone();caches.open(V).then(x=>x.put('/index.html',c));return res}).catch(()=>caches.match('/index.html')));return}
+  /* Weak signal: wait at most 3 s for the network, then open the saved copy; the fresh page still saves for next time */
+  if(r.mode==='navigate'){const net=fetch(r).then(res=>{if(res.ok){const c=res.clone();caches.open(V).then(x=>x.put('/index.html',c))}return res});
+    e.waitUntil(net.catch(()=>{}));
+    e.respondWith(caches.match('/index.html').then(hit=>hit?Promise.race([net.catch(()=>hit),new Promise(ok=>setTimeout(()=>ok(hit),3000))]):net));return}
   /* Photos, icons, fonts: saved copy first, fetched once */
   const keep=u.origin===location.origin||(/fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)||u.hostname==='cdn.jsdelivr.net');
   if(!keep)return;
