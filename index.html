@@ -1017,14 +1017,11 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
    (A CSS animation of the --ea angle inside a gradient froze on iPhone.) */
 .erun{position:absolute;left:-.5px;top:-.5px;width:calc(100% + 1px);height:calc(100% + 1px);overflow:visible;pointer-events:none;z-index:0}
 .erun{filter:drop-shadow(0 0 4px rgba(255,214,0,.85));animation:ezap 2.3s steps(1) infinite}
-.erun rect,.erun path{fill:none;stroke-linecap:round;stroke-linejoin:round;animation:erun 7s linear infinite}
-.erun.rev{animation-duration:3.1s}.erun.rev rect,.erun.rev path{animation-duration:9s;animation-direction:reverse}
+.erun rect,.erun path{fill:none;stroke-linecap:butt;stroke-linejoin:round}
+/* the whole bolt moves as one: only the group's dash offset animates, every layer inherits it */
+.erun .eb{animation:erun 7s linear infinite}.erun.rev .eb{animation-duration:9s;animation-direction:reverse}
 /* lightning: three jagged copies of the edge, one shown at a time, so the bolt crackles as it runs */
-.erun .zz{stroke:#fffbe0;stroke-width:1.5;stroke-dasharray:13 87}
-.erun .zg{stroke:#ffd400;stroke-opacity:.55;stroke-width:3.6;stroke-dasharray:13 87}
-.erun .k0{animation-name:erun,ek0}.erun .k1{animation-name:erun,ek1}.erun .k2{animation-name:erun,ek2}
-.erun .k0,.erun .k1,.erun .k2{animation-duration:7s,.24s;animation-timing-function:linear,steps(1);animation-iteration-count:infinite}
-.erun.rev .k0,.erun.rev .k1,.erun.rev .k2{animation-duration:9s,.24s}
+.erun .k0{animation:ek0 .24s steps(1) infinite}.erun .k1{animation:ek1 .24s steps(1) infinite}.erun .k2{animation:ek2 .24s steps(1) infinite}
 @keyframes ek0{0%{opacity:1}33%,100%{opacity:0}}@keyframes ek1{0%,32%{opacity:0}33%{opacity:1}66%,100%{opacity:0}}@keyframes ek2{0%,65%{opacity:0}66%{opacity:1}}
 /* a little electrical flicker */
 @keyframes ezap{0%,100%{opacity:1}8%{opacity:.55}11%{opacity:1}46%{opacity:.8}48%{opacity:1}71%{opacity:.6}72%{opacity:1}}
@@ -5203,8 +5200,11 @@ showGate(!unlocked());
 <script>
 /* Offline: keep the app and its images on the phone after the first visit */
 /* gold current: one SVG outline per visible card; the dash keeps its place across redraws */
-const ERUN_L=[['gw',26,16,'#ffc400',.05],['gw',20,10,'#ffd000',.1],['gw',14,6,'#ffdc33',.18],
-  ...[38,31,25,20,16,12.5,9.5].map((l,i)=>['tl',l,1.5,i<4?'#e8b800':'#ffd84a',.08+i*.04])];
+/* taper: many faint layers ending at the head; short ones are wide and bright, long ones thin, so the tail narrows and fades smoothly */
+const ERUN_L=[...Array(12)].map((_,i)=>{const t=i/11;return [3+t*27,1.5+(1-t)*9,'#ffcc00',.042,0]})
+  .concat([...Array(18)].map((_,i)=>{const t=i/17;return [2.5+t*38,.5+(1-t)*1.3,t<.5?'#ffe14d':'#e8b800',.075,0]}))
+  .concat([[11,3.2,'#ffd400',.45,1],[9,1.1,'#fff6c8',.5,1],[6,1.4,'#fffbe6',.8,1],[3.5,1.8,'#ffffff',1,1]]);
+const ERUN_MAX=40.5;
 /* a jagged copy of the card edge, same start point and direction as an SVG rect, so its dash lines up with the glow */
 function eZig(w,h,r){r=Math.min(r,w/2,h/2);const pts=[],seg=[[r,0,w-r,0],['a',w-r,r,-90],[w,r,w,h-r],['a',w-r,h-r,0],[w-r,h,r,h],['a',r,h-r,90],[0,h-r,0,r],['a',r,r,180]];
   seg.forEach(g=>{if(g[0]==='a'){for(let i=0;i<6;i++){const t=(g[3]+i*15)*Math.PI/180;pts.push([g[1]+r*Math.cos(t),g[2]+r*Math.sin(t),Math.cos(t),Math.sin(t)])}}
@@ -5218,13 +5218,15 @@ function eRun(root){if(!root||!root.querySelectorAll)return;
   root.querySelectorAll(ERUN_A+','+ERUN_B).forEach(el=>{if(el.querySelector(':scope>.erun')||el.matches(ERUN_NO))return;
     const cs=getComputedStyle(el);if(cs.display==='none'||cs.display==='contents')return;if(cs.position==='static')el.style.position='relative';
     const r=parseFloat(cs.borderTopLeftRadius)||0,rev=el.matches(ERUN_B),d=rev?9000:7000;
-    /* forward runs: longer dashes start a little later so every layer ends at the head */
-    const rc=(c,len)=>`<rect class="${c}" x="0" y="0" width="100%" height="100%" rx="${r}" ry="${r}" pathLength="100" style="animation-delay:${(-(now%d)/1000+(rev?0:(len-2.2)/100*d/1000)).toFixed(3)}s"/>`;
-    const zz=t=>{const w=el.offsetWidth-1,h=el.offsetHeight-1;return w>4&&h>4?[0,1,2].map(k=>{const zd=eZig(w,h,r),dl=`${(-(t%d)/1000+(rev?0:(13-2.2)/100*d/1000)).toFixed(3)}s,0s`;
-      return `<path class="zg k${k}" d="${zd}" pathLength="100" style="animation-delay:${dl}"/><path class="zz k${k}" d="${zd}" pathLength="100" style="animation-delay:${dl}"/>`}).join(''):''};
-    el.insertAdjacentHTML('beforeend',`<svg class="erun${rev?' rev':''}" aria-hidden="true" focusable="false">${ERUN_L.map(([c,len,w,col,op])=>rc(c,len).replace('/>',` stroke="${col}" stroke-opacity="${op}" stroke-width="${w}" stroke-dasharray="${len} ${100-len}"/>`)).join('')}<g class="ezb">${zz(now)}</g></svg>`);
+    /* every layer ends at the same point: a leading gap pads the shorter ones (forward); backward runs lead with the head */
+    const da=len=>rev?`0 0 ${len.toFixed(2)} ${(100-len).toFixed(2)}`:`0 ${(ERUN_MAX-len).toFixed(2)} ${len.toFixed(2)} ${(100-ERUN_MAX).toFixed(2)}`;
+    const at=(len,w,c,o)=>` stroke="${c}" stroke-opacity="${o}" stroke-width="${w.toFixed(2)}" stroke-dasharray="${da(len)}"`;
+    const rects=ERUN_L.filter(x=>!x[4]).map(([len,w,c,o])=>`<rect x="0" y="0" width="100%" height="100%" rx="${r}" ry="${r}" pathLength="100"${at(len,w,c,o)}/>`).join('');
+    const zz=()=>{const w=el.offsetWidth-1,h=el.offsetHeight-1;return w>4&&h>4?[0,1,2].map(k=>{const zd=eZig(w,h,r);
+      return `<g class="k${k}">${ERUN_L.filter(x=>x[4]).map(([len,wd,c,o])=>`<path class="zz" d="${zd}" pathLength="100"${at(len,wd,c,o)}/>`).join('')}</g>`}).join(''):''};
+    el.insertAdjacentHTML('beforeend',`<svg class="erun${rev?' rev':''}" aria-hidden="true" focusable="false"><g class="eb" style="animation-delay:${(-(now%d)/1000).toFixed(3)}s">${rects}<g class="ezb">${zz()}</g></g></svg>`);
     /* new jagged shapes when the card changes size */
-    try{let pw=el.offsetWidth,ph=el.offsetHeight;new ResizeObserver(()=>{if(el.offsetWidth===pw&&el.offsetHeight===ph)return;pw=el.offsetWidth;ph=el.offsetHeight;const g=el.querySelector(':scope>.erun .ezb');if(g){g.innerHTML=zz(performance.now())}}).observe(el)}catch(_){}})}
+    try{let pw=el.offsetWidth,ph=el.offsetHeight;new ResizeObserver(()=>{if(el.offsetWidth===pw&&el.offsetHeight===ph)return;pw=el.offsetWidth;ph=el.offsetHeight;const g=el.querySelector(':scope>.erun .ezb');if(g){g.innerHTML=zz()}}).observe(el)}catch(_){}})}
 (function(){let q=0;const go=()=>{q=0;eRun(document.body)};go();
   try{new MutationObserver(()=>{if(!q)q=requestAnimationFrame(go)}).observe(document.body,{childList:true,subtree:true})}catch(_){}})();
 if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});
