@@ -1016,7 +1016,7 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
 /* the gold current is an SVG line around each card (eRun): a dash animated with stroke-dashoffset, which Safari repaints reliably.
    (A CSS animation of the --ea angle inside a gradient froze on iPhone.) */
 .erun{position:absolute;left:-.5px;top:-.5px;width:calc(100% + 1px);height:calc(100% + 1px);overflow:visible;pointer-events:none;z-index:0}
-.erun{filter:drop-shadow(0 0 3px rgba(255,214,120,1)) drop-shadow(0 0 9px rgba(255,190,60,.75)) drop-shadow(0 0 18px rgba(255,170,40,.4));animation:ezap 2.3s steps(1) infinite}
+.erun{filter:drop-shadow(0 0 4px rgba(255,200,80,.85));animation:ezap 2.3s steps(1) infinite}
 .erun rect{fill:none;stroke-linecap:round;animation:erun 7s linear infinite}
 .erun.rev{animation-duration:3.1s}.erun.rev rect{animation-duration:9s;animation-direction:reverse}
 /* a little electrical flicker */
@@ -5196,7 +5196,7 @@ showGate(!unlocked());
 <script>
 /* Offline: keep the app and its images on the phone after the first visit */
 /* gold current: one SVG outline per visible card; the dash keeps its place across redraws */
-const ERUN_L=[['gw',20,10,'#ffc24a',.12],['gw',14,6,'#ffcf5e',.22],['gw',8,3.5,'#ffe08a',.35],
+const ERUN_L=[['gw',26,16,'#ffb63a',.05],['gw',22,11,'#ffc24a',.09],['gw',16,7,'#ffcf5e',.16],['gw',10,4.5,'#ffe08a',.3],
   ...[40,34,28,23,18,14,10.5,7.5,5].map((l,i)=>['tl',l,1.6,i<5?'#e8bf55':'#ffd36e',.09+i*.035]),['hd',2.4,2.4,'#fff6dc',1]];
 const ERUN_A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday,.tdcard,.bodyx,.stats,.times,.pdays,.mgrid,.evcard,.cur,.howto,.gtsum,.note,.urow.sqhero',ERUN_B='.coach,.tdgrid,.sched,.inj',
   ERUN_NO='.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
