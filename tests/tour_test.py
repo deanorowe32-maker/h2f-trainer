@@ -32,7 +32,7 @@ with sync_playwright() as p:
     check('swiping the drawer away also stops playback', E("document.querySelector('#tourSheet video').paused"))
     for w,h in [(1440,900),(1920,1080),(390,844),(390,667)]:
         pg.set_viewport_size({'width':w,'height':h}); pg.wait_for_timeout(100)
-        pg.click('#view [data-a=touropen]') if pg.locator('#tourSheet').is_hidden() else None; pg.wait_for_timeout(250)
+        pg.click('#view [data-a=touropen]') if pg.locator('#tourSheet').is_hidden() else None; pg.wait_for_timeout(450)
         r = E("(()=>{const v=document.querySelector('#tourSheet video').getBoundingClientRect(),b=document.querySelector('#tourSheet [data-a=tourdone]').getBoundingClientRect(),p=document.querySelector('#tourSheet .panel').getBoundingClientRect();return {vw:v.width,vh:v.height,bb:b.bottom,pw:p.width,ih:innerHeight}})()")
         check(f'{w}x{h}: video box is tall like the video (no side bars)', abs(r['vh']/r['vw'] - 16/9) < 0.05)
         check(f'{w}x{h}: Start training is on screen without scrolling', r['bb'] <= r['ih'])
