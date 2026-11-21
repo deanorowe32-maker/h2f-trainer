@@ -519,7 +519,7 @@ select,input[type=text],input[type=search],input[type=date],input[type=time],inp
 .sec,.tdwide,.tdgrid,.plan,.stats,.times,.pdays,.mgrid,.inj,.evcard,.cur{background:var(--surface);border:0;border-radius:var(--rc);box-shadow:var(--card)}
 .sec{margin-top:16px;padding:4px 16px 8px}
 .sechead{border-bottom:1px solid var(--line);padding:12px 0 8px}
-.sec .item:last-child,.tdwide .tdrows .item:last-child,.tdgrid .tdcard:last-child{border-bottom:0}
+.sec .item:nth-last-child(1 of :not(.erun)),.tdwide .tdrows .item:nth-last-child(1 of :not(.erun)),.tdgrid .tdcard:nth-last-child(1 of :not(.erun)){border-bottom:0}
 .tdwide{margin-top:16px;padding:2px 16px 16px}
 .tdwide .row{margin-top:12px}
 .tdgrid{margin-top:16px;padding:0 16px}
@@ -528,7 +528,7 @@ select,input[type=text],input[type=search],input[type=date],input[type=time],inp
 .stats div,.times div{border-left-color:var(--line)}
 .stats div:first-child{padding-left:16px}
 .pdays{padding:2px 16px}
-.pday:last-child{border-bottom:0}
+.pday:nth-last-child(1 of :not(.erun)){border-bottom:0}
 .mgrid{padding:4px 8px;overflow:hidden}
 .evcard{padding:16px}
 .cur{padding:16px;border:0}
@@ -702,7 +702,7 @@ input[type=range]{height:44px;margin-block:0}
 .menulist.tools{margin:8px 0 4px}
 .grp{background:var(--surface);border-radius:var(--rc);box-shadow:var(--card);padding:16px 16px 8px;margin:16px 0}
 .grp>h3:first-child{margin-top:0!important}
-.grp>*:last-child{margin-bottom:8px}
+.grp>*:nth-last-child(1 of :not(.erun)){margin-bottom:8px}
 .grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.grp .dom{box-shadow:none;background:var(--raised)}
 .grp .note{border-color:var(--line)}
 .cmx{position:relative}
@@ -978,7 +978,6 @@ div.rbrow{cursor:default;grid-template-columns:56px 1fr}
 @font-face{font-family:'Manrope';font-style:normal;font-display:swap;font-weight:200 800;src:url(/fonts/manrope-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Manrope';font-style:normal;font-display:swap;font-weight:200 800;src:url(/fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Chakra Petch';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/chakra-petch-600.woff2) format('woff2')}
-@property --ea{syntax:'<angle>';inherits:false;initial-value:0deg}
 :root[data-theme="dark"]{
   --bg:#050605; --surface:#0c140f; --raised:#132219; --fg:#f2f1ea; --muted:#a3ab9f;
   --line:#1a2a20; --line-2:#2b4232; --rule:#1d2e23;
@@ -1009,13 +1008,19 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
 .grp,.tdcard,.start,.bodyx,section.card,.sec,.tdwide,.tdgrid,.coach,.chcard,.rbnext,.plan,.stats,.times,.pdays,.mgrid,.inj,.evcard,.cur,.strip,.sched,.editday,.howto,.gtsum,.note,.urow.sqhero{
   border:1px solid transparent!important;
   background:linear-gradient(180deg,#0f1c14,#080c09) padding-box,
-   conic-gradient(from var(--ea),rgba(232,191,85,.13) 0deg,rgba(232,191,85,.13) 296deg,var(--hot) 328deg,var(--gold) 338deg,rgba(232,191,85,.13) 360deg) border-box!important;
+   linear-gradient(rgba(232,191,85,.16),rgba(232,191,85,.16)) border-box!important;
   box-shadow:0 12px 32px rgba(0,0,0,.45)}
 .grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp{background:rgba(36,85,58,.14) padding-box!important;border-color:rgba(232,191,85,.08)!important;box-shadow:none}
 @media (prefers-reduced-motion:no-preference){
- /* the current is turned by a script (eaRun): Safari does not reliably repaint a CSS animation of --ea, so the outline froze on iPhone */
 }
-@keyframes etrace{to{--ea:360deg}}
+/* the gold current is an SVG line around each card (eRun): a dash animated with stroke-dashoffset, which Safari repaints reliably.
+   (A CSS animation of the --ea angle inside a gradient froze on iPhone.) */
+.erun{position:absolute;left:-.5px;top:-.5px;width:calc(100% + 1px);height:calc(100% + 1px);overflow:visible;pointer-events:none;z-index:0}
+.erun rect{fill:none;stroke:#ffd36e;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:9 91;animation:erun 7s linear infinite;filter:drop-shadow(0 0 3px rgba(255,214,120,.75))}
+.erun.rev rect{animation-duration:9s;animation-direction:reverse}
+@keyframes erun{to{stroke-dashoffset:-100}}
+@media (prefers-reduced-motion:reduce){.erun{display:none}
+}
 :root[data-theme="dark"]{--vz-1:#2f7a4f;--vz-veg:#2f7a4f;--vz-carb:#e8bf55;--vz-pro:#cfd6cc}
 
 /* Buttons */
@@ -5187,13 +5192,17 @@ showGate(!unlocked());
 
 <script>
 /* Offline: keep the app and its images on the phone after the first visit */
-/* gold current around the cards: one frame loop updates the angle in a single style rule (30 fps, stops while hidden, off for reduced motion) */
-(function eaRun(){let ra=null,rb=null,last=0;const A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday',B='.coach,.tdgrid,.sched,.inj';
-  const mq=matchMedia('(prefers-reduced-motion: reduce)');
-  function f(t){if(mq.matches){if(ra){ra.style.removeProperty('--ea');rb.style.removeProperty('--ea')}return}requestAnimationFrame(f);if(t-last<33)return;last=t;
-    if(!ra){const st=document.createElement('style');st.id='eaStyle';document.head.appendChild(st);const sh=st.sheet;sh.insertRule(A+'{}',0);sh.insertRule(B+'{}',1);ra=sh.cssRules[0];rb=sh.cssRules[1]}
-    ra.style.setProperty('--ea',(t/7000*360%360).toFixed(1)+'deg');rb.style.setProperty('--ea',(360-t/9000*360%360).toFixed(1)+'deg')}
-  requestAnimationFrame(f);try{mq.addEventListener('change',()=>{if(!mq.matches)requestAnimationFrame(f)})}catch(_){}})();
+/* gold current: one SVG outline per visible card; the dash keeps its place across redraws */
+const ERUN_A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday,.tdcard,.bodyx,.stats,.times,.pdays,.mgrid,.evcard,.cur,.howto,.gtsum,.note,.urow.sqhero',ERUN_B='.coach,.tdgrid,.sched,.inj',
+  ERUN_NO='.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
+function eRun(root){if(!root||!root.querySelectorAll)return;
+  const now=performance.now();
+  root.querySelectorAll(ERUN_A+','+ERUN_B).forEach(el=>{if(el.querySelector(':scope>.erun')||el.matches(ERUN_NO))return;
+    const cs=getComputedStyle(el);if(cs.display==='none'||cs.display==='contents')return;if(cs.position==='static')el.style.position='relative';
+    const r=parseFloat(cs.borderTopLeftRadius)||0,rev=el.matches(ERUN_B),d=rev?9000:7000;
+    el.insertAdjacentHTML('beforeend',`<svg class="erun${rev?' rev':''}" aria-hidden="true" focusable="false"><rect x="0" y="0" width="100%" height="100%" rx="${r}" ry="${r}" pathLength="100" style="animation-delay:-${((now%d)/1000).toFixed(2)}s"/></svg>`)})}
+(function(){let q=0;const go=()=>{q=0;eRun(document.body)};go();
+  try{new MutationObserver(()=>{if(!q)q=requestAnimationFrame(go)}).observe(document.body,{childList:true,subtree:true})}catch(_){}})();
 if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});
   /* a new version took over in the background: offer a refresh instead of waiting for the next launch */
   let swHad=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!swHad){swHad=true;return}updBar()})}
