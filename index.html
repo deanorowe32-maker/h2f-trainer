@@ -2524,8 +2524,8 @@ function rbDK(d){return dk(d)}
 function rbMon(ts){const d=new Date(ts);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return rbDK(d)}
 function rbNextMon(k){const d=new Date(k+'T12:00:00');d.setDate(d.getDate()+7);return rbDK(d)}
 function rbNextDay(k){const d=new Date(k+'T12:00:00');d.setDate(d.getDate()+1);return rbDK(d)}
-function rbStars(n){const r=Math.max(0,(n|0)-1);return {silver:Math.floor(r/5),bronze:r%5}}
-function rbDevices(n){const s=rbStars(n),out=[];for(let i=0;i<s.silver&&out.length<3;i++)out.push('s');for(let i=0;i<s.bronze&&out.length<3;i++)out.push('b');return out}
+function rbStars(n){const r=Math.max(0,(n|0)-1);return {gold:Math.floor(r/25),silver:Math.floor(r%25/5),bronze:r%5}}
+function rbDevices(n){const s=rbStars(n),out=[];[['g',s.gold],['s',s.silver],['b',s.bronze]].forEach(([t,c])=>{for(let i=0;i<c&&out.length<3;i++)out.push(t)});return out}
 
 /* restoring a backup never loses ribbons or counters already on this phone */
 function rbMerge(a,b){const m=rbClean(JSON.parse(JSON.stringify(b))),A=a||rbClean(null),T=m.tally,U=A.tally;
@@ -2707,11 +2707,12 @@ function rbSoon(){clearTimeout(rbT);rbT=setTimeout(()=>{try{if(rbCheck().length)
 var rbUid=0;
 function rbSvg(id,W,n,dim){const r=RB_BY[id];if(!r)return '';const i='rb'+(rbUid++),H=Math.round(W*0.28*100)/100,full=[...r.stripes,...[...r.stripes].reverse()];let x=0;
   const rects=full.map(([w,c])=>{const s=`<rect x="${x}" y="0" width="${w+.35}" height="28" fill="${RB_C[c]}"/>`;x+=w;return s}).join('');
-  const dv=rbDevices(n||0),star=dv.map((t,k)=>{const cx=50+(k-(dv.length-1)/2)*13;return `<path transform="translate(${cx} 14)" d="M0 -7 2 -2 7 -2 3 1 4.5 6.5 0 3.4 -4.5 6.5 -3 1 -7 -2 -2 -2z" fill="url(#${t}${i})" stroke="${t==='s'?'#4d5359':'#5c420f'}" stroke-width=".55" class="rbstar-${t}"/>`}).join('');
+  const dv=rbDevices(n||0),star=dv.map((t,k)=>{const cx=50+(k-(dv.length-1)/2)*13;return `<path transform="translate(${cx} 14)" d="M0 -7 2 -2 7 -2 3 1 4.5 6.5 0 3.4 -4.5 6.5 -3 1 -7 -2 -2 -2z" fill="url(#${t}${i})" stroke="${t==='s'?'#4d5359':t==='g'?'#5c420f':'#4a2810'}" stroke-width=".55" class="rbstar-${t}"/>`}).join('');
   return `<svg class="rbsvg${dim?' dim':''}" width="${W}" height="${H}" viewBox="0 0 100 28" aria-hidden="true"><defs>
 <linearGradient id="h${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient>
 <pattern id="f${i}" width="1.6" height="2" patternUnits="userSpaceOnUse"><rect width=".7" height="2" fill="#000" opacity=".08"/></pattern>
-<radialGradient id="b${i}" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#e3b23c"/><stop offset="1" stop-color="#8a6418"/></radialGradient>
+<radialGradient id="g${i}" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#e3b23c"/><stop offset="1" stop-color="#8a6418"/></radialGradient>
+<radialGradient id="b${i}" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#f6d2ae"/><stop offset=".5" stop-color="#b8743c"/><stop offset="1" stop-color="#6b3a16"/></radialGradient>
 <radialGradient id="s${i}" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9ced3"/><stop offset="1" stop-color="#7d848a"/></radialGradient>
 <clipPath id="c${i}"><rect width="100" height="28" rx="1.6"/></clipPath></defs><g clip-path="url(#c${i})">${rects}<rect width="100" height="28" fill="url(#f${i})"/><rect width="100" height="28" fill="url(#h${i})"/></g>${star}</svg>`}
 function rbDate(d){try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}catch(e){return d}}
@@ -2728,7 +2729,7 @@ function rbCaseHtml(){const A=S.rb.aw,earned=rbEarnedList();
   return `<section class="grp rbcase" id="rbcase"><h3>Medal case</h3><div class="rbpanel"><div class="rbhead">${earned.length?`<b>${earned.length} of ${RB_SHOW.length+RB.filter(r=>r.area==='Hidden'&&A[r.id]).length} earned</b><small>Newest first. Tap a ribbon for details.</small>`:`<b>${RB_SHOW.length} ribbons to earn</b><small>Tap any area below to see what each one takes.</small>`}</div>${rack}</div>${areas}</section>`}
 function rbDetail(id){const r=RB_BY[id],a=S.rb.aw[id],p=rbProgress(id),s=a?rbStars(a.n):null;
   document.getElementById('rbBody').innerHTML=`<div class="rbbig">${rbSvg(id,220,a?a.n:0,!a)}</div><h2>${esc(r.name)}</h2><p class="tag">${esc(r.area)} ribbon${r.rep?' · can be earned again':''}</p><p>${esc(r.rule)}</p>
-  ${a?`<p><b>Earned ${esc(rbDate(a.d))}</b>${a.n>1?`<br>Earned ${a.n} times: ${s.silver?s.silver+' silver star'+(s.silver>1?'s':''):''}${s.silver&&s.bronze?' and ':''}${s.bronze?s.bronze+' bronze star'+(s.bronze>1?'s':''):''}`:''}</p>`:''}
+  ${a?`<p><b>Earned ${esc(rbDate(a.d))}</b>${a.n>1?`<br>Earned ${a.n} times: ${[['gold',s.gold],['silver',s.silver],['bronze',s.bronze]].filter(x=>x[1]).map(([k,c])=>c+' '+k+' star'+(c>1?'s':'')).join(' and ')}`:''}</p>`:''}
   ${!a||r.rep?`<p class="tag">${a?'Next star: ':'Progress: '}${esc(rbProgLine(r,p))}${r.fresh&&S.rb.since?' · Counting from '+esc(rbShort(S.rb.since)):''}</p>`:''}
   <div class="row"><button class="btn ghost" data-a="sheetclose">Close</button></div>`;
   document.getElementById('rbSheet').hidden=false}
@@ -3237,7 +3238,7 @@ function sqShow(){document.getElementById('sqBody').innerHTML=sqHtml();document.
 
 /* First-time walkthrough */
 function tourHtml(){return `<h2>App tour</h2><p class="tag">About 90 seconds, with sound and captions. Watch it to the end to earn the Orientation ribbon.</p>
-  <video src="video/tour.mp4?v=12" poster="video/tour.jpg?v=10" controls playsinline preload="metadata" style="display:block;height:min(calc(100vh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));height:min(calc(100dvh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));width:auto;aspect-ratio:9/16;max-width:100%;object-fit:contain;background:#0e1f16;border-radius:var(--r);margin:10px auto"><track kind="captions" src="video/tour.vtt?v=9" srclang="en" label="English" default></video>
+  <video src="video/tour.mp4?v=13" poster="video/tour.jpg?v=11" controls playsinline preload="metadata" style="display:block;height:min(calc(100vh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));height:min(calc(100dvh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));width:auto;aspect-ratio:9/16;max-width:100%;object-fit:contain;background:#0e1f16;border-radius:var(--r);margin:10px auto"><track kind="captions" src="video/tour.vtt?v=10" srclang="en" label="English" default></video>
   <p class="tag" id="tourOff" hidden>The tour needs an internet connection. You can watch it later from Unit, App tour.</p>
   <div class="row"><button class="btn" data-a="tourdone">Start training</button></div>`}
 /* Orientation ribbon: earned by playing 90% of the tour video; jumps (seeking) don't count */
