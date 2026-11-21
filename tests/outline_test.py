@@ -5,7 +5,7 @@ fails = []
 def check(n, ok):
     print(('PASS ' if ok else 'FAIL ') + n)
     if not ok: fails.append(n)
-OFF = "(s)=>{const r=document.querySelector(s+'>.erun rect.hd');return r?parseFloat(getComputedStyle(r).strokeDashoffset):null}"
+OFF = "(s)=>{const r=document.querySelector(s+'>.erun path.zz.k0');return r?parseFloat(getComputedStyle(r).strokeDashoffset):null}"
 with sync_playwright() as p:
     b = p.chromium.launch()
     try:
