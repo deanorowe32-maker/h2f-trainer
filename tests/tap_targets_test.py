@@ -8,6 +8,8 @@ def check(n, ok):
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_page(viewport={'width': 390, 'height': 844})
     errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
+    # Today only lists exercises on a weekday, so pin the clock to Monday 23 Nov 2026
+    pg.add_init_script("(()=>{const O=Date,off=new O('2026-11-23T09:00:00').getTime()-O.now();class D extends O{constructor(...a){super(...(a.length?a:[O.now()+off]))}static now(){return O.now()+off}};window.Date=D})()")
     pg.goto('http://localhost:8765/'); pg.wait_for_timeout(500)
     pg.evaluate("localStorage.clear();localStorage.setItem('h2f.access',CODE_HASH);localStorage.setItem('h2f.tour','1')"); pg.reload(); pg.wait_for_timeout(900)
     try:

@@ -18,7 +18,7 @@ with sync_playwright() as p:
         fresh(pg); pg.wait_for_timeout(800)
         check('no request to Google Fonts', not any('fonts.g' in u for u in reqs))
         check('font file served by the app', any(u.startswith(U) and u.endswith('.woff2') for u in reqs))
-        check('font loads', pg.evaluate("document.fonts.check('700 16px Archivo')") and pg.evaluate("[...document.fonts].some(f=>f.family.replace(/\"/g,'')==='Archivo'&&f.status==='loaded')"))
+        check('font loads', pg.evaluate("document.fonts.check('700 16px Manrope')") and pg.evaluate("[...document.fonts].some(f=>f.family.replace(/\"/g,'')==='Manrope'&&f.status==='loaded')"))
         ctx.close()
         # R1: two copies open
         ctx = b.new_context(); a = ctx.new_page(); fresh(a); c = ctx.new_page(); c.goto(U); c.wait_for_timeout(1000)

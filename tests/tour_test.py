@@ -17,7 +17,7 @@ with sync_playwright() as p:
     E("localStorage.setItem('h2f.access',CODE_HASH);showGate(false);tourMaybe()"); pg.wait_for_timeout(300)
     check('first unlock shows the tour video', not pg.locator('#tourSheet').is_hidden() and pg.locator('#tourSheet video[src*="video/tour.mp4"]').count() == 1)
     check('video has a poster, controls and plays inline', E("(v=>!!v&&v.poster.includes('video/tour.jpg')&&v.controls&&v.playsInline)(document.querySelector('#tourSheet video'))"))
-    pg.click('#tourSheet [data-a=tourdone]'); pg.wait_for_timeout(200)
+    pg.click('#tourSheet [data-a=tourdone]'); pg.wait_for_timeout(450)
     check('done closes it and remembers', pg.locator('#tourSheet').is_hidden() and E("localStorage.getItem('h2f.tour')==='1'"))
     E("tourMaybe()"); pg.wait_for_timeout(100)
     check('does not show again', pg.locator('#tourSheet').is_hidden())
