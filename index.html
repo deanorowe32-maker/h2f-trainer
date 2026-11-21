@@ -3237,7 +3237,7 @@ function sqShow(){document.getElementById('sqBody').innerHTML=sqHtml();document.
 
 /* First-time walkthrough */
 function tourHtml(){return `<h2>App tour</h2><p class="tag">About 90 seconds, with sound and captions. Watch it to the end to earn the Orientation ribbon.</p>
-  <video src="video/tour.mp4?v=9" poster="video/tour.jpg?v=9" controls playsinline preload="metadata" style="display:block;height:min(calc(100vh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));height:min(calc(100dvh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));width:auto;aspect-ratio:9/16;max-width:100%;object-fit:contain;background:#0e1f16;border-radius:var(--r);margin:10px auto"><track kind="captions" src="video/tour.vtt?v=9" srclang="en" label="English" default></video>
+  <video src="video/tour.mp4?v=10" poster="video/tour.jpg?v=9" controls playsinline preload="metadata" style="display:block;height:min(calc(100vh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));height:min(calc(100dvh - 300px),calc((min(100vw, 640px) - 32px) * 16 / 9));width:auto;aspect-ratio:9/16;max-width:100%;object-fit:contain;background:#0e1f16;border-radius:var(--r);margin:10px auto"><track kind="captions" src="video/tour.vtt?v=9" srclang="en" label="English" default></video>
   <p class="tag" id="tourOff" hidden>The tour needs an internet connection. You can watch it later from Unit, App tour.</p>
   <div class="row"><button class="btn" data-a="tourdone">Start training</button></div>`}
 /* Orientation ribbon: earned by playing 90% of the tour video; jumps (seeking) don't count */
