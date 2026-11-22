@@ -1015,7 +1015,8 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
 }
 /* the gold current is an SVG line around each card (eRun): a dash animated with stroke-dashoffset, which Safari repaints reliably.
    (A CSS animation of the --ea angle inside a gradient froze on iPhone.) */
-.erun{position:absolute;left:-.5px;top:-.5px;width:calc(100% + 1px);height:calc(100% + 1px);overflow:visible;pointer-events:none;z-index:0}
+/* sized in pixels by eFit (Safari did not always resize percentage-sized SVG shapes when a card grew) */
+.erun{position:absolute;left:-.5px;top:-.5px;overflow:visible;pointer-events:none;z-index:0}
 .erun{filter:drop-shadow(0 0 4px rgba(255,214,0,.85));animation:ezap 2.3s steps(1) infinite}
 .erun rect,.erun path{fill:none;stroke-linecap:butt;stroke-linejoin:round}
 /* the whole bolt moves as one: only the group's dash offset animates, every layer inherits it */
@@ -5212,7 +5213,14 @@ function eZig(w,h,r){r=Math.min(r,w/2,h/2);const pts=[],seg=[[r,0,w-r,0],['a',w-
   /* irregular kinks, like the reactor's bolts: mostly alternating, sometimes a bigger jolt */
   let d='',sg=1;pts.forEach(([x,y,nx,ny],i)=>{if(Math.random()<.75)sg=-sg;const j=i?sg*(Math.random()<.12?2.6+Math.random()*1.4:.3+Math.random()*1.8):0;d+=(i?'L':'M')+(x+nx*j).toFixed(1)+' '+(y+ny*j).toFixed(1)});return d+'Z'}
 const ERUN_A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday,.tdcard,.bodyx,.stats,.times,.pdays,.mgrid,.evcard,.cur,.howto,.gtsum,.note,.urow.sqhero',ERUN_B='.coach,.tdgrid,.sched,.inj',
-  ERUN_NO='.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
+  ERUN_NO='details,.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
+/* fit one card's outline to its current size, in pixels: the smooth layers and three new jagged copies */
+function eFit(el){const v=el.querySelector(':scope>.erun');if(!v)return;const W=el.offsetWidth-1,H=el.offsetHeight-1;if(W<4||H<4)return;
+  if(v.__w===W&&v.__h===H)return;v.__w=W;v.__h=H;const r=Math.min(v.__r,W/2,H/2);
+  v.setAttribute('width',W);v.setAttribute('height',H);v.style.width=W+'px';v.style.height=H+'px';
+  v.querySelectorAll('rect').forEach(x=>{x.setAttribute('width',W);x.setAttribute('height',H);x.setAttribute('rx',r);x.setAttribute('ry',r)});
+  v.querySelector('.ezb').innerHTML=[0,1,2].map(k=>{const zd=eZig(W,H,r);return `<g class="k${k}">${v.__z.map(a=>`<path class="zz" d="${zd}" pathLength="100"${a}/>`).join('')}</g>`}).join('')}
+let eRO=null;try{eRO=new ResizeObserver(es=>es.forEach(e=>eFit(e.target)))}catch(_){}
 function eRun(root){if(!root||!root.querySelectorAll)return;
   const now=performance.now();
   root.querySelectorAll(ERUN_A+','+ERUN_B).forEach(el=>{if(el.querySelector(':scope>.erun')||el.matches(ERUN_NO))return;
@@ -5221,12 +5229,10 @@ function eRun(root){if(!root||!root.querySelectorAll)return;
     /* every layer ends at the same point: a leading gap pads the shorter ones (forward); backward runs lead with the head */
     const da=len=>rev?`0 0 ${len.toFixed(2)} ${(100-len).toFixed(2)}`:`0 ${(ERUN_MAX-len).toFixed(2)} ${len.toFixed(2)} ${(100-ERUN_MAX).toFixed(2)}`;
     const at=(len,w,c,o)=>` stroke="${c}" stroke-opacity="${o}" stroke-width="${w.toFixed(2)}" stroke-dasharray="${da(len)}"`;
-    const rects=ERUN_L.filter(x=>!x[4]).map(([len,w,c,o])=>`<rect x="0" y="0" width="100%" height="100%" rx="${r}" ry="${r}" pathLength="100"${at(len,w,c,o)}/>`).join('');
-    const zz=()=>{const w=el.offsetWidth-1,h=el.offsetHeight-1;return w>4&&h>4?[0,1,2].map(k=>{const zd=eZig(w,h,r);
-      return `<g class="k${k}">${ERUN_L.filter(x=>x[4]).map(([len,wd,c,o])=>`<path class="zz" d="${zd}" pathLength="100"${at(len,wd,c,o)}/>`).join('')}</g>`}).join(''):''};
-    el.insertAdjacentHTML('beforeend',`<svg class="erun${rev?' rev':''}" aria-hidden="true" focusable="false"><g class="eb" style="animation-delay:${(-(now%d)/1000).toFixed(3)}s">${rects}<g class="ezb">${zz()}</g></g></svg>`);
-    /* new jagged shapes when the card changes size */
-    try{let pw=el.offsetWidth,ph=el.offsetHeight;new ResizeObserver(()=>{if(el.offsetWidth===pw&&el.offsetHeight===ph)return;pw=el.offsetWidth;ph=el.offsetHeight;const g=el.querySelector(':scope>.erun .ezb');if(g){g.innerHTML=zz()}}).observe(el)}catch(_){}})}
+    const rects=ERUN_L.filter(x=>!x[4]).map(([len,w,c,o])=>`<rect x="0" y="0" width="1" height="1" pathLength="100"${at(len,w,c,o)}/>`).join('');
+    el.insertAdjacentHTML('beforeend',`<svg class="erun${rev?' rev':''}" aria-hidden="true" focusable="false"><g class="eb" style="animation-delay:${(-(now%d)/1000).toFixed(3)}s">${rects}<g class="ezb"></g></g></svg>`);
+    const v=el.lastElementChild;v.__r=r;v.__z=ERUN_L.filter(x=>x[4]).map(([len,w,c,o])=>at(len,w,c,o));
+    eFit(el);if(eRO)eRO.observe(el)})}
 (function(){let q=0;const go=()=>{q=0;eRun(document.body)};go();
   try{new MutationObserver(()=>{if(!q)q=requestAnimationFrame(go)}).observe(document.body,{childList:true,subtree:true})}catch(_){}})();
 if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});

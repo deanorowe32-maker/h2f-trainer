@@ -35,6 +35,12 @@ with sync_playwright() as p:
                     m = pg.evaluate(f"[...document.querySelectorAll('#view :is({ALL})')].filter(e=>!e.matches(ERUN_NO)&&!e.closest('[hidden]')&&e.offsetWidth&&!e.querySelector(':scope>.erun')).map(e=>e.className)")
                     if m: still.append(f'{tab}: {m}')
                 check('every bordered box on every tab has a running line (Recovery, Readiness, Unit were still)' + (f' {still}' if still else ''), not still)
+                # Safari did not resize percentage-sized shapes: the outline is sized in pixels and must follow the card when it grows
+                pg.evaluate("S.tab='today';render()"); pg.wait_for_timeout(200)
+                pg.evaluate("document.querySelector('.tdwide').insertAdjacentHTML('afterbegin','<div id=grow style=height:150px></div>')"); pg.wait_for_timeout(250)
+                fit = pg.evaluate("(()=>{const e=document.querySelector('.tdwide'),v=e.querySelector(':scope>.erun'),r=v.querySelector('rect'),p=v.querySelector('path.zz').getBBox();return [e.offsetHeight-1,+v.getAttribute('height'),+r.getAttribute('height'),Math.round(p.height)]})()")
+                check(f'outline follows the card when it grows {fit}', fit[0] == fit[1] == fit[2] and abs(fit[3] - fit[0]) <= 8)
+                check('no outline inside a closed details box', pg.evaluate("(()=>{S.tab='train';render();return !document.querySelector('details>.erun')})()"))
                 check('line does not catch taps', pg.evaluate("getComputedStyle(document.querySelector('.erun')).pointerEvents") == 'none')
                 check('last item in a card still has no bottom rule', pg.evaluate("(()=>{const it=[...document.querySelectorAll('.sec .item')].find(i=>i.parentElement.lastElementChild.classList.contains('erun')&&i.nextElementSibling&&i.nextElementSibling.classList.contains('erun'));return !it||getComputedStyle(it).borderBottomWidth==='0px'})()"))
             check(f'no page errors ({rm})', not errs); pg.close()
