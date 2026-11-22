@@ -81,7 +81,7 @@ with sync_playwright() as p:
         P.fill('#lsCode', code_txt.lower()); P.evaluate("document.querySelector('[data-a=lsjoin]').click()"); P.wait_for_timeout(800)
         m = list(DB['members'].values())
         check('fix nothing sent before confirming', len(m) == 1 and m[0]['summary'] == {})
-        check('fix confirm names the squad', 'Share these with 2nd Squad' in P.locator('#sqBody .lsbox').inner_text())
+        check('fix confirm names the squad', 'share these with 2nd squad' in P.locator('#sqBody .lsbox').inner_text().lower())
         DB['down'] = True; P.evaluate("document.querySelector('[data-a=lsshare]').click()"); P.wait_for_timeout(600); DB['down'] = False
         check('fix no false sent message', 'was sent' not in P.locator('#sqBody .lsbox').inner_text() and "Couldn't reach" in P.locator('#sqBody .lsbox').inner_text())
         P.evaluate("document.querySelector('[data-a=lssend]').click()"); P.wait_for_timeout(600)

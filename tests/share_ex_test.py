@@ -18,7 +18,7 @@ with sync_playwright() as p:
         E("S.tab='lib';render()"); A.wait_for_timeout(200)
         v = E("document.getElementById('view').innerText")
         check('old ambiguous button gone', 'Shared exercises' not in v)
-        check('receive button labeled', A.locator('#view [data-a=cmopen]').inner_text().strip() == 'Add a shared exercise')
+        check('receive button labeled', A.locator('#view [data-a=cmopen]').inner_text().strip().lower() == 'add a shared exercise')
         check('My exercises chip', A.locator('#libChips [data-a=libcat][data-v=mine]').count() == 1)
         E("document.querySelector('#libChips [data-a=libcat][data-v=mine]').click()"); A.wait_for_timeout(150)
         check('empty My exercises explains', 'Add your exercise' in A.locator('#libList').inner_text())

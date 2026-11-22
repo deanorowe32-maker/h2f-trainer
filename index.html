@@ -1127,6 +1127,54 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* ===== FUTURE x10 (preview): holo grid world, telemetry bar, decode titles, staged entrances, HUD type.
+   Safari-safe: only transform and opacity animate; every layer is pointer-events:none; all motion off with reduced motion. */
+.fx-world{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:radial-gradient(120% 70% at 50% -10%,rgba(36,85,58,.45),transparent 60%),radial-gradient(80% 50% at 50% 115%,rgba(232,191,85,.10),transparent 70%)}
+.fx-floor{position:absolute;left:-50%;right:-50%;bottom:-8vh;height:46vh;perspective:340px;perspective-origin:50% 0;-webkit-mask-image:linear-gradient(transparent,#000 55%);mask-image:linear-gradient(transparent,#000 55%);opacity:.55}
+.fx-plane{position:absolute;inset:-60px 0 0;transform:rotateX(62deg);transform-origin:50% 0}
+.fx-grid{position:absolute;left:0;right:0;top:0;height:calc(100% + 48px);background:linear-gradient(rgba(232,191,85,.32) 1px,transparent 1px) 0 0/100% 48px,linear-gradient(90deg,rgba(232,191,85,.22) 1px,transparent 1px) 50% 0/48px 100%}
+.fx-stars{position:absolute;left:0;top:0;width:2px;height:2px;border-radius:50%;background:transparent}
+.fx-stars.a{box-shadow:var(--fxs1)}.fx-stars.b{box-shadow:var(--fxs2);opacity:.6}
+.fx-scan{position:absolute;left:0;right:0;top:0;height:120px;background:linear-gradient(transparent,rgba(232,191,85,.05),transparent);transform:translateY(-140px)}
+@keyframes fxGrid{to{transform:translateY(48px)}}
+@keyframes fxDrift{to{transform:translateY(-120px)}}
+@keyframes fxSweep{0%{transform:translateY(-140px)}100%{transform:translateY(110vh)}}
+@media (prefers-reduced-motion:no-preference){
+  .fx-grid{animation:fxGrid 2.6s linear infinite;will-change:transform}
+  .fx-stars.a{animation:fxDrift 40s linear infinite alternate}.fx-stars.b{animation:fxDrift 70s linear infinite alternate-reverse}
+  .fx-scan{animation:fxSweep 9s cubic-bezier(.4,0,.6,1) infinite}
+}
+/* telemetry bar under the header */
+.fx-tele{max-width:640px;margin:4px auto 0;display:flex;gap:12px;align-items:center;font:600 10.5px/1 var(--hud);letter-spacing:.16em;text-transform:uppercase;color:rgba(232,191,85,.78);white-space:nowrap;overflow:hidden;padding:0 2px}
+.fx-tele i{width:6px;height:6px;border-radius:50%;background:#8fd6a6;box-shadow:0 0 8px #8fd6a6;flex:none}
+.fx-tele span{color:#93a99b}.fx-tele b{color:#f4f3ec;font-weight:600}
+.fx-tele .fx-sep{flex:1;height:1px;background:linear-gradient(90deg,rgba(232,191,85,.4),transparent);min-width:12px}
+@media (prefers-reduced-motion:no-preference){.fx-tele i{animation:gpulse 2.2s ease-in-out infinite}}
+/* page titles: overline label, decode reveal, HUD type */
+#view h2{position:relative;font-family:var(--hud)!important;font-weight:600!important;text-transform:uppercase;letter-spacing:.04em!important;font-size:30px!important;text-shadow:0 0 22px rgba(232,191,85,.22)}
+#view h2::before{content:attr(data-fx);display:block;font:600 10.5px/1 var(--hud);letter-spacing:.3em;color:var(--gold);margin-bottom:8px;opacity:.85}
+#view h2::after{content:"";display:block;width:56px;height:2px;margin-top:10px;background:linear-gradient(90deg,var(--gold),transparent);box-shadow:0 0 10px rgba(232,191,85,.6)}
+.sechead h3,.tdcard h3{font-family:var(--hud)!important;letter-spacing:.2em!important;text-transform:uppercase}
+.tdbig,.stats b,.vz-val,.pbv,.counter .big{font-family:var(--hud)!important;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.tdbig{text-shadow:0 0 22px rgba(232,191,85,.3)!important}
+.btn{font-family:var(--hud)!important;text-transform:uppercase;letter-spacing:.12em;font-size:14px!important}
+.tabs .tab span,.tabs .tab{font-family:var(--hud);letter-spacing:.08em}
+.chip{font-family:var(--hud);letter-spacing:.06em}
+/* staged entrance: each block on the page rises in turn when you change tab */
+@keyframes fxRise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){#view.fx-in>*{animation:fxRise .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*55ms)}}
+/* tap pulse */
+.fx-tap{position:fixed;z-index:200;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:1.5px solid var(--gold);box-shadow:0 0 12px rgba(232,191,85,.7);pointer-events:none;animation:fxTap .45s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes fxTap{from{transform:scale(.4);opacity:1}to{transform:scale(3.2);opacity:0}}
+/* boot sequence, once per visit */
+.fx-boot{position:fixed;inset:0;z-index:150;pointer-events:none;display:grid;place-items:center;background:#050705;animation:fxBootOut .45s 1.15s ease forwards}
+.fx-boot{grid-auto-flow:row;align-content:center;gap:22px}.fx-blogo{justify-self:center;filter:drop-shadow(0 0 18px rgba(232,191,85,.35))}
+.fx-boot div{width:240px;text-align:center;font:600 11px/1.9 var(--hud);letter-spacing:.24em;text-transform:uppercase;color:rgba(232,191,85,.85)}
+.fx-boot b{display:block;font-size:22px;letter-spacing:.12em;color:#f4f3ec;margin-bottom:10px}
+.fx-boot i{display:block;height:2px;margin-top:12px;background:linear-gradient(90deg,#c4962c,var(--gold));box-shadow:0 0 12px var(--gold);transform-origin:0 50%;animation:fxBar 1s cubic-bezier(.6,0,.2,1) forwards;transform:scaleX(0)}
+@keyframes fxBar{to{transform:scaleX(1)}}
+@keyframes fxBootOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion:reduce){.fx-boot{display:none}}
 </style>
 <div id="gate" hidden><div class="ggrid" aria-hidden="true"></div><form class="box" id="gateForm" autocomplete="off">
   <div class="gcore" aria-hidden="true"><svg class="gring" viewBox="0 0 220 220" width="220" height="220">
@@ -1145,7 +1193,8 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
   </div>
   <div class="sub" id="gateSub">Enter the code you were given to open the app.</div>
 </form></div>
-<header class="top"><div class="topin"><svg class="logo" viewBox="0 0 100 106" width="34" height="36" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div class="brand"><div class="mark">H2F Trainer</div></div><div id="saveStat" aria-live="polite"></div></div></header>
+<div class="fx-world" aria-hidden="true"><div class="fx-stars a"></div><div class="fx-stars b"></div><div class="fx-scan"></div><div class="fx-floor"><div class="fx-plane"><div class="fx-grid"></div></div></div></div>
+<header class="top"><div class="topin"><svg class="logo" viewBox="0 0 100 106" width="34" height="36" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div class="brand"><div class="mark">H2F Trainer</div></div><div id="saveStat" aria-live="polite"></div></div><div class="fx-tele" id="fxTele" aria-hidden="true"></div></header>
 <main>
   
   <div id="view"></div>
@@ -2426,7 +2475,9 @@ function render(){
   const t=S.tab;
   window.vzAnim=!!FX.view;
   v.innerHTML=subnavHtml()+(t==='today'?viewToday():t==='train'?viewTrain():t==='pt'?viewPT():t==='lib'?viewLib():viewOther(t));
+  const fxv=!!FX.view;
   afterRender();placeSeg();jumpLinks(v);setHdr();
+  try{fxRender(fxv)}catch(e){}
   save();
 }
 
@@ -5341,6 +5392,30 @@ showGate(!unlocked());
 <script>
 /* Offline: keep the app and its images on the phone after the first visit */
 /* gold current: one SVG outline per visible card; the dash keeps its place across redraws */
+
+/* ===== FUTURE x10 (preview) ===== */
+(function(){const st=n=>{let o=[];for(let i=0;i<n;i++)o.push(`${Math.round(Math.random()*innerWidth)}px ${Math.round(Math.random()*(innerHeight+240))}px 0 ${Math.random()<.15?'1px':'0'} rgba(${Math.random()<.3?'232,191,85':'244,243,236'},${(.25+Math.random()*.6).toFixed(2)})`);return o.join(',')};
+  const w=document.querySelector('.fx-world');if(w){w.style.setProperty('--fxs1',st(46));w.style.setProperty('--fxs2',st(30))}
+  try{if(!sessionStorage.getItem('h2f.boot')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.setItem('h2f.boot','1');const b=document.createElement('div');b.className='fx-boot';b.setAttribute('aria-hidden','true');b.innerHTML='<svg class="fx-blogo" viewBox="0 0 100 106" width="64" height="68" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div><b>H2F Trainer</b>Loading your training<i></i></div>';document.body.appendChild(b);setTimeout(()=>b.remove(),1800)}}catch(e){}
+  document.addEventListener('pointerdown',e=>{if(RM()||!e.target.closest('.btn,.chip,.tab,.iconbtn,.urow'))return;const t=document.createElement('i');t.className='fx-tap';t.style.left=e.clientX+'px';t.style.top=e.clientY+'px';document.body.appendChild(t);setTimeout(()=>t.remove(),500)},{passive:true});
+  fxTele();setInterval(fxTele,30000)})();
+function fxTele(){const el=document.getElementById('fxTele');if(!el)return;const d=new Date(),z=n=>String(n).padStart(2,'0'),st=streakWeeks(),af=(S.aft.hist||[])[0],n=typeof aftDays==='function'?aftDays():-1;
+  const parts=[`<i></i><b>${z(d.getHours())}${z(d.getMinutes())}</b>`,`<span>${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).replace(',','')}</span>`,`<span>Streak</span><b>${st} wk</b>`];
+  if(n>=0&&n<=120)parts.push(`<span>AFT</span><b>T-${n}</b>`);else if(af)parts.push(`<span>AFT</span><b>${af.t}</b>`);
+  el.innerHTML=parts.join('')+'<em class="fx-sep"></em>'}
+const FX_CH='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789/<>#';
+function fxDecode(el){const txt=el.textContent;if(!txt||txt.length>40)return;let f=0;const N=14;
+  const step=()=>{f++;el.textContent=txt.split('').map((c,i)=>c===' '||i<txt.length*f/N?c:FX_CH[Math.floor(Math.random()*FX_CH.length)]).join('');if(f<N)requestAnimationFrame(step);else el.textContent=txt};requestAnimationFrame(step)}
+function fxCount(el){const m=/^(\d{1,5})$/.exec(el.firstChild&&el.firstChild.nodeType===3?el.firstChild.nodeValue.trim():'');if(!m)return;const to=+m[1];if(to<2)return;const node=el.firstChild,t0=performance.now(),D=650;
+  const step=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);node.nodeValue=String(Math.round(to*e));if(k<1)requestAnimationFrame(step);else node.nodeValue=String(to)};requestAnimationFrame(step)}
+function fxRender(anim){const v=document.getElementById('view');if(!v)return;
+  const grp=(typeof GROUPS!=='undefined'&&GROUPS[grpOf(S.tab)])?GROUPS[grpOf(S.tab)][1]||GROUPS[grpOf(S.tab)][0]:'';
+  v.querySelectorAll('h2').forEach((h,i)=>{if(!h.dataset.fx)h.dataset.fx='H2F // '+String(grp||S.tab).toUpperCase()});
+  fxTele();
+  if(!anim||RM())return;
+  [...v.children].forEach((c,i)=>c.style.setProperty('--i',Math.min(i,10)));v.classList.remove('fx-in');void v.offsetWidth;v.classList.add('fx-in');
+  const h=v.querySelector('h2');if(h)fxDecode(h);
+  v.querySelectorAll('.tdbig,.stats b').forEach(fxCount)}
 const ERUN_A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday,.tdcard,.bodyx,.stats,.times,.pdays,.mgrid,.evcard,.cur,.howto,.gtsum,.note,.urow.sqhero',ERUN_B='.coach,.tdgrid,.sched,.inj',
   ERUN_NO='details,.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
 /* draw one card's HUD outline at its current size, in pixels */
