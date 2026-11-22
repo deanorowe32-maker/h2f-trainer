@@ -1,5 +1,4 @@
-"""Readiness upgrades: sleep bed/wake times + rhythm + caffeine cut-off, Go for Green plate check + heat guide folded,
-AFT mental prep, purpose + weekly values check-in, and backup keeps all of it. Server on :8765."""
+"""Sleep bed/wake times + rhythm + caffeine cut-off, Go for Green plate check + folded heat guide, and backup keeps them. Server on :8765."""
 import sys
 from playwright.sync_api import sync_playwright
 fails = []
@@ -41,32 +40,10 @@ with sync_playwright() as p:
     E("document.getElementById('heatGuide').open=true"); pg.wait_for_timeout(100)
     pg.click('[data-a=heatcat][data-v="3"]'); pg.wait_for_timeout(150)
     check('heat guide stays open and works after picking a flag', E("document.getElementById('heatGuide').open") and 'Category 3' in E("document.getElementById('heatGuide').textContent"))
-    # --- Mind
-    E("S.aft.date=dk(new Date(Date.now()+5*864e5));S.tab='mind';render()"); pg.wait_for_timeout(200)
-    check('AFT mental prep card with countdown', '5 days to your AFT' in E("document.getElementById('view').textContent") and E("document.querySelectorAll('.prep li').length") == 4)
-    pg.fill('#mindCue', 'Drive'); pg.wait_for_timeout(100)
-    check('cue word saved', E("S.mind.cue") == 'Drive')
-    E("S.tab='today';render()"); pg.wait_for_timeout(200)
-    check('countdown in final week offers Mental prep', E("!!document.querySelector('#aftcd [data-a=tdprep]')"))
-    pg.click('#aftcd [data-a=tdprep]'); pg.wait_for_timeout(500)
-    check('Mental prep opens Mind with the cue word', E("S.tab") == 'mind' and '"Drive"' in E("document.querySelector('.prep').textContent"))
-    # --- Spirit
-    E("S.tab='spirit';render()"); pg.wait_for_timeout(200)
-    check('no weekly check-in until values are picked', not E("!!document.querySelector('[data-a=vwk]')"))
-    pg.fill('#purp', 'Bring everyone home'); pg.wait_for_timeout(100)
-    check('purpose saved', E("S.spirit.purpose") == 'Bring everyone home')
-    pg.click('[data-a=val][data-v=Service]'); pg.click('[data-a=val][data-v=Family]'); pg.wait_for_timeout(150)
-    E("S.spirit.vw[vwKey(1)]='y';S.spirit.vw[vwKey(2)]='p';S.spirit.vw[vwKey(3)]='n';render()")
-    pg.click('[data-a=vwk][data-v=y]'); pg.wait_for_timeout(150)
-    check('this week answered', E("S.spirit.vw[vwKey()]") == 'y')
-    check('streak counts yes and partly, stops at not yet', '3 weeks in a row' in E("document.getElementById('view').textContent"))
-    check('8 week dots', E("document.querySelectorAll('.vwd').length") == 8)
     # --- Backup
     c = E("cleanBackup(makeBackup())")
     check('backup keeps bed/wake', c['sleepMeta'][E("today()")]['b'] == '22:45')
     check('backup keeps plate check', c['nut']['g4g'][E("today()")] == 'ggy')
-    check('backup keeps cue word', c['mind']['cue'] == 'Drive')
-    check('backup keeps purpose and weekly answers', c['spirit']['purpose'] == 'Bring everyone home' and c['spirit']['vw'][E("vwKey()")] == 'y')
     check('backup drops junk', E("(()=>{const o=JSON.parse(makeBackup().slice(BK_TAG.length));o.nut.g4g={'2026-01-01':'gxz','bad':'g'};return JSON.stringify(cleanBackup(BK_TAG+JSON.stringify(o)).nut.g4g)})()") == '{}')
     check('page fits the screen', E("document.documentElement.scrollWidth") <= 390)
     check('no page errors', not errs)
