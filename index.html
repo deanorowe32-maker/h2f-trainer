@@ -201,8 +201,10 @@ input[type=checkbox],input[type=radio]{accent-color:var(--sage-text)}
 .gted label,.gtlogf label{display:flex;flex-direction:column;gap:4px;margin:8px 0;font:600 14px var(--body)}
 .gted input,.gted select,.gted textarea,.gtlogf input{font:500 16px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .gted [aria-invalid=true],.gtlogf [aria-invalid=true]{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 30%,transparent)}
+.gtev{min-width:0;max-width:100%}.gtev input,.gtev select,.gtev .gtrow>label{min-width:0;max-width:100%;box-sizing:border-box}
+.gtexf{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}.gtexl{font-weight:600}.gtpickb{align-self:stretch}
 .gtev{border:1px solid var(--line);border-radius:var(--r);padding:8px 12px 12px;margin:12px 0}.gtev legend{font:700 14px var(--body);padding:0 4px}
-.gtrow{display:flex;gap:12px}.gtrow>label{flex:1}.gterr{color:var(--warn);font-weight:600}
+.gtrow{display:flex;gap:12px}.gtrow>label{flex:1;min-width:0}.gtrow input,.gtrow select{width:100%;min-width:0;box-sizing:border-box}.gterr{color:var(--warn);font-weight:600}
 .gtsum{margin:12px 0;padding:16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
 .gthead{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}.gthead small{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.gthead b{font:700 20px var(--body)}.gthead span{color:var(--muted);font-size:14px}
 .gtsum table{width:100%;border-collapse:collapse;font-size:14px}.gtsum th,.gtsum td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;font-variant-numeric:tabular-nums}
@@ -2586,7 +2588,7 @@ function openInfo(id,ix){
   <div class="row"><button class="btn ghost" data-a="closeinfo">Close</button>${e.custom?`<button class="btn ghost" data-a="cmshare" data-v="${e.id}">Share</button><button class="btn ghost" data-a="delex" data-v="${e.id}">Delete exercise</button>`:''}</div>${e.custom?'<div class="note" id="cmMsg" hidden aria-live="polite"></div>':''}`;
   document.getElementById('infoSheet').hidden=false;
 }
-let pickKind='train',pickQ='',pickC='',pickSec='M',ladEd=null,ladK='e';
+let gtPickI=0,pickKind='train',pickQ='',pickC='',pickSec='M',ladEd=null,ladK='e';
 function ladHtml(id){const L=ladFor(id),ed=ladEd===id,own=!!(S.lad&&S.lad[id]),pl=!own&&!!(S.prog&&S.prog.ld&&S.prog.ld[id]);
   const X='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   const line=(k,lab)=>{const ids=L[k].filter(x=>EX[x]);if(!ids.length&&!ed)return '';
@@ -2597,7 +2599,7 @@ function ladHtml(id){const L=ladFor(id),ed=ladEd===id,own=!!(S.lad&&S.lad[id]),p
 function ladMine(id){if(!S.lad[id]){const L=ladFor(id);S.lad[id]={e:L.e.filter(x=>EX[x]),h:L.h.filter(x=>EX[x])}}return S.lad[id]}
 function pickList(){
   const rows=Object.values(EX).filter(e=>(!pickC||e.cat===pickC)&&(!pickQ||(e.name+' '+e.eq+' '+CATS[e.cat]).toLowerCase().includes(pickQ.toLowerCase())));
-  return rows.length?rows.map(e=>`<div class="item"><button class="nm" data-a="info" data-v="${e.id}">${esc(e.name)}<small>${CATS[e.cat]} · ${esc(e.eq)}${e.custom?' · Yours':''}</small></button><button class="btn" data-a="pick" data-v="${e.id}" style="padding:6px 14px;min-height:40px">${pickKind==='assess'?'Track':pickKind==='station'?'Choose':'Add'}</button></div>`).join(''):'<div class="empty">No exercises match.</div>'}
+  return rows.length?rows.map(e=>`<div class="item"><button class="nm" data-a="info" data-v="${e.id}">${esc(e.name)}<small>${CATS[e.cat]} · ${esc(e.eq)}${e.custom?' · Yours':''}</small></button><button class="btn" data-a="pick" data-v="${e.id}" style="padding:6px 14px;min-height:40px">${pickKind==='assess'?'Track':pickKind==='station'||pickKind==='gt'?'Choose':'Add'}</button></div>`).join(''):'<div class="empty">No exercises match.</div>'}
 function openPick(kind,sec){
   pickKind=kind;pickQ='';pickC='';pickSec=sec||'M';
   const day=kind==='train'?DN[S.day]:DN[S.ptDay];
@@ -2641,6 +2643,9 @@ document.addEventListener('click',ev=>{
   else if(a==='focusadd'){const f=focusPick();if(f){focusDays(f).forEach(d=>f.ids.forEach(id=>{if(EX[id]&&!S.plan[d].some(x=>x.id===id))S.plan[d].push({id,rx:RXC[EX[id].cat]})}));save();render()}}
   else if(a==='focushide'){const f=focusPick();if(f){S.focus=S.focus||{};S.focus[mkey(S.week)+f.key]=1;save();render()}}
   else if(/^gt(new|edit|cancel|addev|rmev|save|logopen|log|done)$/.test(a)){gtAct(a,b)}
+  else if(a==='gtpick'&&gtDraft){gtReadForm();gtPickI=+b.dataset.i;pickKind='gt';pickQ='';pickC='';
+    document.getElementById('pickBody').innerHTML=`<h2>Pick event ${gtPickI+1}</h2><input type="search" id="pickQ" data-f="pickq" placeholder="Search exercises" aria-label="Search exercises"><div class="chips cats" id="pickChips" role="group" aria-label="Filter by category">${chipsHtml('','pickcat')}</div><div id="pickList">${pickList()}</div><div class="row"><button class="btn ghost" data-a="closepick">Cancel</button></div>`;
+    document.getElementById('pickSheet').hidden=false}
   else if(/^ch(fold|open|quick|add|undo|mditem|mdlvl)$/.test(a)){chAct(a,v)}
   else if(a==='gtshare'||a==='gtcopy'||a==='gtadopt'){gtShareAct(a)}
   else if(a==='cftgo'||a==='cftnext'||a==='cftundo'||a==='cftstop'){cftAct(a)}
@@ -2681,6 +2686,7 @@ document.addEventListener('click',ev=>{
   else if(a==='pick'&&pickKind==='prog'){const d=prEdDay();if(d&&d.r.length<15&&EX[v])d.r.push({p:prPart,id:v,rx:(RXC[EX[v].cat]||'').slice(0,30),rs:''});save();document.getElementById('pickSheet').hidden=true;prBody()}
   else if(a==='pick'&&pickKind==='rem'){if(remSwK&&EX[v]){S.rem.sw[remSwK]=v;save()}document.getElementById('pickSheet').hidden=true;remShow()}
   else if(a==='pick'&&pickKind==='circuit'){const c=ciCfgOf('q');if(c.ids.length<12&&EX[v])c.ids.push(v);save();document.getElementById('pickSheet').hidden=true;ciBuild()}
+  else if(a==='pick'&&pickKind==='gt'){if(gtDraft&&gtDraft.ev[gtPickI]&&EX[v]){gtDraft.ev[gtPickI].name=EX[v].name;delete gtDraft.err['n'+gtPickI]}document.getElementById('pickSheet').hidden=true;const y=window.scrollY;render();window.scrollTo(0,y)}
   else if(a==='pick'&&pickKind==='assess'){if(addEvent(v)){b.textContent='Added ✓';render()}else b.textContent='Already added'}
   else if(a==='pick'){const arr=pickKind==='train'?S.plan[S.day]:S.pt.plan[S.ptDay];arr.push(pickKind==='train'?{id:v,rx:RXC[EX[v].cat],s:pickSec}:{id:v,rx:RXC[EX[v].cat]});render();b.textContent='Added ✓'}
   else if(a==='barea')bodySel(v);
@@ -4387,7 +4393,8 @@ function gtReadForm(){const D=gtDraft,v=id=>{const e=document.getElementById(id)
 function gtPh(m){return m==='time'?'m:ss':m==='weight'?au():m==='distance'?'distance':'reps'}
 function gtEditorHtml(){const D=gtDraft,bad=k=>D.err[k]?' aria-invalid="true"':'',opt=(m)=>Object.entries(GT_M).map(([k,l])=>`<option value="${k}"${k===m?' selected':''}>${l}</option>`).join('');
   const rows=D.ev.map((e,i)=>`<fieldset class="gtev"><legend>Event ${i+1}</legend>
-    <label>Exercise<input id="gtEvName${i}" list="gtExList" maxlength="60" value="${esc(e.name)}" placeholder="Pick or type"${bad('n'+i)}></label>
+    <div class="gtexf"><span class="gtexl">Exercise</span><button type="button" class="btn${e.name?' ghost':''} gtpickb" data-a="gtpick" data-i="${i}">${e.name?'Change from library':'Choose from library'}</button>
+    <input id="gtEvName${i}" list="gtExList" maxlength="60" value="${esc(e.name)}" placeholder="Or type your own" aria-label="Event ${i+1} exercise"${bad('n'+i)}></div>
     <div class="gtrow"><label>Measured in<select id="gtEvM${i}" data-gtm="1">${opt(e.m)}</select></label>${e.m==='distance'?`<label>Unit<select id="gtEvUnit${i}"><option value="mi"${e.unit!=='km'?' selected':''}>mi</option><option value="km"${e.unit==='km'?' selected':''}>km</option></select></label>`:''}</div>
     <div class="gtrow"><label>Now<input id="gtEvBase${i}" inputmode="decimal" value="${esc(e.base)}" placeholder="${gtPh(e.m)}"${bad('b'+i)}></label><label>Goal<input id="gtEvGoal${i}" inputmode="decimal" value="${esc(e.goal)}" placeholder="${gtPh(e.m)}"${bad('g'+i)}></label></div>
     <label>Note (optional)<input id="gtEvNote${i}" maxlength="60" value="${esc(e.note)}" placeholder="e.g. 35 lb ruck"></label>
