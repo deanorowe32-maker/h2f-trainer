@@ -1013,7 +1013,7 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
 .grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp{background:rgba(36,85,58,.14) padding-box!important;border-color:rgba(232,191,85,.08)!important;box-shadow:none}
 @media (prefers-reduced-motion:no-preference){
 }
-/* HUD outline (eRun/eFit): four glowing corner brackets that lock on, and a scan line sweeping down each card.
+/* HUD outline (eRun/eFit): four glowing corner brackets that lock on.
    SVG sized in pixels (Safari did not always resize percentage-sized shapes when a card grew); only transform and
    opacity animate, which Safari repaints reliably (a CSS animation of the --ea angle inside a gradient froze on iPhone). */
 .erun{position:absolute;left:-.5px;top:-.5px;overflow:visible;pointer-events:none;z-index:0}
@@ -1021,9 +1021,7 @@ header.top{background:rgba(5,6,5,.78);border-bottom:1px solid var(--eline)}
 .erun .lk{transform-box:fill-box;transform-origin:center;animation:elock 3.4s cubic-bezier(.6,0,.2,1) infinite}
 .erun .tl{--dx:-3px;--dy:-3px}.erun .tr{--dx:3px;--dy:-3px}.erun .br{--dx:3px;--dy:3px}.erun .bl{--dx:-3px;--dy:3px}
 @keyframes elock{0%,100%{transform:translate(0,0);opacity:1}45%{transform:translate(var(--dx),var(--dy));opacity:.55}55%{transform:translate(0,0);opacity:1}}
-.erun .scan{animation:ehud 2.6s linear infinite;will-change:transform}
-@keyframes ehud{0%{transform:translateY(0);opacity:0}6%{opacity:1}88%{opacity:1}100%{transform:translateY(var(--sh));opacity:0}}
-@media (prefers-reduced-motion:reduce){.erun .lk{animation:none}.erun .scan{display:none}}
+@media (prefers-reduced-motion:reduce){.erun .lk{animation:none}}
 :root[data-theme="dark"]{--vz-1:#2f7a4f;--vz-veg:#2f7a4f;--vz-carb:#e8bf55;--vz-pro:#cfd6cc}
 
 /* Buttons */
@@ -5199,23 +5197,17 @@ showGate(!unlocked());
 const ERUN_A='.grp,.tdwide,.sec,.chcard,.rbnext,.start,section.card,.strip,.plan,.editday,.tdcard,.bodyx,.stats,.times,.pdays,.mgrid,.evcard,.cur,.howto,.gtsum,.note,.urow.sqhero',ERUN_B='.coach,.tdgrid,.sched,.inj',
   ERUN_NO='details,.grp .note,.grp .plan,.grp .cmx,.grp .evcard,.grp .stats,.grp .times,.grp .mgrid,.grp .cur,.tdgrid .tdcard,.sec .sec,.grp .grp';
 /* draw one card's HUD outline at its current size, in pixels */
-let eId=0;
 function eFit(el){const v=el.querySelector(':scope>.erun');if(!v)return;const W=el.offsetWidth-1,H=el.offsetHeight-1;if(W<4||H<4)return;
-  if(v.__w===W&&v.__h===H)return;v.__w=W;v.__h=H;const r=Math.min(v.__r,W/2,H/2),L=Math.min(40,W/4,H/3),q=Math.min(r,L-4),id='ec'+(++eId);
+  if(v.__w===W&&v.__h===H)return;v.__w=W;v.__h=H;const r=Math.min(v.__r,W/2,H/2),L=Math.min(40,W/4,H/3),q=Math.min(r,L-4);
   v.setAttribute('width',W);v.setAttribute('height',H);v.style.width=W+'px';v.style.height=H+'px';
   const br=(d,c)=>`<g class="lk ${c}">${[[8,'#ffcc00',.12],[4,'#ffd400',.3],[1.8,'#fff3b0',1]].map(([w,k,o])=>`<path d="${d}" stroke="${k}" stroke-opacity="${o}" stroke-width="${w}"/>`).join('')}</g>`;
-  /* the scan keeps a steady speed: about 2.6 s on a phone-sized card, longer on tall ones */
-  const dur=Math.max(2.2,1.4+H/140).toFixed(2);
-  v.innerHTML=br(`M0 ${L}V${q}Q0 0 ${q} 0H${L}`,'tl')+br(`M${W-L} 0H${W-q}Q${W} 0 ${W} ${q}V${L}`,'tr')+br(`M${W} ${H-L}V${H-q}Q${W} ${H} ${W-q} ${H}H${W-L}`,'br')+br(`M${L} ${H}H${q}Q0 ${H} 0 ${H-q}V${H-L}`,'bl')
-    +`<defs><clipPath id="${id}"><rect x="0" y="0" width="${W}" height="${H}" rx="${r}" ry="${r}"/></clipPath><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd400" stop-opacity="0"/><stop offset="1" stop-color="#ffd400" stop-opacity=".16"/></linearGradient></defs>`
-    +`<g clip-path="url(#${id})"><g class="scan" style="--sh:${H+18}px;animation-duration:${dur}s;animation-delay:-${v.__d}s"><rect x="0" y="-18" width="${W}" height="18" fill="url(#${id}g)" stroke="none"/><line x1="0" y1="0" x2="${W}" y2="0" stroke="#ffe14d" stroke-opacity=".85" stroke-width="1.2"/></g></g>`}
+  v.innerHTML=br(`M0 ${L}V${q}Q0 0 ${q} 0H${L}`,'tl')+br(`M${W-L} 0H${W-q}Q${W} 0 ${W} ${q}V${L}`,'tr')+br(`M${W} ${H-L}V${H-q}Q${W} ${H} ${W-q} ${H}H${W-L}`,'br')+br(`M${L} ${H}H${q}Q0 ${H} 0 ${H-q}V${H-L}`,'bl')}
 let eRO=null;try{eRO=new ResizeObserver(es=>es.forEach(e=>eFit(e.target)))}catch(_){}
 function eRun(root){if(!root||!root.querySelectorAll)return;
   root.querySelectorAll(ERUN_A+','+ERUN_B).forEach(el=>{if(el.querySelector(':scope>.erun')||el.matches(ERUN_NO))return;
     const cs=getComputedStyle(el);if(cs.display==='none'||cs.display==='contents')return;if(cs.position==='static')el.style.position='relative';
     el.insertAdjacentHTML('beforeend','<svg class="erun" aria-hidden="true" focusable="false"></svg>');
-    /* each card's scan starts at its own point, so the screen never sweeps in step */
-    const v=el.lastElementChild;v.__r=parseFloat(cs.borderTopLeftRadius)||0;v.__d=(Math.random()*3).toFixed(2);
+    const v=el.lastElementChild;v.__r=parseFloat(cs.borderTopLeftRadius)||0;
     eFit(el);if(eRO)eRO.observe(el)})}
 (function(){let q=0;const go=()=>{q=0;eRun(document.body)};go();
   try{new MutationObserver(()=>{if(!q)q=requestAnimationFrame(go)}).observe(document.body,{childList:true,subtree:true})}catch(_){}})();
