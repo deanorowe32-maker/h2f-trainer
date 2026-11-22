@@ -3,6 +3,7 @@
 import sys, os
 from playwright.sync_api import sync_playwright
 RIBS = [('fr1', '1st Fires', 'pu'), ('fr2', '2nd Fires', 'pk'), ('fr3', '3rd Fires', 'ye'), ('sup', 'Support', 'sc')]
+C77 = ('c77', '1-77 Command Team')
 fails = []
 def check(n, ok):
     print(('PASS ' if ok else 'FAIL ') + n)
@@ -21,6 +22,8 @@ with sync_playwright() as p:
         check(f'{name}: has a code', E(f"CRE_CODES.some(c=>c.id==='{rid}')"))
         check(f'{name}: not shown until earned', not E(f"RB_SHOW.some(r=>r.id==='{rid}')"))
     check('grey is its own colour', E("RB_C.gy") == '#6f777d')
+    check('1-77 Command Team: hidden, scarlet and yellow, with a cactus in the middle', E("!!RB_BY.c77&&RB_BY.c77.area==='Hidden'&&RB_BY.c77.name==='1-77 Command Team'&&[...new Set(RB_BY.c77.stripes.map(x=>x[1]))].sort().join()==='sc,ye'&&rbSvg('c77',100).includes('translate(50 15.2)')&&!rbSvg('fr1',100).includes('translate(50 15.2)')"))
+    check('1-77 Command Team has a code', E("CRE_CODES.some(c=>c.id==='c77')"))
     for rid, name, col in RIBS:
         path = os.path.expanduser(f'~/.code_{rid}')
         if not os.path.exists(path):
@@ -32,6 +35,15 @@ with sync_playwright() as p:
         pg.fill('#creCode', ' ' + code.lower() + ' '); E("document.querySelector('[data-a=crego]').click()"); pg.wait_for_timeout(1200)
         check(f'{name} code unlocks only {name}', E(f"!!S.rb.aw.{rid}") and E("Object.keys(S.rb.aw).filter(k=>['fr1','fr2','fr3','sup'].includes(k)).length") == RIBS.index((rid, name, col)) + 1)
         check(f'{name} kept in backup', E(f"cleanBackup(makeBackup()).rb.tally.{rid}") == 1)
+    path = os.path.expanduser('~/.code_c77')
+    if os.path.exists(path):
+        code = open(path).read().strip()
+        check('1-77 code is not in the app', code not in html and code.replace('-', '') not in html)
+        E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);S.tab='unit';render()")
+        E("document.querySelector('main [data-a=shareapp]').click()"); pg.wait_for_timeout(300)
+        pg.fill('#creCode', code); E("document.querySelector('[data-a=crego]').click()"); pg.wait_for_timeout(1200)
+        check('1-77 code unlocks the Command Team ribbon', E("!!S.rb.aw.c77"))
+        check('1-77 kept in backup', E("cleanBackup(makeBackup()).rb.tally.c77") == 1)
     check('no page errors', not errs)
     if errs: print(errs[:3])
     b.close()

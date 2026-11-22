@@ -53,7 +53,7 @@ with sync_playwright() as p:
         check('workout at 0545 counts', E("(()=>{const d=new Date();d.setHours(5,45,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 1)
         check('workout at 0645 does not', E("(()=>{const d=new Date();d.setHours(6,45,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 0)
         check('all-nighter at 0130 does not', E("(()=>{const d=new Date();d.setHours(1,30,0,0);S.hist=[{id:'h1',ts:d.getTime(),n:5}];return rbCount('ebd').n})()") == 0)
-        check('thirteen hidden ribbons (with Creator and unit codes), none listed', E("RB.filter(r=>r.area==='Hidden').length") == 13 and E("RB_SHOW.length") == shown)
+        check('fourteen hidden ribbons (with Creator and unit codes), none listed', E("RB.filter(r=>r.area==='Hidden').length") == 14 and E("RB_SHOW.length") == shown)
         check('new tallies kept in backup', E("(()=>{const t=cleanBackup(makeBackup()).rb.tally;return [t.st7,t.crw]})()") == [1, 1])
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
