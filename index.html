@@ -1129,6 +1129,19 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* Readiness x4: plate check, sleep rhythm, AFT mental prep, weekly values */
+.g4g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.g4gb{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:84px;padding:10px 4px;border-radius:12px;border:1.5px solid;background:rgba(5,7,5,.5);color:inherit;font:inherit;cursor:pointer;touch-action:manipulation}
+.g4gb b{font:700 26px/1 var(--hud);font-variant-numeric:tabular-nums}.g4gb span{font-weight:700}.g4gb small{font-size:12px;opacity:.75}
+.g4gb.g4g-g{border-color:#4caf6e;color:#8fd6a6}.g4gb.g4g-y{border-color:#d9b43a;color:#f0d27a}.g4gb.g4g-r{border-color:#d0604a;color:#f1a585}
+.g4gb:active{transform:scale(.96)}
+.g4gbar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:6px;gap:2px}.g4gbar i{display:block}
+.g4gbar .g4g-g{background:#4caf6e}.g4gbar .g4g-y{background:#d9b43a}.g4gbar .g4g-r{background:#d0604a}
+.heatd{margin-top:20px}.heatd>summary{font-weight:700}
+.prep{margin:8px 0;padding-left:22px}.prep li{margin:0 0 8px}.prep li span:last-child{display:block;color:var(--muted,#93a99b);font-size:15px}.prep .prepcue{color:var(--gold);font-weight:700;background:none;padding:0}
+.vwrow{display:flex;gap:8px;margin:10px 0 4px}.vwd{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(232,191,85,.35)}
+.vwd.y{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(232,191,85,.5)}.vwd.p{background:linear-gradient(90deg,var(--gold) 50%,transparent 50%);border-color:var(--gold)}.vwd.n{border-style:dashed}
+.tdcut{margin-top:-4px}
 /* ===== FUTURE x10 (preview): holo grid world, telemetry bar, decode titles, staged entrances, HUD type.
    Safari-safe: only transform and opacity animate; every layer is pointer-events:none; all motion off with reduced motion. */
 .fx-world{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:radial-gradient(120% 70% at 50% -10%,rgba(36,85,58,.45),transparent 60%),radial-gradient(80% 50% at 50% 115%,rgba(232,191,85,.10),transparent 70%)}
@@ -1953,7 +1966,7 @@ function viewToday(){
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
   ${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
-  <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
+  <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p>${(()=>{const c=slCut();return c?`<p class="tag tdcut">☕ Last caffeine by <b>${c.cut}</b> for a ${c.bed} bedtime.</p>`:''})()}<button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
   <section class="tdcard"><h3>${ico('nut')}Fuel</h3><div class="tdbig">${t.k}<small>${tg?' of '+tg.kcal:''} kcal</small></div><p class="tag">Protein ${t.p}${tg?' of '+tg.p:''} g today.${tg?'':' Set targets under Readiness, Fuel.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="nut">Log a meal</button></section>
   <section class="tdcard"><h3>${ico('assess')}AFT</h3><div class="tdbig">${af?af.t:'–'}<small>${af?' points':''}</small></div><p class="tag">${af?(aftPass(af)?'Pass':'Fail')+', '+(af.std==='c'?'combat':'general')+' standard, '+esc(jrLabel(af.d))+'.':'No score saved yet.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="assess">${af?'Score again':'Score my AFT'}</button></section>
@@ -1965,7 +1978,7 @@ function aftCdHtml(){const n=aftDays();if(n<0||n>120)return '';const d=aftDate()
   const focus=n===0?'Warm up well and pace the run. You have trained for this.':n<=2?'Keep it light: easy movement, sleep and water. No hard sessions now.':n<=7?'<b>Taper week.</b> Cut the volume, keep some intensity, and protect your sleep.':n<=28?'<b>Sharpen.</b> Run each event at test pace once a week'+(af?'':', and save a practice score')+'.':'<b>Build.</b> Train all five events every week and bring up your lowest one first.';
   return `<section class="tdwide aftcd" id="aftcd"><div class="sechead"><h3>${ico('assess')}AFT</h3></div>
   <div class="tdbig">${n===0?'Test day':n===1?'Tomorrow':n+' days'}</div><p>${esc(vzLong(d))}${n>1?' · '+(n>=14?Math.floor(n/7)+' weeks out':'final '+(n>=7?'two weeks':'week')):''}</p>
-  <p class="tag">${focus}</p><div class="row"><button class="btn ghost" data-a="tdgo" data-v="assess">Practice score</button><button class="btn ghost" data-a="rmdopen">Reminders</button></div></section>`}
+  <p class="tag">${focus}</p><div class="row">${n<=7?'<button class="btn ghost" data-a="tdprep">Mental prep</button>':'<button class="btn ghost" data-a="tdgo" data-v="assess">Practice score</button>'}<button class="btn ghost" data-a="rmdopen">Reminders</button></div></section>`}
 
 /* ---- Readiness check: a short night or a low mood today suggests a lighter session ---- */
 function readyItems(wd){const W=wkData(0);return wd<5&&W&&W.plan&&!isStW(W,wd)?(W.plan[wd]||[]).filter(it=>EX[it.id]):[]}
@@ -2652,6 +2665,7 @@ document.addEventListener('click',ev=>{
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
   else if(a==='tdundo'){const k=today();S.hist=(S.hist||[]).filter(x=>!(x.man&&dayKeyTs(x.ts)===k));render()}
+  else if(a==='tdprep'){if(S.tab!=='mind')FX.view=true;S.tab='mind';render();const el=document.getElementById('aftprep');if(el)el.scrollIntoView({block:'start',behavior:RM()?'auto':'smooth'})}
   else if(a==='tdgo'){const wd=(new Date().getDay()+6)%7;if(v==='train'&&S.week!==0)wkGo(0);if(v==='train'&&wd<5)S.day=wd;const setup=v==='train'&&b.classList.contains('step');if(setup)trEdit=true;if(S.tab!==v)FX.view=true;S.tab=v;render();const w=!setup&&v==='train'&&wd<5&&document.getElementById('wkout');if(w){const y=w.getBoundingClientRect().top+window.scrollY-(document.querySelector('header.top')?.offsetHeight||0)-72;window.scrollTo(0,Math.max(0,y))}else window.scrollTo(0,0)}
   else if(a==='tdtimer'){const wd=(new Date().getDay()+6)%7;if(S.week!==0)wkGo(0);if(wd<5)S.day=wd;if(S.tab!=='train')FX.view=true;S.tab='train';render();openTimer()}
   else if(a==='day'){const was=k==='train'?S.day:S.ptDay;if(k==='train')S.day=+v;else S.ptDay=+v;if(was!==+v)FX.ink=[k,v];render()}
@@ -3669,21 +3683,35 @@ var HEAT=[{flag:'White',wbgt:'78–81.9°F',w:[['NL','½'],['NL','¾'],['40/20',
  {flag:'Yellow',wbgt:'85–87.9°F',w:[['NL','¾'],['NL','¾'],['30/30','1'],['10/50','1']]},{flag:'Red',wbgt:'88–89.9°F',w:[['NL','¾'],['50/10','¾'],['20/40','1'],['10/50','1']]},{flag:'Black',wbgt:'90°F and up',w:[['NL','1'],['20/40','1'],['15/45','1'],['10/50','1']]}];
 var HEAT_WORK=[['Easy','weapons maintenance, marksmanship, drill and ceremony'],['Moderate','patrolling with a 30 lb load, crawls, digging a fighting position'],['Heavy','patrolling with a 45 lb load, 4-person litter carry, jogging at 4 mph'],['Very heavy','2-person litter carry, moving under direct fire, obstacle course']];
 var HEAT_L={'½':'0.47','¾':'0.71','1':'0.95'};
+/* Plate check: one tap per item using the dining facility's Go for Green labels. Stored per day as a string of g/y/r. */
+const G4G=[['g','Green','Eat often'],['y','Yellow','Eat sometimes'],['r','Red','Eat rarely']];
+function g4gS(){if(!S.nut.g4g||typeof S.nut.g4g!=='object')S.nut.g4g={};return S.nut.g4g}
+function g4gCount(str){const c={g:0,y:0,r:0};for(const ch of str||'')if(c[ch]!==undefined)c[ch]++;return c}
+function g4gWeek(){let all='';for(let i=0;i<7;i++)all+=g4gS()[slKey(i)]||'';return g4gCount(all)}
+function g4gHtml(){const td=g4gS()[today()]||'',c=g4gCount(td),n=td.length,w=g4gWeek(),wn=w.g+w.y+w.r,pc=x=>Math.round(x*100);
+  const bar=wn?`<div class="g4gbar" role="img" aria-label="Last 7 days: ${pc(w.g/wn)}% Green, ${pc(w.y/wn)}% Yellow, ${pc(w.r/wn)}% Red">${['g','y','r'].map(k=>w[k]?`<i class="g4g-${k}" style="flex:${w[k]}"></i>`:'').join('')}</div>`:'';
+  return `<h3 style="margin-top:20px" id="g4gTop">Plate check</h3>
+  <p class="tag">At the dining facility, tap the Go for Green label of each item you take. Aim for at least half Green.</p>
+  <div class="g4g" role="group" aria-label="Add an item by its Go for Green color">${G4G.map(([k,l,d])=>`<button type="button" class="g4gb g4g-${k}" data-a="g4g" data-v="${k}" aria-label="Add a ${l} item"><b>${c[k]}</b><span>${l}</span><small>${d}</small></button>`).join('')}</div>
+  <p class="tag" id="g4gSum">${n?`Today: ${n} item${n>1?'s':''}, ${pc(c.g/n)}% Green.`:'Nothing logged today.'}${wn?` Last 7 days: <b>${pc(w.g/wn)}% Green</b> of ${wn} items${w.g/wn>=.5?', on target.':'.'}`:''}</p>${bar}
+  ${n?'<div class="row" style="margin-top:6px"><button class="btn ghost small" data-a="g4gundo">Undo last</button></div>':''}`}
+let heatOpen=false;
 function heatHtml(){const H=S.heat||{c:0,w:0},h=HEAT[H.c-1],wk=HEAT_WORK[H.w]||HEAT_WORK[0];
   const res=h?(()=>{const [wr,q]=h.w[H.w];return `<b>Drink ${q} quart (${HEAT_L[q]} L) an hour.</b><br>${wr==='NL'?'No limit on work time.':`Work ${wr.split('/')[0]} min, rest ${wr.split('/')[1]} min each hour.`}`})():'Pick the heat category flag that is flying.';
-  return `<div id="heatGuide"><h3 style="margin-top:20px">Heat category water guide</h3><p class="tag">For training in the heat, up to 4 hours. Pick the flag and how hard you're working.</p>
+  return `<details class="howto heatd" id="heatGuide"${heatOpen||H.c?' open':''} ontoggle="heatOpen=this.open"><summary>Heat category water guide${h?`: Category ${H.c}, ${h.flag} flag`:''}</summary><p class="tag">For training in the heat, up to 4 hours. Pick the flag and how hard you're working.</p>
   <div class="chips" role="group" aria-label="Heat category">${HEAT.map((x,i)=>`<button class="chip heatflag hf${i+1}" data-a="heatcat" data-v="${i+1}" aria-pressed="${H.c===i+1}">${i+1} ${x.flag}</button>`).join('')}</div>
   <div class="chips" role="group" aria-label="Work level" style="margin-top:6px">${HEAT_WORK.map((x,i)=>`<button class="chip" data-a="heatwork" data-v="${i}" aria-pressed="${H.w===i}">${x[0]}</button>`).join('')}</div>
   <p class="tag" style="margin:6px 0 0">${esc(wk[0])} work: ${esc(wk[1])}.</p>
   <div class="res" id="heatRes" aria-live="polite" style="margin-top:8px">${h?`<span class="tag">Category ${H.c}, ${h.flag} flag (WBGT ${h.wbgt})</span><br>`:''}${res}</div>
   <ul class="tips"><li>Never more than 1½ quarts an hour or 12 quarts a day. Too much water is dangerous too.</li><li>MOPP 4: add 10°F to the WBGT for easy work, 20°F for moderate and heavy. Body armor: add 5°F.</li><li>Eat your meals: they replace the salt you sweat out.</li><li>Headache, nausea, dizziness, cramps or clumsiness: stop, get to shade and tell your leader or medic. Confusion is an emergency.</li><li>Your unit's posted guidance and your leaders' instructions come first.</li></ul>
-  <p class="tag">Source: <a href="https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43608-TB_MED_507-001-WEB-2.pdf" target="_blank" rel="noopener">TB MED 507, Heat Stress Control and Heat Casualty Management (12 April 2022)</a>, Table 1.</p></div>`}
+  <p class="tag">Source: <a href="https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43608-TB_MED_507-001-WEB-2.pdf" target="_blank" rel="noopener">TB MED 507, Heat Stress Control and Heat Casualty Management (12 April 2022)</a>, Table 1.</p></details>`}
 function viewNut(){
   const t=S.types[S.day],f=FUEL[t],n=S.hyd.n,goal=8;
   return `<h2>Fuel</h2>
   <p>${DN[S.day]} is <b>${DTYPES[t]}</b>, so build your plate for a <b>${f.plate.toLowerCase()} training day</b>. Change the day under Train.</p>
   ${vzStack(f.p)}
   <ul class="tips">${f.tips.map(x=>`<li>${x}</li>`).join('')}</ul>
+  ${g4gHtml()}
   <h3 style="margin-top:20px">Water today</h3>
   <div class="counter"><button class="iconbtn" data-a="hyd" data-v="-1" aria-label="Remove one cup"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button><div class="big" id="hydN">${n}</div><button class="iconbtn" data-a="hyd" data-v="1" aria-label="Add one cup"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span class="tag">cups · goal ${goal}</span></div>
   <div class="cups" id="cups">${Array.from({length:Math.max(goal,n)},(_,i)=>`<i class="cup${i<n?' on':''}${i===FX.cup?' pop':''}"></i>`).join('')}</div>
@@ -3713,6 +3741,27 @@ function viewNut(){
 
 /* Sleep */
 function bedtimes(w){const [h,m]=w.split(':').map(Number);if(isNaN(h)||isNaN(m))return [];return [6,5,4].map(c=>{let t=h*60+m-c*90-15;t=((t%1440)+1440)%1440;const hh=Math.floor(t/60),mm=t%60;return {h:c*1.5,txt:(hh%12||12)+':'+String(mm).padStart(2,'0')+' '+(hh>=12?'PM':'AM')}})}
+/* Sleep rhythm: how much bed and wake times moved over the last 7 nights, and hours short of 7 a night */
+const slMin=x=>{const [h,m]=String(x).split(':').map(Number);return h*60+m};
+function slSpread(a){return a.length>=2?Math.max(...a)-Math.min(...a):null}
+function slDur(m){const h=Math.floor(m/60),r=m%60;return h?h+'h'+(r?' '+r+'m':''):r+' min'}
+function slRhythm(){const w=[],b=[];let short=0,n=0;
+  for(let i=0;i<7;i++){const k=slKey(i),m=S.sleep.meta[k]||{},h=S.sleep.log[k];
+    if(m.w&&/^\d\d:\d\d$/.test(m.w))w.push(slMin(m.w));
+    if(m.b&&/^\d\d:\d\d$/.test(m.b)){const x=slMin(m.b);b.push(x<720?x+1440:x)}
+    if(typeof h==='number'){n++;short+=Math.max(0,7-h)}}
+  return {w:slSpread(w),wn:w.length,b:slSpread(b),bn:b.length,short:Math.round(short*4)/4,n}}
+function slRhythmHtml(){const r=slRhythm();if(!r.n&&r.wn<2)return '';
+  const lab=x=>x<=60?'steady':x<=120?'a bit uneven':'uneven',rows=[];
+  if(r.wn>=2)rows.push(`<div><b>${slDur(r.w)}</b><span>wake time varies · ${lab(r.w)}</span></div>`);
+  if(r.bn>=2)rows.push(`<div><b>${slDur(r.b)}</b><span>bedtime varies · ${lab(r.b)}</span></div>`);
+  if(r.n)rows.push(`<div><b>${slFmt(r.short)} h</b><span>short of 7 h a night (${r.n} night${r.n>1?'s':''})</span></div>`);
+  return `<h3 style="margin-top:16px">This week's rhythm</h3><div class="stats slrh">${rows.join('')}</div>
+  <p class="tag">${r.wn<2?'Log bed and wake times on 2 or more nights to see how steady your schedule is. ':''}Keeping wake time within an hour every day, weekends too, helps your body clock. Short nights add up: a few late nights can leave you hours behind by the weekend.</p>`}
+/* Caffeine cut-off: 6 hours before the 7.5-hour bedtime for your wake-up time */
+function slCut(){const bt=bedtimes(S.sleep.wake);if(bt.length<2)return null;const [h,m]=S.sleep.wake.split(':').map(Number);
+  const f=t=>{t=((t%1440)+1440)%1440;const hh=Math.floor(t/60),mm=t%60;return (hh%12||12)+':'+String(mm).padStart(2,'0')+' '+(hh>=12?'PM':'AM')},bed=h*60+m-5*90-15;
+  return {bed:f(bed),cut:f(bed-360)}}
 function timesHtml(){return bedtimes(S.sleep.wake).map(b=>`<div>${b.txt}<small>${b.h} h sleep</small></div>`).join('')}
 const SLEEPTIPS=['Wake at the same time every day, weekends too','No caffeine in the 6 hours before bed, longer if you can','Screens off 30 to 60 minutes before bed','Keep the room cool (65 to 72°F), dark and quiet','Skip alcohol and big meals close to bedtime','Finish hard workouts at least an hour before bed','Get outdoor light within an hour of waking','Write tomorrow\'s to-do list before bed'];
 var slRange=7,slDay='',slArm='',slDraft=null,slDraftDay='';
@@ -3750,12 +3799,16 @@ function sleepChartHtml(){
     rows:days.map(([k,v])=>{const ok=typeof v==='number';return {k,lab:vzDay(k).toLocaleDateString(undefined,n===7?{weekday:'short'}:{day:'numeric'}),full:vzLong(k),v:ok?v:0,tip:`${vzLong(k)}: ${ok?slFmt(v)+' h'+(v<7?', under target':v>9?', over 9 h':', on target'):'not logged'}`}})})}
   <div class="tag" style="margin-top:8px">7-day average: <b>${w.n?slFmt(w.avg)+' h':'no data'}</b> · 30-day average: <b>${m.n?slFmt(m.avg)+' h':'no data'}</b> · nights logged this week: ${w.n}/7${(()=>{const sh=days.filter(([k,v])=>typeof v==='number'&&v<7).length;return sh?` · under 7 h: ${sh} night${sh===1?'':'s'}`:''})()}</div>
   <div class="form" style="margin-top:10px"><label class="wide">Night of<input type="date" id="sl_d" data-f="sldate" max="${today()}" value="${esc(sel)}"></label>
+  <label>Went to bed<input type="time" id="sl_b" data-f="slbw" value="${esc((S.sleep.meta[sel]||{}).b||'')}"></label>
+  <label>Woke up<input type="time" id="sl_w" data-f="slbw" value="${esc((S.sleep.meta[sel]||{}).w||'')}"></label>
   <label class="wide">Hours slept<input type="number" inputmode="decimal" id="sl_h" min="0" max="24" step="0.25" placeholder="7.5" value="${typeof cur==='number'?cur:''}"></label></div>
+  <p class="tag" style="margin-top:4px">Add bed and wake times to see how steady your schedule is. Hours fill in for you.</p>
   <div class="tag" style="margin-top:10px">How rested do you feel? (1 low, 5 great)</div>
   <div class="chips" role="group" aria-label="Rested rating">${[1,2,3,4,5].map(i=>`<button class="chip" aria-pressed="${dr.r===i}" data-a="slr" data-v="${i}">${i}</button>`).join('')}</div>
   <div class="chips" role="group" aria-label="Habits" style="margin-top:8px"><button class="chip" aria-pressed="${dr.c}" data-a="slc">Caffeine within 6 h of bed</button><button class="chip" aria-pressed="${dr.s}" data-a="sls">Screens within 1 h of bed</button></div>
   <div class="note warn" id="slErr" hidden></div>
   <div class="row" style="margin-top:8px"><button class="btn" data-a="slsave">Save night</button>${typeof cur==='number'?`<button class="btn ghost" data-a="sldel">${slArm===sel?'Tap again to delete':'Delete this night'}</button>`:''}${Object.keys(S.sleep.log).length?`<button class="btn ghost" data-a="print" data-k="sl">Print sleep report</button>`:''}</div>
+  ${slRhythmHtml()}
   <h3 style="margin-top:16px">Weekly averages</h3>
   <div class="tag">${weeks.map(([i,c,a])=>(i===0?'This week':i+' week'+(i>1?'s':'')+' ago')+': '+(c?slFmt(a)+' h ('+c+' night'+(c>1?'s':'')+')':'no data')).join('<br>')}</div>
   <h3 style="margin-top:16px">How to improve</h3>
@@ -3805,6 +3858,14 @@ function grdInner(){
   <div class="counter" style="margin:6px 0"><span class="big">${g[0]}</span><b style="font-size:20px;flex:1;min-width:0">${g[1]}</b></div>
   <p style="margin:0 0 10px">${g[2]}</p>
   <div class="row" style="margin:0"><button class="btn" id="grdNext" data-a="grdnext">${grStep<GRD.length-1?'Next':'Finish'}</button><button class="btn ghost" id="grdStop" data-a="grdstop">Stop</button></div>`}
+/* AFT mental prep: a short routine to run before each event */
+const PREP=[['Breathe','Three slow breaths: in for 4, out for 6. Drop your shoulders.'],['Cue word','Say your cue word to yourself. One or two words that mean "go", like "Drive" or "Smooth".'],['See it','Picture one clean rep or the first 10 seconds going right.'],['Go','Step up and start. Thoughts can come along for the ride; your body knows the work.']];
+function aftPrepHtml(){const n=typeof aftDays==='function'?aftDays():-1,cue=S.mind.cue||'';
+  return `<h3 style="margin-top:20px" id="aftprep">AFT mental prep</h3>
+  <p class="tag">${n>=0&&n<=14?`<b>${n===0?'Test day.':n===1?'Test tomorrow.':n+' days to your AFT.'}</b> `:''}A 30-second routine to run before each event. Practice it in training so it is automatic on test day.</p>
+  <ol class="prep">${PREP.map(([t,d])=>`<li><b>${t}</b>${t==='Cue word'&&cue?` <span class="prepcue">"${esc(cue)}"</span>`:''}<span>${d}</span></li>`).join('')}</ol>
+  <div class="form"><label class="wide">My cue word<input type="text" id="mindCue" data-f="cue" maxlength="20" value="${esc(cue)}" placeholder="e.g. Drive" autocomplete="off"></label></div>
+  <p class="tag">Between events: walk, sip water, and let the last event go. Only the next one counts.</p>`}
 function grdHtml(){return `<h3 style="margin-top:20px">Ground yourself in 60 seconds</h3><div class="plan" id="grd">${grdInner()}</div>`}
 function grdPaint(){const el=document.getElementById('grd');if(!el){grdSet(-1);return}el.innerHTML=grdInner()}
 function grdSet(i){
@@ -3826,6 +3887,7 @@ function viewMind(){
   <h3 style="margin-top:20px">Reset with breathing</h3>
   <p class="tag">Box breathing and a longer breath out both kept people calmer under stress in a controlled study. Two minutes is enough.</p>${breathHtml()}
   ${grdHtml()}
+  ${aftPrepHtml()}
   <h3 style="margin-top:12px">When a thought is stuck</h3>
   <ul class="tips">${REFRAME.map(x=>`<li>${x}</li>`).join('')}</ul>
   ${jrHtml('mind')}
@@ -3883,13 +3945,26 @@ function vaAct(a,v){const A=vaRoll();
   if(a==='vaclear'&&A.cur&&!A.cur.done){vaPick=A.cur.v;A.cur=null;save();render()}}
 function vaClean(o){const ok=x=>x&&typeof x==='object'&&/^\d{4}-\d\d-\d\d$/.test(x.wk)&&VALUES.includes(x.v)&&typeof x.t==='string',m=x=>({wk:x.wk,v:x.v,t:x.t.slice(0,120),done:typeof x.done==='string'&&/^\d{4}-\d\d-\d\d$/.test(x.done)?x.done:''});
   if(!o||typeof o!=='object')return {cur:null,hist:[]};return {cur:ok(o.cur)?m(o.cur):null,hist:(Array.isArray(o.hist)?o.hist:[]).filter(ok).map(m).slice(0,104)}}
+/* Weekly values check-in: one answer per week (Monday start), y = yes, p = partly, n = not yet */
+function vwS(){if(!S.spirit.vw||typeof S.spirit.vw!=='object')S.spirit.vw={};return S.spirit.vw}
+function vwKey(off){const d=new Date(weekStart());d.setDate(d.getDate()-7*(off||0));return dk(d)}
+function vwHtml(){const v=S.spirit.values;if(!v.length)return '';const W=vwS(),cur=W[vwKey()]||'',L={y:'Yes',p:'Partly',n:'Not yet'};
+  let st=0;for(let i=cur?0:1;i<52;i++){const x=W[vwKey(i)];if(x==='y'||x==='p')st++;else break}
+  const dots=[7,6,5,4,3,2,1,0].map(i=>{const x=W[vwKey(i)]||'';return `<i class="vwd ${x}" title="${i?i+' week'+(i>1?'s':'')+' ago':'This week'}: ${L[x]||'no answer'}"></i>`}).join('');
+  return `<h3 style="margin-top:16px">This week</h3><p style="margin:0 0 8px">Did I live <b>${v.map(esc).join(', ')}</b> this week?</p>
+  <div class="chips" role="group" aria-label="Did I live my values this week">${['y','p','n'].map(k=>`<button class="chip" aria-pressed="${cur===k}" data-a="vwk" data-v="${k}">${L[k]}</button>`).join('')}</div>
+  <div class="vwrow" role="img" aria-label="Last 8 weeks">${dots}</div>
+  <p class="tag">${st?`${st} week${st>1?'s':''} in a row living your values, fully or partly.`:'Answer once a week. Partly counts: honest beats perfect.'}</p>`}
 function viewSpirit(){
   const v=S.spirit.values;
   return `<h2>Spirit</h2>
   <p>Spiritual readiness is about purpose, values and meaning. It is open to every belief system, including none.</p>
-  <h3>My top three values</h3>
+  <h3>My purpose</h3>
+  <div class="form"><label class="wide">In one line, what drives you?<input type="text" id="purp" data-f="purp" maxlength="140" value="${esc(S.spirit.purpose||'')}" placeholder="e.g. Bring every Soldier home better than I found them" autocomplete="off"></label></div>
+  <h3 style="margin-top:16px">My top three values</h3>
   <div class="chips" role="group" aria-label="Values">${VALUES.map(x=>`<button class="chip" aria-pressed="${v.includes(x)}" data-a="val" data-v="${x}">${x}</button>`).join('')}</div>
   <div class="tag">${v.length}/3 chosen</div>
+  ${vwHtml()}
   ${vaHtml()}
   ${jrHtml('spirit')}
   ${huddleHtml()}
@@ -3913,6 +3988,9 @@ document.addEventListener('click',ev=>{
   const a=b.dataset.a,v=b.dataset.v;
   if(a==='hyd'){const was=S.hyd.n;S.hyd.n=Math.max(0,Math.min(30,S.hyd.n+ +v));S.nut.wlog[today()]=S.hyd.n;FX.cup=-1;render()}
   else if(a==='mood'){const d=today();const e=S.mind.log[d]||(S.mind.log[d]={mood:-1,g:['','','']});e.mood=+v;render()}
+  else if(a==='g4g'&&/^[gyr]$/.test(v)){const G=g4gS(),k=today();G[k]=((G[k]||'')+v).slice(-60);const y=scrollY;render();scrollTo(0,y)}
+  else if(a==='g4gundo'){const G=g4gS(),k=today();if(G[k])G[k]=G[k].slice(0,-1);if(!G[k])delete G[k];const y=scrollY;render();scrollTo(0,y)}
+  else if(a==='vwk'&&/^[ypn]$/.test(v)){vwS()[vwKey()]=v;const y=scrollY;render();scrollTo(0,y)}
   else if(a==='val'){const arr=S.spirit.values,i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else if(arr.length<3)arr.push(v);render()}
   else if(a==='brpat'){S.breath=v;render()}
   else if(a==='breath')toggleBreath();
@@ -3929,8 +4007,12 @@ document.addEventListener('input',ev=>{
   else if(f==='squnit'){S.squad.unit=t.value.slice(0,40);const c=document.getElementById('ruCode');if(c)c.value=ruCode();save()}
   else if(f==='sqname'){S.squad.name=t.value.slice(0,40);const c=document.getElementById('sqCode'),pv=document.getElementById('sqPrev'),pc=document.getElementById('ptCode');if(c)c.value=sqCode();if(pv)pv.innerHTML=sqMeInner();if(pc)pc.value=ptCode();sqLinkUpd();save()}
   else if(f==='ptnote'){S.squad.note=t.value.slice(0,200);const pc=document.getElementById('ptCode');if(pc)pc.value=ptCode();sqLinkUpd();save()}
+  else if(f==='cue'){S.mind.cue=t.value.slice(0,20);save()}
+  else if(f==='purp'){S.spirit.purpose=t.value.slice(0,140);save()}
   else if(f==='gr'){const d=today();const e=S.mind.log[d]||(S.mind.log[d]={mood:-1,g:['','','']});e.g[+t.dataset.i]=t.value;save()}
   else if(f==='sldate'){slDay=t.value;slArm='';slDraft=null;render()}
+  else if(f==='slbw'){const b=(document.getElementById('sl_b')||{}).value,w=(document.getElementById('sl_w')||{}).value,h=document.getElementById('sl_h');
+    if(h&&/^\d\d:\d\d$/.test(b||'')&&/^\d\d:\d\d$/.test(w||'')){let d=slMin(w)-slMin(b);if(d<=0)d+=1440;h.value=Math.round(d/15)/4}}
   else if(f==='wake'){S.sleep.wake=t.value;document.getElementById('times').innerHTML=timesHtml();save()}
 });
 document.addEventListener('change',ev=>{
@@ -4202,7 +4284,8 @@ function cleanBackup(raw){
   if(o.nut&&typeof o.nut==='object'){const n=o.nut,s8=x=>isStr(x)?x.slice(0,8):'',num=(x,mx)=>Number.isFinite(x)&&x>=0&&x<=mx?Math.round(x):0;
     out.nut={wt:s8(n.wt),unit:n.unit==='kg'?'kg':'lb',ht:s8(n.ht),hu:n.hu==='in'?'in':'cm',age:s8(n.age),sex:n.sex==='m'||n.sex==='f'?n.sex:'',act:['1.2','1.375','1.55','1.725'].includes(n.act)?n.act:'1.55',goal:n.goal==='l'||n.goal==='g'?n.goal:'m',meals:[],wlog:{}};
     if(Array.isArray(n.meals))out.nut.meals=n.meals.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)).slice(0,600).map(e=>({id:e.id,d:e.d,m:MEALS.includes(e.m)?e.m:'Snack',t:isStr(e.t)?e.t.slice(0,80):'',k:num(e.k,20000),p:num(e.p,2000),c:num(e.c,3000),f:num(e.f,2000)}));
-    if(n.wlog&&typeof n.wlog==='object')Object.entries(n.wlog).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&Number.isFinite(v)&&v>=0&&v<=30).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,800).forEach(([k,v])=>{out.nut.wlog[k]=Math.round(v)})}
+    if(n.wlog&&typeof n.wlog==='object')Object.entries(n.wlog).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&Number.isFinite(v)&&v>=0&&v<=30).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,800).forEach(([k,v])=>{out.nut.wlog[k]=Math.round(v)});
+    if(n.g4g&&typeof n.g4g==='object'){out.nut.g4g={};Object.entries(n.g4g).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v)&&/^[gyr]{1,60}$/.test(v)).slice(0,800).forEach(([k,v])=>{out.nut.g4g[k]=v})}}
   if(o.goal&&typeof o.goal==='object')out.goal=gtCleanStore(o.goal);
   if(o.sg&&typeof o.sg==='object')out.sg=sgClean(o.sg);
   if(o.ch&&typeof o.ch==='object')out.ch=chClean(o.ch);
@@ -4215,11 +4298,13 @@ function cleanBackup(raw){
     if(Array.isArray(q.members))q.members.slice(0,60).forEach(m=>{const c=sqClean(m);if(c&&isStr(m.k)&&/^[a-z0-9-]{1,40}$/.test(m.k)&&!out.squad.members.some(x=>x.k===m.k)){c.k=m.k;{const pr=rbCleanList(m.prb);if(pr)c.prb=pr}if(m.p&&typeof m.p==='object'){const pc=sqClean({v:1,n:'p',d:m.p.d,tr:m.p.tr,sl:m.p.sl,aft:m.p.aft});if(pc)c.p={d:pc.d,tr:pc.tr,sl:pc.sl,aft:pc.aft}}out.squad.members.push(c)}});out.squad.unit=isStr(q.unit)?q.unit.slice(0,40):'';out.squad.units=[];if(Array.isArray(q.units))q.units.slice(0,40).forEach(u=>{const c=ruClean(u);if(c&&isStr(u.k)&&/^[a-z0-9]{1,40}$/.test(u.k)&&!out.squad.units.some(x=>x.k===u.k)){c.k=u.k;out.squad.units.push(c)}})}
   if(o.sleep&&isStr(o.sleep.wake)&&/^\d\d:\d\d$/.test(o.sleep.wake))out.sleepWake=o.sleep.wake;
   if(o.sleep&&o.sleep.log&&typeof o.sleep.log==='object'){const lg={};Object.entries(o.sleep.log).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&typeof v==='number'&&v>=0&&v<=24)lg[k]=Math.round(v*100)/100});out.sleepLog=lg}
-  if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object')mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s}});out.sleepMeta=mt}
-  if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg}}
+  if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object'){mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s};['b','w'].forEach(x=>{if(isStr(v[x])&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v[x]))mt[k][x]=v[x]})}});out.sleepMeta=mt}
+  if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg};if(isStr(o.mind.cue))out.mind.cue=o.mind.cue.slice(0,20)}
   out.rb=rbClean(o.rb);
   if(o.body&&typeof o.body==='object')out.body=bcpClean(o.body);
-  if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)}}
+  if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)};
+    if(isStr(o.spirit.purpose))out.spirit.purpose=o.spirit.purpose.slice(0,140);
+    if(o.spirit.vw&&typeof o.spirit.vw==='object'){out.spirit.vw={};Object.entries(o.spirit.vw).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)&&/^[ypn]$/.test(v)).slice(0,260).forEach(([k,v])=>{out.spirit.vw[k]=v})}}
   return out;
 }
 function applyBackup(c){
@@ -5083,8 +5168,9 @@ document.addEventListener('click',ev=>{
   if(a==='sldsel'){slDay=v;slArm='';slDraft=null;render();return}
   if(a==='slsave'){const d=(document.getElementById('sl_d').value||today()),hv=parseFloat(document.getElementById('sl_h').value),er=document.getElementById('slErr');
     if(!/^\d{4}-\d\d-\d\d$/.test(d)||d>today()){er.textContent='Pick a date that is not in the future.';er.hidden=false;return}
-    if(!(hv>=0&&hv<=24)){er.textContent='Enter hours between 0 and 24.';er.hidden=false;return}
-    S.sleep.log[d]=Math.round(hv*100)/100;const dr=slGet(d);S.sleep.meta[d]={r:dr.r,c:dr.c,s:dr.s};slDay=d;save();render();return}
+    if(!(hv>=0&&hv<=24)){er.textContent='Enter hours, or your bed and wake times.';er.hidden=false;return}
+    const tb=(document.getElementById('sl_b')||{}).value||'',tw=(document.getElementById('sl_w')||{}).value||'',hm=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(x)?x:'';
+    S.sleep.log[d]=Math.round(hv*100)/100;const dr=slGet(d);S.sleep.meta[d]={r:dr.r,c:dr.c,s:dr.s};if(hm(tb))S.sleep.meta[d].b=tb;if(hm(tw))S.sleep.meta[d].w=tw;slDay=d;save();render();return}
   if(a==='sldel'){const d=slDay||today();if(slArm!==d){slArm=d;render()}else{delete S.sleep.log[d];delete S.sleep.meta[d];slDraft=null;slArm='';save();render()}return}
   if(a==='jrsave'){const txt=(jrDraft[k]||'').trim(),err=document.getElementById('jrErr_'+k);
     if(!txt){err.textContent='Write something first.';err.hidden=false;return}
