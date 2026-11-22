@@ -1079,15 +1079,71 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .epwr>*:nth-child(2){animation-delay:.04s}.epwr>*:nth-child(3){animation-delay:.08s}.epwr>*:nth-child(4){animation-delay:.12s}.epwr>*:nth-child(5){animation-delay:.16s}.epwr>*:nth-child(6){animation-delay:.2s}.epwr>*:nth-child(n+7){animation-delay:.24s}
 @keyframes eup{from{opacity:0;transform:translateY(12px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
 @media (prefers-reduced-motion:reduce){.reactor *,.epwr>*{animation:none!important}}
+
+/* Lock screen, HUD style: logo inside a slow reactor ring, a bracketed code panel. Pixel-sized SVG; only transform and opacity animate. */
+#gate{background:radial-gradient(90% 60% at 50% 22%,rgba(36,85,58,.55) 0%,rgba(13,36,24,.35) 45%,#050705 80%),#050705!important;color:#f4f3ec;overflow:hidden}
+#gate .ggrid{position:absolute;inset:0;pointer-events:none;opacity:.5;background:linear-gradient(rgba(232,191,85,.05) 1px,transparent 1px) 0 0/100% 28px,linear-gradient(90deg,rgba(232,191,85,.05) 1px,transparent 1px) 0 0/28px 100%;
+  -webkit-mask-image:radial-gradient(70% 60% at 50% 40%,#000 30%,transparent 85%);mask-image:radial-gradient(70% 60% at 50% 40%,#000 30%,transparent 85%)}
+#gate .box{position:relative;align-items:center;text-align:center;gap:14px;max-width:380px}
+#gate .gcore{position:relative;width:220px;height:220px;margin:-6px auto 2px;display:grid;place-items:center}
+#gate .gring{position:absolute;left:0;top:0;overflow:visible}
+#gate .gring circle,#gate .gring path,#gate .gring line{fill:none}
+#gate .gr-glow{stroke:rgba(232,191,85,.10);stroke-width:26}
+#gate .gr-arc{stroke:var(--gold);stroke-width:2.2;stroke-linecap:butt;opacity:.85}
+#gate .gr-t line{stroke:rgba(232,191,85,.30);stroke-width:1}
+#gate .gr-a,#gate .gr-b{transform-origin:110px 110px}
+#gate .gatelogo{position:relative;margin:0;filter:drop-shadow(0 0 18px rgba(232,191,85,.25))}
+#gate .gstat{display:inline-flex;align-items:center;gap:8px;font:700 12px/1 var(--body);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+#gate .gstat i{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+#gate .mark{font:900 38px/1 var(--display);font-stretch:112%;letter-spacing:-.035em;text-shadow:0 0 24px rgba(232,191,85,.18)}
+#gate .gpanel{position:relative;width:100%;display:flex;flex-direction:column;gap:10px;padding:20px 18px 18px;margin-top:4px;
+  background:linear-gradient(180deg,rgba(15,28,20,.92),rgba(8,12,9,.92));border:1px solid rgba(232,191,85,.16);box-shadow:0 18px 44px rgba(0,0,0,.55)}
+#gate .gk{position:absolute;width:16px;height:16px;border:0 solid var(--gold);filter:drop-shadow(0 0 4px rgba(232,191,85,.6));pointer-events:none}
+#gate .gk.tl{left:-1px;top:-1px;border-left-width:2px;border-top-width:2px;--dx:-3px;--dy:-3px}
+#gate .gk.tr{right:-1px;top:-1px;border-right-width:2px;border-top-width:2px;--dx:3px;--dy:-3px}
+#gate .gk.br{right:-1px;bottom:-1px;border-right-width:2px;border-bottom-width:2px;--dx:3px;--dy:3px}
+#gate .gk.bl{left:-1px;bottom:-1px;border-left-width:2px;border-bottom-width:2px;--dx:-3px;--dy:3px}
+#gate .glab{font:700 12px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:#b9cbbf;text-align:left}
+#gate input{font:700 22px var(--body)!important;letter-spacing:.3em;text-align:center;text-transform:uppercase;min-height:56px;caret-color:var(--gold);color:#f4f3ec!important;
+  background:rgba(5,7,5,.7)!important;border:1px solid rgba(232,191,85,.28)!important;border-radius:6px}
+#gate input::placeholder{color:rgba(232,191,85,.28);letter-spacing:.4em}
+#gate input:focus{border-color:var(--gold)!important;box-shadow:0 0 0 1px var(--gold),0 0 22px rgba(232,191,85,.28)!important;outline:none}
+#gate .err{color:#f1a585;font-size:14px;min-height:20px;margin:-2px 0}
+#gate .btn{min-height:52px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+#gate .sub{color:#93a99b;font-size:14px;max-width:300px}
+#gate.bad .gpanel{animation:gshake .38s cubic-bezier(.36,.07,.19,.97)}
+#gate.bad .gpanel{border-color:rgba(241,165,133,.5)}
+@keyframes gshake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes gspin{to{transform:rotate(360deg)}}
+@keyframes gpulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glock{0%,100%{transform:translate(0,0);opacity:1}45%{transform:translate(var(--dx),var(--dy));opacity:.55}55%{transform:translate(0,0);opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+  #gate .gr-a{animation:gspin 60s linear infinite}
+  #gate .gr-b{animation:gspin 24s linear infinite reverse}
+  #gate .gstat i{animation:gpulse 1.8s ease-in-out infinite}
+  #gate .gk{animation:glock 3.4s cubic-bezier(.6,0,.2,1) infinite}
+}
+@media (max-height:640px){#gate .gcore{transform:scale(.8);margin:-28px auto -20px}#gate .sub{display:none}}
+.rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
+.bcpform{grid-template-columns:1fr 1fr}
+.bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
 </style>
-<div id="gate" hidden><form class="box" id="gateForm" autocomplete="off">
-  <svg class="gatelogo" viewBox="0 0 100 106" width="92" height="98" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="#0b2418" stroke="#e3b23c" stroke-width="1.2"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="#e3b23c" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="#e3b23c" stroke-width="5.5"/></svg>
+<div id="gate" hidden><div class="ggrid" aria-hidden="true"></div><form class="box" id="gateForm" autocomplete="off">
+  <div class="gcore" aria-hidden="true"><svg class="gring" viewBox="0 0 220 220" width="220" height="220">
+    <circle class="gr-glow" cx="110" cy="110" r="78"/>
+    
+    <g class="gr-b"><path class="gr-arc" d="M110 22a88 88 0 0 1 62.2 25.8"/><path class="gr-arc" d="M198 110a88 88 0 0 1-25.8 62.2"/><path class="gr-arc" d="M110 198a88 88 0 0 1-62.2-25.8"/><path class="gr-arc" d="M22 110a88 88 0 0 1 25.8-62.2"/></g>
+    <g class="gr-a gr-t"><line x1="110" y1="6" x2="110" y2="14" transform="rotate(0 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(10 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(20 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(30 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(40 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(50 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(60 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(70 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(80 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(90 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(100 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(110 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(120 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(130 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(140 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(150 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(160 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(170 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(180 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(190 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(200 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(210 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(220 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(230 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(240 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(250 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(260 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(270 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(280 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(290 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(300 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(310 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(320 110 110)"/><line x1="110" y1="6" x2="110" y2="14" transform="rotate(330 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(340 110 110)"/><line x1="110" y1="9" x2="110" y2="14" transform="rotate(350 110 110)"/></g>
+  </svg><svg class="gatelogo" viewBox="0 0 100 106" width="86" height="92" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="#0b2418" stroke="#e3b23c" stroke-width="1.2"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="#e3b23c" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="#e3b23c" stroke-width="5.5"/></svg></div>
+  <div class="gstat"><i></i>Secure access</div>
   <div class="mark">H2F Trainer</div>
-  <div class="sub">Enter your access code</div>
-  <label class="sub" for="gateCode">Access code</label>
-  <input type="text" id="gateCode" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="40" aria-describedby="gateErr">
+  <div class="gpanel"><span class="gk tl"></span><span class="gk tr"></span><span class="gk br"></span><span class="gk bl"></span>
+  <label class="glab" for="gateCode">Access code</label>
+  <input type="text" id="gateCode" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="40" placeholder="••••••" aria-describedby="gateErr gateSub">
   <div class="err" id="gateErr" role="alert"></div>
   <button class="btn" type="submit">Unlock</button>
+  </div>
+  <div class="sub" id="gateSub">Enter the code you were given to open the app.</div>
 </form></div>
 <header class="top"><div class="topin"><svg class="logo" viewBox="0 0 100 106" width="34" height="36" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div class="brand"><div class="mark">H2F Trainer</div></div><div id="saveStat" aria-live="polite"></div></div></header>
 <main>
@@ -1844,7 +1900,7 @@ function viewToday(){
     if(items.length)work=reactorHtml(items.filter(it=>it.done).length,items.length)+work}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
-  ${coachHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
+  ${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
@@ -1852,6 +1908,13 @@ function viewToday(){
   <section class="tdcard"><h3>${ico('assess')}AFT</h3><div class="tdbig">${af?af.t:'–'}<small>${af?' points':''}</small></div><p class="tag">${af?(aftPass(af)?'Pass':'Fail')+', '+(af.std==='c'?'combat':'general')+' standard, '+esc(jrLabel(af.d))+'.':'No score saved yet.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="assess">${af?'Score again':'Score my AFT'}</button></section>
   </div>
   <p class="privacy">Everything you log stays on this phone. No account, no ads. Only what you choose to share goes to your leader.</p>`}
+
+/* AFT countdown on Today: shows from 120 days out, with a tip for the phase (build, sharpen, taper, test) */
+function aftCdHtml(){const n=aftDays();if(n<0||n>120)return '';const d=aftDate(),af=(S.aft.hist||[])[0];
+  const focus=n===0?'Warm up well and pace the run. You have trained for this.':n<=2?'Keep it light: easy movement, sleep and water. No hard sessions now.':n<=7?'<b>Taper week.</b> Cut the volume, keep some intensity, and protect your sleep.':n<=28?'<b>Sharpen.</b> Run each event at test pace once a week'+(af?'':', and save a practice score')+'.':'<b>Build.</b> Train all five events every week and bring up your lowest one first.';
+  return `<section class="tdwide aftcd" id="aftcd"><div class="sechead"><h3>${ico('assess')}AFT</h3></div>
+  <div class="tdbig">${n===0?'Test day':n===1?'Tomorrow':n+' days'}</div><p>${esc(vzLong(d))}${n>1?' · '+(n>=14?Math.floor(n/7)+' weeks out':'final '+(n>=7?'two weeks':'week')):''}</p>
+  <p class="tag">${focus}</p><div class="row"><button class="btn ghost" data-a="tdgo" data-v="assess">Practice score</button><button class="btn ghost" data-a="rmdopen">Reminders</button></div></section>`}
 
 /* ---- Readiness check: a short night or a low mood today suggests a lighter session ---- */
 function readyItems(wd){const W=wkData(0);return wd<5&&W&&W.plan&&!isStW(W,wd)?(W.plan[wd]||[]).filter(it=>EX[it.id]):[]}
@@ -1927,12 +1990,77 @@ function pgHtml(){const H=S.hist||[],tot=H.reduce((a,x)=>a+(x.ms||0),0),st=strea
   <div class="stats"><div><b>${H.length}</b><span>workouts</span></div><div><b>${st}</b><span>week streak</span></div><div><b>${bs}</b><span>best streak</span></div></div>
   <p class="tag">${tot?fmtT(tot)+' trained with the workout timer. ':''}A streak week has 3 or more workout days.</p>
   ${vzBars({title:'Workout days per week',aria:'Workout days per week, last 12 weeks',colA:'Week',colB:'Workout days',rows:wk,max:5,ticks:[0,1,2,3,4,5],target:[3,'3 a week'],h:120})}
+  ${bcpHtml()}
   <h3 style="margin-top:18px">Personal bests</h3>
   ${pb.length?`<p class="tag">Heaviest weight you logged for each lift on Train.</p><div class="list">${pb.slice(0,12).map(b=>`<div class="item pbrow"><button class="nm" data-a="info" data-v="${b.id}">${esc(EX[b.id].name)}<small>${esc(vzLong(b.k))}${b.rx?' · '+esc(b.rx):''}</small></button><b class="pbv">${b.v} ${au()}</b></div>`).join('')}</div>${pb.length>12?`<div class="tag">Showing your 12 most recent bests of ${pb.length}.</div>`:''}`:'<div class="empty">Type the weight you lift into each exercise on Train. Your heaviest for each lift shows up here.</div>'}
   <h3 style="margin-top:18px">AFT scores</h3>
   ${af.length?vzBars({title:'Total points',aria:'AFT total points, latest '+af.length+' scores',colB:'Points',colC:'Result',rows:af.map((e,i)=>({k:e.id||String(i),v:e.t,lab:(e.d||'').slice(5).replace('-','/'),full:vzLong(e.d),c:aftPass(e)?'Pass':'Fail',tip:`${vzLong(e.d)}: ${e.t} points, ${aftPass(e)?'pass':'fail'}`})),max:600,ticks:[0,150,300,450,600],h:120})+(af.length>1?`<p class="tag">${af[af.length-1].t-af[0].t>=0?'Up':'Down'} ${Math.abs(af[af.length-1].t-af[0].t)} points since ${esc(vzLong(af[0].d))}.</p>`:''):`<div class="empty">No AFT scores saved yet.</div><div class="row"><button class="btn ghost" data-a="pggo" data-v="assess">Score my AFT</button></div>`}
   <div class="row"><button class="btn ghost" data-a="sheetclose">Close</button></div>`}
 function pgShow(){window.vzAnim=!RM();document.getElementById('pgrBody').innerHTML=pgHtml();window.vzAnim=false;document.getElementById('pgrSheet').hidden=false}
+function pgRefresh(){const p=document.querySelector('#pgrSheet .panel'),y=p?p.scrollTop:0;document.getElementById('pgrBody').innerHTML=pgHtml();if(p)p.scrollTop=y}
+/* Body: weigh-ins and the Army waist-to-height check. Army Directive 2026-13 (July 2026): waist at the navel divided by
+   height, recorded to 3 decimals, standard is under 0.55. Stored in lb and inches; shown in the units picked under Fuel.
+   Stays on this phone: never part of a squad share. */
+const BCP_STD=0.55,BCP_LB=0.45359237;
+function bcpClean(o){const L=o&&typeof o==='object'&&Array.isArray(o.log)?o.log:[],seen=new Set(),out=[];
+  L.forEach(e=>{if(!e||typeof e.d!=='string'||!/^\d{4}-\d\d-\d\d$/.test(e.d)||seen.has(e.d))return;
+    const w=Number.isFinite(e.w)&&e.w>=60&&e.w<=600?Math.round(e.w*10)/10:null,wa=Number.isFinite(e.wa)&&e.wa>=15&&e.wa<=80?Math.round(e.wa*10)/10:null;
+    if(w===null&&wa===null)return;seen.add(e.d);out.push({d:e.d,w,wa})});
+  out.sort((a,b)=>a.d<b.d?1:-1);return {log:out.slice(0,400)}}
+function bcpS(){if(!S.body||!Array.isArray(S.body.log))S.body=bcpClean(S.body);return S.body}
+const bcpKg=()=>S.nut.unit==='kg',bcpCm=()=>S.nut.hu!=='in';
+function bcpW(lb){return Math.round((bcpKg()?lb*BCP_LB:lb)*10)/10}
+function bcpL(inch){return Math.round((bcpCm()?inch*2.54:inch)*10)/10}
+function bcpHt(){const h=parseFloat(S.nut.ht);if(!(h>0))return 0;const i=bcpCm()?h/2.54:h;return i>=48&&i<=90?i:0}
+function bcpRatio(wa,ht){return Math.round(wa/ht*1000)/1000}
+let bcpNote='';
+function bcpHtml(){const L=bcpS().log,ht=bcpHt(),wu=bcpKg()?'kg':'lb',lu=bcpCm()?'cm':'in',ws=L.filter(e=>e.w!==null),lw=ws[0],lwa=L.find(e=>e.wa!==null);
+  const st=[];
+  if(lw){st.push(`<div><b>${bcpW(lw.w)}</b><span>${wu} on ${lw.d.slice(5).replace('-','/')}</span></div>`);
+    const old=ws.find(e=>(vzDay(lw.d)-vzDay(e.d))/864e5>=28)||ws[ws.length-1];
+    if(old!==lw){const dl=Math.round((bcpW(lw.w)-bcpW(old.w))*10)/10;st.push(`<div><b>${dl>0?'+':''}${dl}</b><span>${wu} since ${old.d.slice(5).replace('-','/')}</span></div>`)}}
+  let chk;
+  if(lwa&&ht){const r=bcpRatio(lwa.wa,ht),ok=r<BCP_STD,mx=Math.floor((bcpCm()?BCP_STD*ht*2.54:BCP_STD*ht)*10)/10;
+    st.push(`<div class="bcp${ok?'ok':'hi'}"><b>${r.toFixed(3)}</b><span>waist to height</span></div>`);
+    chk=`<p class="tag"><b>${ok?'Meets the Army standard':'Above the Army standard'}</b>: under 0.550 passes. For your height, that is a waist under ${mx} ${lu}. Last waist ${bcpL(lwa.wa)} ${lu} on ${esc(vzLong(lwa.d))}.</p>`}
+  else chk=`<p class="tag">${!ht?'Add your height':'Add your waist at the navel'} to check the Army's waist-to-height standard (under 0.55).</p>`;
+  let chart='';
+  if(ws.length>=2){const rows=ws.slice(0,12).reverse(),vals=rows.map(e=>bcpW(e.w)),lo=Math.floor((Math.min(...vals)-2)/10)*10,hi=Math.ceil((Math.max(...vals)+2)/10)*10,sp=hi-lo;
+    chart=vzBars({title:'Weight, last '+rows.length+' weigh-ins',aria:'Body weight, last '+rows.length+' weigh-ins',colA:'Date',colB:'Weight',unit:wu,max:sp,ticks:[0,sp/2,sp],yLab:t=>String(Math.round(t+lo)),fmt:v=>String(Math.round((v+lo)*10)/10),h:110,
+      rows:rows.map((e,i)=>({k:e.d,v:bcpW(e.w)-lo,lab:e.d.slice(5).replace('-','/'),full:vzLong(e.d),tip:`${vzLong(e.d)}: ${bcpW(e.w)} ${wu}`}))})}
+  const recent=L.slice(0,5).map(e=>`<div class="item bcprow"><span class="nm">${esc(vzLong(e.d))}</span><span class="rxv">${[e.w!==null?bcpW(e.w)+' '+wu:'',e.wa!==null?'waist '+bcpL(e.wa)+' '+lu:''].filter(Boolean).join(' · ')}</span><button type="button" class="iconbtn" data-a="bcpdel" data-v="${e.d}" aria-label="Remove ${esc(vzLong(e.d))}">×</button></div>`).join('');
+  return `<h3 style="margin-top:18px" id="bcpTop">Body</h3>
+  ${st.length?`<div class="stats bcpstats">${st.join('')}</div>`:'<div class="empty">Log a weigh-in to start your trend. Once a week, same time of day, works best.</div>'}
+  ${chk}${chart}
+  <div class="form bcpform">
+    <label>Date<input type="date" id="bcpD" value="${today()}" max="${today()}"></label>
+    <label>Weight (${wu})<input type="text" inputmode="decimal" id="bcpW" placeholder="${bcpKg()?'e.g. 82.5':'e.g. 182'}" autocomplete="off"></label>
+    <label>Waist at the navel (${lu})<input type="text" inputmode="decimal" id="bcpWa" placeholder="${bcpCm()?'e.g. 86':'e.g. 34'}" autocomplete="off"></label>
+    <label>Height (${lu})<input type="text" inputmode="decimal" id="bcpH" value="${esc(S.nut.ht||'')}" placeholder="${bcpCm()?'e.g. 178':'e.g. 70'}" autocomplete="off"></label>
+  </div>
+  <div class="row"><button class="btn" data-a="bcpsave">Save weigh-in</button><button class="btn ghost" data-a="bcpunit">Use ${bcpKg()?'lb and inches':'kg and cm'}</button></div>
+  <div class="note" id="bcpMsg" role="status"${bcpNote?'':' hidden'}>${esc(bcpNote)}</div>
+  ${recent?`<div class="list">${recent}</div>`:''}
+  <p class="tag">An unofficial check based on Army Directive 2026-13. Your unit takes the official measurement. Your weight and waist stay on this phone and are never shared with your squad.</p>`}
+function bcpMsg(t){bcpNote=t;const m=document.getElementById('bcpMsg');if(m){m.textContent=t;m.hidden=!t}}
+function bcpSave(){const B=bcpS(),val=id=>{const el=document.getElementById(id),s=el?el.value.trim().replace(',','.'):'';return s===''?null:(/^\d{1,3}(\.\d{1,2})?$/.test(s)?parseFloat(s):NaN)};
+  const d=(document.getElementById('bcpD')||{}).value||today(),w=val('bcpW'),wa=val('bcpWa'),h=val('bcpH');
+  if(!/^\d{4}-\d\d-\d\d$/.test(d)||d>today())return bcpMsg('Pick a date that is today or earlier.');
+  const wl=w===null?null:bcpKg()?w/BCP_LB:w,wi=wa===null?null:bcpCm()?wa/2.54:wa,hi=h===null?null:bcpCm()?h/2.54:h;
+  if(wl!==null&&!(wl>=60&&wl<=600))return bcpMsg('That weight looks off. Check the number and the unit.');
+  if(wi!==null&&!(wi>=15&&wi<=80))return bcpMsg('That waist looks off. Check the number and the unit.');
+  if(hi!==null&&!(hi>=48&&hi<=90))return bcpMsg('That height looks off. Check the number and the unit.');
+  if(h!==null)S.nut.ht=String(h);
+  if(wl===null&&wi===null){if(h!==null){save();bcpNote='Height saved.';pgRefresh();return}return bcpMsg('Enter your weight, your waist, or both.')}
+  let e=B.log.find(x=>x.d===d);if(!e){e={d,w:null,wa:null};B.log.push(e)}
+  if(wl!==null)e.w=Math.round(wl*10)/10;if(wi!==null)e.wa=Math.round(wi*10)/10;
+  B.log.sort((a,b)=>a.d<b.d?1:-1);B.log=B.log.slice(0,400);
+  if(wl!==null&&B.log.find(x=>x.w!==null)===e)S.nut.wt=String(w);
+  save();bcpNote='Saved for '+vzLong(d)+'.';pgRefresh()}
+function bcpUnit(){const toKg=!bcpKg(),w=parseFloat(S.nut.wt),h=parseFloat(S.nut.ht),hin=bcpCm()?h/2.54:h;
+  if(w>0)S.nut.wt=String(Math.round((toKg?w*BCP_LB:w/BCP_LB)*10)/10);
+  if(h>0)S.nut.ht=String(toKg?Math.round(hin*2.54):Math.round(hin*10)/10);
+  S.nut.unit=toKg?'kg':'lb';S.nut.hu=toKg?'cm':'in';save();bcpNote='';pgRefresh()}
 /* a heavier weight than any logged before shows a personal-best note right on the row */
 function pbCheck(inp){if(inp.dataset.k!=='train')return;const i=+inp.dataset.i,it=S.plan[S.day][i];if(!it)return;const row=inp.closest('.item');if(!row)return;
   const old=row.querySelector('.pbnew');if(old)old.remove();const s=String(it.w||'').trim();if(!/^\d+(\.\d+)?$/.test(s))return;
@@ -2445,6 +2573,9 @@ document.addEventListener('click',ev=>{
   if(a==='moreopen'){moreShow();return}
   if(a==='sheetclose'){const sh=b.closest('.sheet');if(sh)sh.hidden=true;return}
   if(a==='pgopen'){pgShow();return}
+  if(a==='bcpsave'){bcpSave();return}
+  if(a==='bcpunit'){bcpUnit();return}
+  if(a==='bcpdel'){const B=bcpS();B.log=B.log.filter(e=>e.d!==v);save();bcpNote='Removed.';pgRefresh();return}
   if(a==='pggo'){document.getElementById('pgrSheet').hidden=true;S.tab=v;render();scrollTo(0,0);return}
   if(a==='rbopen'){rbDetail(v);return}
   if(a==='rbmore'){const m=b.closest('.rbmini');if(m)m.classList.add('all');b.remove();return}
@@ -2534,6 +2665,7 @@ const today=()=>dk(new Date());
 const dayOfYear=()=>{const n=new Date();return Math.floor((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(n.getFullYear(),0,0))/864e5)};
 S.hyd=S.hyd||{date:'',n:0};if(S.hyd.date!==today())S.hyd={date:today(),n:0};
 S.nut=Object.assign({wt:'',unit:'lb',ht:'',hu:'cm',age:'',sex:'',act:'1.55',goal:'m',meals:[],wlog:{}},S.nut||{});
+S.body=bcpClean(S.body);
 var asArm='',runMode='pace',rmLift='bench';
 const LIFTS={bench:'Bench press',bsq:'Back squat',dl:'Deadlift'};
 S.assess=S.assess||{ev:[],log:[],unit:'lb'};
@@ -3042,6 +3174,8 @@ function aftHtml(){
   const A=S.aft;
   return `<h3>AFT score calculator</h3>
   <p class="tag">Army Fitness Test, five events. Uses the Army score tables effective 1 June 2025.</p>
+  <div class="form"><label>Next record test<input type="date" id="aftNext" value="${aftDate()}" min="${today()}"></label></div>
+  <p class="tag">${aftDate()?'Today shows a countdown. Turn on alerts under Unit, Reminders.':'Set the date for a countdown on Today and optional alerts.'}</p>
   <div class="form"><label>Age<input class="nin" type="text" inputmode="numeric" data-f="aftf" data-t="age" value="${esc(A.age)}" placeholder="e.g. 28" autocomplete="off"></label>
   <label>Sex<select class="nin" data-f="aftf" data-t="sex"><option value="">Choose</option><option value="m"${A.sex==='m'?' selected':''}>Male</option><option value="f"${A.sex==='f'?' selected':''}>Female</option></select></label>
   <label class="wide">Standard<select class="nin" data-f="aftf" data-t="std"><option value="g"${A.std==='g'?' selected':''}>General: 300 total, 60 per event</option><option value="c"${A.std==='c'?' selected':''}>Combat: 350 total, 60 per event, sex-neutral</option></select></label>
@@ -3863,7 +3997,7 @@ document.getElementById('gateForm').addEventListener('submit',async ev=>{
   const v=document.getElementById('gateCode').value.trim().toUpperCase().replace(/\s+/g,''),err=document.getElementById('gateErr');
   let ok=false;try{ok=(await sha(v))===CODE_HASH}catch(e){err.textContent='This browser cannot check codes. Try another browser.';return}
   if(ok){try{localStorage.setItem('h2f.access',CODE_HASH)}catch(e){}document.getElementById('gateCode').value='';err.textContent='';showGate(false);tourMaybe()}
-  else{err.textContent='That code is not right. Check it and try again.';document.getElementById('gateCode').select()}
+  else{err.textContent='That code is not right. Check it and try again.';document.getElementById('gateCode').select();const g=document.getElementById('gate');g.classList.remove('bad');void g.offsetWidth;g.classList.add('bad');clearTimeout(g._bt);g._bt=setTimeout(()=>g.classList.remove('bad'),900)}
 });
 document.getElementById('lockBtn').addEventListener('click',()=>{try{localStorage.removeItem('h2f.access')}catch(e){}showGate(true)});
 /* workout timer */
@@ -3944,7 +4078,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes','body'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -4017,7 +4151,7 @@ function cleanBackup(raw){
   if(o.ch&&typeof o.ch==='object')out.ch=chClean(o.ch);
   if(o.cft&&typeof o.cft==='object'&&Array.isArray(o.cft.hist))out.cft={hist:o.cft.hist.filter(h=>h&&Number.isFinite(h.ts)&&Number.isInteger(h.n)&&h.n>=1&&h.n<=7&&Array.isArray(h.sp)&&h.sp.length===h.n&&h.sp.every((v,k)=>Number.isFinite(v)&&v>=0&&v<=36e5&&(!k||v>=h.sp[k-1]))&&h.t===h.sp[h.n-1]).slice(0,50).map(h=>({ts:h.ts,sp:h.sp.slice(),t:h.t,n:h.n}))};
   if(o.aft&&typeof o.aft==='object'){const a=o.aft,s8=x=>isStr(x)?x.slice(0,8):'',i=a.in&&typeof a.in==='object'?a.in:{};
-    out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};if([300,350,400,450,500].includes(a.goal))out.aft.goal=a.goal;
+    out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};if([300,350,400,450,500].includes(a.goal))out.aft.goal=a.goal;if(isStr(a.date)&&/^\d{4}-\d\d-\d\d$/.test(a.date))out.aft.date=a.date;
     if(Array.isArray(a.hist))out.aft.hist=a.hist.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)&&Number.isInteger(e.age)&&e.age>=17&&e.age<=99&&Array.isArray(e.r)&&e.r.length===5&&e.r.every(x=>Number.isFinite(x)&&x>=0&&x<=3600)&&Array.isArray(e.p)&&e.p.length===5&&e.p.every(x=>Number.isInteger(x)&&x>=0&&x<=100)).slice(0,100).map(e=>({id:e.id,d:e.d,age:e.age,sex:e.sex==='f'?'f':'m',std:e.std==='c'?'c':'g',r:e.r.slice(),p:e.p.slice(),t:e.p.reduce((s,x)=>s+x,0)}))}
   if(o.squad&&typeof o.squad==='object'){const q=o.squad,ic=q.inc&&typeof q.inc==='object'?q.inc:{};
     out.squad={name:isStr(q.name)?q.name.slice(0,40):'',inc:{tr:ic.tr?1:0,sl:ic.sl?1:0,nu:ic.nu?1:0,aft:ic.aft?1:0,rb:ic.rb===0?0:1,ch:ic.ch===0?0:1},members:[]};
@@ -4027,6 +4161,7 @@ function cleanBackup(raw){
   if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object')mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s}});out.sleepMeta=mt}
   if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg}}
   out.rb=rbClean(o.rb);
+  if(o.body&&typeof o.body==='object')out.body=bcpClean(o.body);
   if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)}}
   return out;
 }
@@ -4035,6 +4170,7 @@ function applyBackup(c){
   c.custom.forEach(x=>{EX[x.id]=Object.assign({},x,{custom:true})});
   S.custom=c.custom;S.types=c.types;S.plan=c.plan;S.pt=c.pt;S.hist=c.hist;
   if(c.nut)S.nut=c.nut;
+  if(c.body)S.body=c.body;
   if(c.rb)S.rb=rbMerge(S.rb,c.rb);
   if(c.assess)S.assess=c.assess;
   if(c.stations)S.stations=c.stations;
@@ -4977,8 +5113,12 @@ function rmdS(){const r=S.rmd&&typeof S.rmd==='object'?S.rmd:(S.rmd={});
   if(!Array.isArray(r.wk.days))r.wk.days=[1,2,3,4,5];r.wk.days=r.wk.days.filter(d=>Number.isInteger(d)&&d>=1&&d<=7).sort();
   if(!/^\d\d:\d\d$/.test(r.wk.t||''))r.wk.t='06:00';
   if(!r.bed||typeof r.bed!=='object')r.bed={on:false,t:rmdBedDefault()};if(!/^\d\d:\d\d$/.test(r.bed.t||''))r.bed.t=rmdBedDefault();
-  if(!r.bk||typeof r.bk!=='object')r.bk={on:false};r.push=!!r.push;return r}
-function rmdAny(){const r=rmdS();return r.wk.on&&r.wk.days.length||r.bed.on||r.bk.on}
+  if(!r.bk||typeof r.bk!=='object')r.bk={on:false};if(!r.aft||typeof r.aft!=='object')r.aft={on:false};r.push=!!r.push;return r}
+/* AFT test date: kept with the AFT scores (S.aft.date) so it travels in a backup */
+function aftDate(){const d=S.aft&&S.aft.date;return typeof d==='string'&&/^\d{4}-\d\d-\d\d$/.test(d)&&d>=today()?d:''}
+function aftDays(){const d=aftDate();return d?Math.round((vzDay(d)-vzDay(today()))/864e5):-1}
+function rmdAft(){const r=rmdS();return r.aft.on&&!!aftDate()}
+function rmdAny(){const r=rmdS();return r.wk.on&&r.wk.days.length||r.bed.on||r.bk.on||rmdAft()}
 function rmdPushable(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
 function rmdHtml(){const r=rmdS(),ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
   return `<h2>Reminders</h2><p class="tag">Pick what you want a nudge for. Change it any time.</p>
@@ -4986,9 +5126,11 @@ function rmdHtml(){const r=rmdS(),ios=/iPhone|iPad|iPod/.test(navigator.userAgen
   <div class="chips rmddays" role="group" aria-label="Workout reminder days">${RMD_DN.map((d,i)=>`<button type="button" class="chip" data-a="rmdday" data-day="${i+1}" aria-pressed="${r.wk.days.includes(i+1)}">${d}</button>`).join('')}</div>
   <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdBed" data-f="rmd" data-k="bed"${r.bed.on?' checked':''}> <b>Bedtime</b></label><input type="time" id="rmdBedT" data-f="rmdt" data-k="bed" value="${r.bed.t}" aria-label="Bedtime reminder time"></div>
   <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdBk" data-f="rmd" data-k="bk"${r.bk.on?' checked':''}> <b>Weekly backup</b></label><span class="tag">Sundays, 1800</span></div>
+  <div class="rmdrow"><label class="rmdon"><input type="checkbox" id="rmdAft" data-f="rmd" data-k="aft"${r.aft.on?' checked':''}> <b>AFT test</b></label><input type="date" id="rmdAftD" data-f="aftdate" value="${aftDate()}" min="${today()}" aria-label="AFT test date"></div>
+  <p class="tag">A week before and the day before, at 0800. Today shows a countdown once a date is set.</p>
   <h3>Add them to your calendar</h3><p class="tag">Works on every phone. Your calendar app shows the alerts, and you can change or delete them there.</p>
   <div class="row"><button class="btn" data-a="rmdics"${rmdAny()?'':' disabled'}>Add to my calendar</button></div>
-  <h3>Or get notifications</h3><p class="tag">H2F Trainer sends the reminders itself. A small server keeps only this phone's notification address and the times you picked, never your name or training.${ios&&!standalone?' <b>On iPhone, add the app to your Home Screen first</b> (Unit, Add to Home Screen), then open it from there.':''}</p>
+  <h3>Or get notifications</h3><p class="tag">H2F Trainer sends the reminders itself. A small server keeps only this phone's notification address, the times you picked and your AFT test date, never your name or training.${ios&&!standalone?' <b>On iPhone, add the app to your Home Screen first</b> (Unit, Add to Home Screen), then open it from there.':''}</p>
   <div class="row"><button class="btn${r.push?' ghost':''}" data-a="rmdpush"${rmdAny()||r.push?'':' disabled'}>${r.push?'Update notifications':'Turn on notifications'}</button>${r.push?'<button class="btn ghost" data-a="rmdoff">Turn off notifications</button>':''}</div>
   <div class="note" id="rmdMsg" role="status"${rmdMsg?'':' hidden'}>${esc(rmdMsg)}</div>
   <div class="row"><button class="btn ghost" data-a="rmdclose">Close</button></div>`}
@@ -5001,8 +5143,11 @@ function rmdIcs(){const r=rmdS(),now=new Date(),z=n=>String(n).padStart(2,'0');
   if(r.wk.on&&r.wk.days.length)L=L.concat(ev('workout',r.wk.t,r.wk.days,'RRULE:FREQ=WEEKLY;BYDAY='+r.wk.days.map(d=>RMD_IC[d-1]).join(','),'H2F Trainer: workout','Today\'s workout is ready. Open H2F Trainer.'));
   if(r.bed.on)L=L.concat(ev('bedtime',r.bed.t,null,'RRULE:FREQ=DAILY','H2F Trainer: wind down for bed','Lights out soon. Sleep is part of your training.'));
   if(r.bk.on)L=L.concat(ev('backup','18:00',[7],'RRULE:FREQ=WEEKLY;BYDAY=SU','H2F Trainer: back up your data','Copy a fresh backup code in Unit, Backup.'));
+  if(rmdAft()){const d=aftDate().replace(/-/g,''),al=(tr,t)=>['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+t,'TRIGGER:'+tr,'END:VALARM'];
+    L=L.concat(['BEGIN:VEVENT','UID:h2f-aft-'+d+'@h2ftrainer.com','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+d,'SUMMARY:AFT test day','DESCRIPTION:Your Army Fitness Test. Sleep well and fuel up the night before. https://h2ftrainer.com/'],
+      al('-P6DT16H','AFT in one week'),al('-PT16H','AFT tomorrow'),['END:VEVENT'])}
   return L.concat(['END:VCALENDAR']).join('\r\n')+'\r\n'}
-function rmdPrefs(){const r=rmdS();return {wk_on:!!r.wk.on,wk_time:r.wk.t,wk_days:r.wk.days.slice(),bed_on:!!r.bed.on,bed_time:r.bed.t,bk_on:!!r.bk.on}}
+function rmdPrefs(){const r=rmdS();return {wk_on:!!r.wk.on,wk_time:r.wk.t,wk_days:r.wk.days.slice(),bed_on:!!r.bed.on,bed_time:r.bed.t,bk_on:!!r.bk.on,aft_on:rmdAft(),aft_date:aftDate()||null}}
 function rmdKey(k){const p='='.repeat((4-k.length%4)%4),b=atob((k+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))}
 async function rmdCall(body){const r=await fetch(CLOUD.url+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
 async function rmdPushOn(){const r=rmdS();
@@ -5025,8 +5170,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='rmdpush')rmdPushOn();
   else if(a==='rmdoff')rmdPushOff()});
 document.getElementById('rmdSheet').addEventListener('change',ev=>{const t=ev.target,r=rmdS();
-  if(t.dataset.f==='rmd'){r[t.dataset.k].on=t.checked}else if(t.dataset.f==='rmdt'&&/^\d\d:\d\d$/.test(t.value)){r[t.dataset.k].t=t.value}else return;
+  if(t.dataset.f==='aftdate'){S.aft.date=/^\d{4}-\d\d-\d\d$/.test(t.value)?t.value:'';if(S.aft.date&&!r.aft.on)r.aft.on=true}
+  else if(t.dataset.f==='rmd'){r[t.dataset.k].on=t.checked}else if(t.dataset.f==='rmdt'&&/^\d\d:\d\d$/.test(t.value)){r[t.dataset.k].t=t.value}else return;
   save();rmdSync();rmdShow()});
+document.addEventListener('change',ev=>{const t=ev.target;if(t.id!=='aftNext')return;S.aft.date=/^\d{4}-\d\d-\d\d$/.test(t.value)?t.value:'';save();rmdSync();render()});
 document.getElementById('rmdSheet').addEventListener('click',ev=>{if(ev.target.id==='rmdSheet')ev.target.hidden=true});
 document.getElementById('sqSheet').addEventListener('click',ev=>{if(ev.target.id==='sqSheet')ev.target.hidden=true});
 tourMaybe();

@@ -17,3 +17,7 @@ select cron.schedule('h2f-push-tick', '*/5 * * * *', $$
   select net.http_post('https://ensaxbeodtpdlcqplzhy.supabase.co/functions/v1/push', '{"action":"tick"}'::jsonb, '{}'::jsonb,
     jsonb_build_object('Content-Type','application/json','x-cron-secret',(select v from public.push_config where k='cron_secret')));
 $$);
+-- AFT test date reminders (push_aft migration): a week before and the day before, at 0800 local.
+alter table public.push_subs add column if not exists aft_on boolean not null default false;
+alter table public.push_subs add column if not exists aft_date date;
+alter table public.push_subs add column if not exists last_aft date;

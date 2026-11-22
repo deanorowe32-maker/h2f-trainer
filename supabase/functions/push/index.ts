@@ -1,6 +1,6 @@
 // H2F Trainer reminder notifications.
 // GET            -> { key }  the public application server key for pushManager.subscribe
-// POST save      -> store this phone's subscription and reminder times (no names, no app data)
+// POST save      -> store this phone's subscription, reminder times and AFT test date (no names, no training data)
 // POST delete    -> forget this phone
 // POST tick      -> (cron only, x-cron-secret) send any reminders that are due
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -13,6 +13,8 @@ const MSG = {
   wk: { title: "Today's workout is ready", body: "Open H2F Trainer and get after it.", url: "/#today" },
   bed: { title: "Time to wind down", body: "Lights out soon. Sleep is part of your training.", url: "/#sleep" },
   bk: { title: "Back up your data", body: "Copy a fresh backup code in Unit, Backup.", url: "/#unit" },
+  aft7: { title: "AFT in one week", body: "Keep training, sleep 7+ hours and taper the last two days.", url: "/#today" },
+  aft1: { title: "AFT tomorrow", body: "Easy day, water and a good night's sleep. You've got this.", url: "/#today" },
   on: { title: "Reminders are on", body: "H2F Trainer will remind you at the times you picked.", url: "/#unit" },
 };
 
@@ -67,16 +69,22 @@ function local(tz: string, now: Date) {
   const dow = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(p.weekday) + 1;
   return { date: `${p.year}-${p.month}-${p.day}`, min: +p.hour * 60 + +p.minute, dow };
 }
+const ymd = (s: unknown) => typeof s === "string" && /^\d{4}-\d\d-\d\d$/.test(s) && !isNaN(Date.parse(s + "T00:00:00Z"));
+const daysTo = (from: string, to: string) => Math.round((Date.parse(to + "T00:00:00Z") - Date.parse(from + "T00:00:00Z")) / 864e5);
 const due = (min: number, t: string, last: string | null, date: string) => { const [h, m] = t.split(":").map(Number), at = h * 60 + m; return min >= at && min < at + 20 && last !== date; };
 
 async function tick() {
   const now = new Date(); let sent = 0;
-  const { data } = await db.from("push_subs").select("*").or("wk_on.eq.true,bed_on.eq.true,bk_on.eq.true").limit(5000);
+  const { data } = await db.from("push_subs").select("*").or("wk_on.eq.true,bed_on.eq.true,bk_on.eq.true,aft_on.eq.true").limit(5000);
   for (const r of data || []) {
     const L = local(r.tz, now), upd: Record<string, string> = {};
     if (r.wk_on && (r.wk_days || []).includes(L.dow) && due(L.min, r.wk_time, r.last_wk, L.date)) { if ((await send(r, MSG.wk)) === "gone") continue; upd.last_wk = L.date; sent++; }
     if (r.bed_on && due(L.min, r.bed_time, r.last_bed, L.date)) { if ((await send(r, MSG.bed)) === "gone") continue; upd.last_bed = L.date; sent++; }
     if (r.bk_on && L.dow === 7 && due(L.min, "18:00", r.last_bk, L.date)) { if ((await send(r, MSG.bk)) === "gone") continue; upd.last_bk = L.date; sent++; }
+    if (r.aft_on && r.aft_date) {
+      const n = daysTo(L.date, r.aft_date);
+      if ((n === 7 || n === 1) && due(L.min, "08:00", r.last_aft, L.date)) { if ((await send(r, n === 7 ? MSG.aft7 : MSG.aft1)) === "gone") continue; upd.last_aft = L.date; sent++; }
+    }
     if (Object.keys(upd).length) await db.from("push_subs").update(upd).eq("endpoint", r.endpoint);
   }
   return sent;
@@ -102,7 +110,7 @@ Deno.serve(async (req) => {
       if (!pushOk(s.endpoint) || typeof s.keys?.p256dh !== "string" || typeof s.keys?.auth !== "string" || s.keys.p256dh.length > 200 || s.keys.auth.length > 100) return json(req, { error: "subscription" }, 400);
       if (!tzOk(b.tz) || !hm(p.wk_time) || !hm(p.bed_time)) return json(req, { error: "times" }, 400);
       const days = Array.isArray(p.wk_days) ? [...new Set(p.wk_days.filter((d: unknown) => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 7))] : [1, 2, 3, 4, 5];
-      const row = { endpoint: s.endpoint, p256dh: s.keys.p256dh, auth: s.keys.auth, tz: b.tz, wk_on: !!p.wk_on, wk_time: p.wk_time, wk_days: days, bed_on: !!p.bed_on, bed_time: p.bed_time, bk_on: !!p.bk_on, updated_at: new Date().toISOString() };
+      const row = { endpoint: s.endpoint, p256dh: s.keys.p256dh, auth: s.keys.auth, tz: b.tz, wk_on: !!p.wk_on, wk_time: p.wk_time, wk_days: days, bed_on: !!p.bed_on, bed_time: p.bed_time, bk_on: !!p.bk_on, aft_on: !!p.aft_on && ymd(p.aft_date), aft_date: ymd(p.aft_date) ? p.aft_date : null, updated_at: new Date().toISOString() };
       const { error } = await db.from("push_subs").upsert(row, { onConflict: "endpoint" });
       if (error) return json(req, { error: "save" }, 500);
       const r = b.test ? await send(row, MSG.on) : "skipped";
