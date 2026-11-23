@@ -1129,6 +1129,21 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* Ruck & Run */
+.gmap{height:260px;margin:10px 0;border-radius:14px;overflow:hidden;border:1px solid rgba(232,191,85,.25);background:#0b120d;position:relative;z-index:0}
+.gmap.tall{height:min(56vh,460px)}
+.gmap .leaflet-tile-pane{filter:brightness(.82) contrast(1.08) saturate(.85)}
+.gmap .leaflet-control-zoom a{background:#0f1c14;color:#f4f3ec;border-color:rgba(232,191,85,.3);width:36px;height:36px;line-height:36px}
+.gmap .leaflet-control-attribution{background:rgba(5,7,5,.75);color:#b9cbbf;font-size:10px}.gmap .leaflet-control-attribution a{color:#e8bf55}
+.gpt{border-radius:50%;background:#e8bf55;border:3px solid #0b110d;box-shadow:0 0 0 2px #e8bf55,0 2px 6px rgba(0,0,0,.6)}.gpt.s{background:#5fd08a;box-shadow:0 0 0 2px #5fd08a,0 2px 6px rgba(0,0,0,.6)}
+.gsum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:2px 0 8px}.gsum b{font:700 26px/1 var(--hud);color:var(--gold)}.gsum span{color:var(--muted,#93a99b);font-size:14px}
+.gtools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.gtools .btn{min-height:44px}
+.gtrk{text-align:center}.gstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.gstats>div{border:1px solid rgba(232,191,85,.2);border-radius:14px;padding:10px 6px;background:rgba(5,7,5,.4)}
+.gstats b{display:block;font:700 30px/1.1 var(--hud);font-variant-numeric:tabular-nums}.gstats span{font:600 11px/1 var(--hud);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.gst{margin:4px 0 0;color:var(--muted,#93a99b);font-size:14px;min-height:20px}.gst.warn{color:#f1a585;font-weight:700}
+.gctl .btn{flex:1;min-height:56px}
+.gsel{margin-top:0}
 /* Meal ideas */
 .milist{display:grid;gap:10px;margin:10px 0}
 .mi{border:1px solid rgba(232,191,85,.18);border-radius:14px;padding:12px 14px;background:rgba(5,7,5,.35)}
@@ -1733,7 +1748,7 @@ var fresh=false,OPENED_AT=Date.now();
 if(!S||!S.pt||!S.plan){S=init();fresh=true}
 if(typeof S.savedAt!=='number')S.savedAt=fresh?0:Date.now();
 try{const dk=new Date().toDateString();if(!S.tab||localStorage.getItem('h2f.day')!==dk)S.tab='today';localStorage.setItem('h2f.day',dk)}catch(e){if(!S.tab)S.tab='today'}
-try{const h=location.hash.slice(1);if(/^[a-z]+$/.test(h)&&['today','train','pt','assess','lib','fm','nut','sleep','mind','spirit','creator','unit'].includes(h))S.tab=h}catch(e){}
+try{const h=location.hash.slice(1);if(/^[a-z]+$/.test(h)&&['today','train','ruck','pt','assess','lib','fm','nut','sleep','mind','spirit','creator','unit'].includes(h))S.tab=h}catch(e){}
 var lsOK=true,lastBk=null;
 try{localStorage.setItem('h2f.t','1');lsOK=localStorage.getItem('h2f.t')==='1'}catch(e){lsOK=false}
 /* Two copies open (Home Screen app and a browser tab): when the other copy saves, this one reloads to pick up
@@ -1775,7 +1790,7 @@ const DN=['Mon','Tue','Wed','Thu','Fri'];
 const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 function dayDate(i){const d=monday(S.week);d.setDate(d.getDate()+i);return d}
 
-const TABS=[['today','Today'],['train','Workout'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
+const TABS=[['today','Today'],['train','Workout'],['ruck','Ruck & Run'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
 const TAB_ICON={
  today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
  train:'<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>',
@@ -1807,8 +1822,8 @@ document.addEventListener('keydown',ev=>{if(ev.key!=='Escape')return;['moreSheet
 let tabsKey='',FX={view:false,wk:0,ink:null,strike:null,complete:false,cup:-1};
 const TICK='<svg class="tk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 /* Navigation: five destinations. Train, Readiness and Unit hold several sections behind a switcher. */
-const GROUPS=[['today','Today',['today']],['train','Train',['train','lib','assess']],['rehab','Recovery',['pt']],['ready','Readiness',['sleep','nut','mind','spirit']],['unit','Unit',['unit','fm','creator']]];
-const SUBLAB={train:'Plan',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
+const GROUPS=[['today','Today',['today']],['train','Train',['train','ruck','lib','assess']],['rehab','Recovery',['pt']],['ready','Readiness',['sleep','nut','mind','spirit']],['unit','Unit',['unit','fm','creator']]];
+const SUBLAB={train:'Plan',ruck:'Ruck & Run',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
 Object.assign(TAB_ICON,{rehab:TAB_ICON.pt,ready:'<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',unit:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M16 14.2c2.4.1 4.1 1.7 4.6 4.3"/>',
  backup:'<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>',heart:'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>',home:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',chev:'<path d="M9 6l6 6-6 6"/>'});
@@ -2713,6 +2728,7 @@ function render(){
   afterRender();placeSeg();jumpLinks(v);setHdr();
   try{fxRender(fxv)}catch(e){}
   try{rkCheck()}catch(e){}
+  if(S.tab==='ruck')try{gMount()}catch(e){}else if(gm){try{gm.remove()}catch(e){}gm=null}
   save();
 }
 
@@ -4240,7 +4256,167 @@ function viewCreator(){
   <p><b>Lead from the front. Train with purpose.</b></p>
 `}
 
-function viewOther(t){return t==='unit'?viewUnit():t==='assess'?viewAssess():t==='fm'?viewFM():t==='nut'?viewNut():t==='sleep'?viewSleep():t==='mind'?viewMind():t==='creator'?viewCreator():viewSpirit()}
+/* ===== Ruck & Run: plan a route on a map, then track it with GPS. Leaflet is bundled in /vendor; map pictures come from
+   OpenStreetMap. Routes and tracks stay on this phone. ===== */
+const WD7=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function gpsS(){if(!S.gps||typeof S.gps!=='object')S.gps={};const G=S.gps;if(!Array.isArray(G.routes))G.routes=[];if(!Array.isArray(G.runs))G.runs=[];
+  if(G.u!=='km')G.u='mi';if(G.kind!=='run')G.kind='ruck';if(!(G.lb>=0&&G.lb<=150))G.lb=35;if(G.sel&&!G.routes.some(r=>r.id===G.sel))G.sel='';return G}
+function gpsClean(o){if(!o||typeof o!=='object')return null;const P=a=>(Array.isArray(a)?a:[]).filter(p=>Array.isArray(p)&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180).slice(0,500).map(p=>[+(+p[0]).toFixed(5),+(+p[1]).toFixed(5)]);
+  return {u:o.u==='km'?'km':'mi',kind:o.kind==='run'?'run':'ruck',lb:Number.isFinite(o.lb)&&o.lb>=0&&o.lb<=150?Math.round(o.lb):35,sel:isStr(o.sel)?o.sel.slice(0,20):'',
+    routes:(Array.isArray(o.routes)?o.routes:[]).filter(r=>r&&isStr(r.id)).slice(0,30).map(r=>({id:r.id.slice(0,20),n:isStr(r.n)?r.n.slice(0,40):'Route',pts:P(r.pts)})).filter(r=>r.pts.length>=2),
+    runs:(Array.isArray(o.runs)?o.runs:[]).filter(r=>r&&isStr(r.id)&&Number.isFinite(r.ts)&&Number.isFinite(r.ms)&&Number.isFinite(r.m)).slice(0,30).map(r=>({id:r.id.slice(0,20),ts:r.ts,kind:r.kind==='run'?'run':'ruck',ms:Math.max(0,r.ms),m:Math.max(0,r.m),lb:Number.isFinite(r.lb)?Math.round(r.lb):0,rid:isStr(r.rid)?r.rid.slice(0,20):'',pts:P(r.pts)}))}}
+const gHav=(a,b)=>{const R=6371000,t=Math.PI/180,dLa=(b[0]-a[0])*t,dLo=(b[1]-a[1])*t,x=Math.sin(dLa/2)**2+Math.cos(a[0]*t)*Math.cos(b[0]*t)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)))};
+const gLen=P=>{let m=0;for(let i=1;i<P.length;i++)m+=gHav(P[i-1],P[i]);return m};
+function gDist(m){const G=gpsS();return G.u==='km'?(m/1000).toFixed(2)+' km':(m/1609.344).toFixed(2)+' mi'}
+function gPace(ms,m){const G=gpsS(),u=G.u==='km'?1000:1609.344;if(m<50)return '--:--';const s=Math.round(ms/1000/(m/u));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function gClock(ms){const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')}
+const G_PACE={ruck:15*60,run:9*60};/* default seconds per mile for the time estimate */
+function gEst(m){const s=G_PACE[gpsS().kind]*m/1609.344,h=Math.floor(s/3600),mi=Math.round(s%3600/60);return h?h+' h '+mi+' min':mi+' min'}
+/* Douglas-Peucker in metres, to keep saved tracks small */
+function gSimp(P,tol){if(P.length<3)return P.slice();const t=Math.PI/180,la=P[0][0]*t,xy=P.map(p=>[p[1]*t*Math.cos(la)*6371000,p[0]*t*6371000]);const keep=new Uint8Array(P.length);keep[0]=keep[P.length-1]=1;
+  const st=[[0,P.length-1]];while(st.length){const [a,b]=st.pop();let mx=0,ix=-1;const [x1,y1]=xy[a],[x2,y2]=xy[b],dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1;
+    const pt=Math.hypot(dx,dy)<1;/* start and end in the same spot (a loop): measure from that spot instead of from a line */
+    for(let i=a+1;i<b;i++){const d=pt?Math.hypot(xy[i][0]-x1,xy[i][1]-y1):Math.abs(dy*xy[i][0]-dx*xy[i][1]+x2*y1-y2*x1)/L;if(d>mx){mx=d;ix=i}}if(mx>tol){keep[ix]=1;st.push([a,ix],[ix,b])}}
+  return P.filter((p,i)=>keep[i])}
+/* densified route with cumulative metres, for distance left and off-route checks */
+function gDense(P){const out=[],cum=[];let c=0;for(let i=0;i<P.length;i++){if(i){const d=gHav(P[i-1],P[i]),n=Math.max(1,Math.ceil(d/15));for(let k=1;k<=n;k++){const f=k/n;out.push([P[i-1][0]+(P[i][0]-P[i-1][0])*f,P[i-1][1]+(P[i][1]-P[i-1][1])*f]);c+=d/n;cum.push(c)}}else{out.push(P[0]);cum.push(0)}}return {pts:out,cum,len:c}}
+let rmode='home',gm=null,gLay=null,gp={pts:[],n:'',edit:''},rt=null,gShow='',gFin=0,gFollow=true,gLastFix=null;
+let lfP=null;
+function lfLoad(){if(window.L)return Promise.resolve();if(!lfP)lfP=new Promise((ok,no)=>{const c=document.createElement('link');c.rel='stylesheet';c.href='/vendor/leaflet/leaflet.css';document.head.appendChild(c);
+  const s=document.createElement('script');s.src='/vendor/leaflet/leaflet.js';s.onload=ok;s.onerror=()=>{lfP=null;no(new Error('leaflet'))};document.head.appendChild(s)});return lfP}
+function gSel(){const G=gpsS();return G.routes.find(r=>r.id===G.sel)||null}
+function viewRuck(){const G=gpsS(),k=G.kind,K=k==='ruck'?'ruck':'run';
+  if(rmode==='plan'){const L=gLen(gp.pts);
+    return `<h2>Plan a route</h2><p class="tag">Tap the map to add points along your route. Drag a point to move it.</p>
+    <div id="gMap" class="gmap tall" role="application" aria-label="Route map. Tap to add a point."></div>
+    <div class="gsum"><b id="gpD">${gDist(L)}</b><span id="gpT">${L?'About '+gEst(L)+' at a '+(k==='ruck'?'15:00':'9:00')+' min/mi '+K+' pace':'Add at least two points'}</span></div>
+    <div class="gtools"><button class="btn ghost small" data-a="gundo"${gp.pts.length?'':' disabled'}>Undo</button><button class="btn ghost small" data-a="gloop"${gp.pts.length>=2?'':' disabled'}>Loop to start</button><button class="btn ghost small" data-a="gback"${gp.pts.length>=2?'':' disabled'}>Out and back</button><button class="btn ghost small" data-a="gclear"${gp.pts.length?'':' disabled'}>Clear</button><button class="btn ghost small" data-a="gme">My location</button></div>
+    <div class="form"><label class="wide">Route name<input type="text" id="gpName" maxlength="40" value="${esc(gp.n)}" placeholder="e.g. Post loop 6 mi" autocomplete="off"></label></div>
+    <div class="err" id="gpErr" role="alert" hidden></div>
+    <div class="row"><button class="btn" data-a="gsave">Save route</button><button class="btn ghost" data-a="gcancel">Cancel</button></div>`}
+  if(rmode==='track'&&rt){return `<div class="gtrk"><p class="tdk">${k==='ruck'?'Ruck'+(rt.lb?' · '+rt.lb+' lb':''):'Run'}${rt.r?' · '+esc(rt.r.n):''}</p>
+    <div class="gstats"><div><b id="gtT">0:00</b><span>Time</span></div><div><b id="gtD">${gDist(0)}</b><span>Distance</span></div><div><b id="gtP">--:--</b><span>Pace /${G.u}</span></div><div><b id="gtL">${rt.r?gDist(rt.rd.len):'–'}</b><span>Left</span></div></div>
+    <p class="gst" id="gtS" role="status">Waiting for GPS…</p></div>
+    <div id="gMap" class="gmap tall" role="img" aria-label="Map with your planned route and track"></div>
+    <div class="row gctl"><button class="btn ghost" data-a="gpause">${rt.pauseAt?'Resume':'Pause'}</button><button class="btn" data-a="gfinish" id="gFinBtn">Finish</button></div>
+    <p class="tag">Keep this screen open while you go. iPhone pauses GPS for web apps when the screen locks or you switch apps.</p>`}
+  if(rmode==='done'&&rt){const m=rt.m,ms=rtMs();return `<h2>${k==='ruck'?'Ruck':'Run'} done</h2>
+    <div class="gstats"><div><b>${gDist(m)}</b><span>Distance</span></div><div><b>${gClock(ms)}</b><span>Time</span></div><div><b>${gPace(ms,m)}</b><span>Pace /${G.u}</span></div>${k==='ruck'&&rt.lb?`<div><b>${rt.lb} lb</b><span>Ruck</span></div>`:''}</div>
+    <div id="gMap" class="gmap" role="img" aria-label="Map of your track"></div>
+    <div class="row"><button class="btn" data-a="gkeep">Save to log</button><button class="btn ghost" data-a="gtoss">Discard</button></div>
+    <p class="tag">Saving logs a workout day, which counts toward your streak and rank.</p>`}
+  const sel=gSel(),runs=G.runs.slice(0,10);
+  return `<h2>Ruck & Run</h2>
+  <div class="chips" role="group" aria-label="Activity"><button class="chip" aria-pressed="${k==='ruck'}" data-a="gkind" data-v="ruck">Ruck</button><button class="chip" aria-pressed="${k==='run'}" data-a="gkind" data-v="run">Run</button><button class="chip" aria-pressed="false" data-a="gunit">${G.u==='mi'?'Miles':'Kilometres'}</button></div>
+  ${k==='ruck'?`<div class="form"><label>Ruck weight (lb)<input type="number" inputmode="numeric" id="gLb" data-f="glb" min="0" max="150" value="${G.lb}"></label></div>`:''}
+  <div id="gMap" class="gmap" role="img" aria-label="Map${sel?' of '+esc(sel.n):''}"></div>
+  <p class="tag gsel">${sel?`Route: <b>${esc(sel.n)}</b>, ${gDist(gLen(sel.pts))}, about ${gEst(gLen(sel.pts))}.`:gShow?'Showing a past '+K+'.':'No route picked: you can go anywhere and the app tracks it.'}</p>
+  <div class="row"><button class="btn tdgold" data-a="gstart">Start ${K}</button><button class="btn ghost" data-a="gplan">Plan a route</button></div>
+  ${G.routes.length?`<h3 style="margin-top:20px">My routes</h3><div class="list">${G.routes.map(r=>`<div class="item"><button class="nm" data-a="guse" data-v="${r.id}" aria-pressed="${G.sel===r.id}">${esc(r.n)}<small>${gDist(gLen(r.pts))} · about ${gEst(gLen(r.pts))}${G.sel===r.id?' · Picked':''}</small></button><button class="iconbtn" data-a="gedit" data-v="${r.id}" aria-label="Edit ${esc(r.n)}">✎</button><button class="iconbtn" data-a="gdel" data-v="${r.id}" aria-label="Delete ${esc(r.n)}">×</button></div>`).join('')}</div>`:''}
+  ${runs.length?`<h3 style="margin-top:20px">History</h3><div class="list">${runs.map(r=>`<div class="item"><button class="nm" data-a="gview" data-v="${r.id}">${new Date(r.ts).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${r.kind==='ruck'?'Ruck':'Run'}${r.lb?' '+r.lb+' lb':''}<small>${gDist(r.m)} · ${gClock(r.ms)} · ${gPace(r.ms,r.m)} /${G.u}</small></button></div>`).join('')}</div>`:''}
+  <p class="tag">Your routes and tracks stay on this phone. The map pictures load from OpenStreetMap, which sees the map area on screen. Map data © OpenStreetMap contributors.</p>`}
+function rtMs(){if(!rt)return 0;return (rt.pauseAt||Date.now())-rt.start-rt.paused}
+function gMount(){const el=document.getElementById('gMap');if(!el)return;
+  lfLoad().then(()=>{if(!document.body.contains(el))return;if(gm){try{gm.remove()}catch(e){}gm=null}
+    gm=L.map(el,{zoomControl:true,attributionControl:true,tap:true});gm.attributionControl.setPrefix(false);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(gm);
+    gLay=L.layerGroup().addTo(gm);
+    if(rmode==='plan'){gm.on('click',e=>{if(gp.pts.length>=300)return;gp.pts.push([+e.latlng.lat.toFixed(5),+e.latlng.lng.toFixed(5)]);gDraw();gPlanUi()})}
+    if(rmode==='track'){gm.on('dragstart',()=>{gFollow=false})}
+    gDraw(true)}).catch(()=>{el.innerHTML='<p class="tag" style="padding:16px">The map could not load. Check your signal and try again.</p>'})}
+const G_GOLD='#e8bf55',G_GREEN='#5fd08a';
+function gDraw(fit){if(!gm||!gLay)return;gLay.clearLayers();const G=gpsS();let view=null;
+  const route=P=>{L.polyline(P,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(P,{color:G_GOLD,weight:4,dashArray:'8 7'}).addTo(gLay);L.circleMarker(P[0],{radius:7,color:'#000',weight:2,fillColor:G_GREEN,fillOpacity:1}).addTo(gLay).bindTooltip('Start');if(P.length>1&&gHav(P[0],P[P.length-1])>20)L.circleMarker(P[P.length-1],{radius:7,color:'#000',weight:2,fillColor:'#d0604a',fillOpacity:1}).addTo(gLay).bindTooltip('Finish')};
+  if(rmode==='plan'){const P=gp.pts;if(P.length>=2){L.polyline(P,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(P,{color:G_GOLD,weight:4}).addTo(gLay)}
+    P.forEach((p,i)=>{if(i&&i===P.length-1&&P.length>2&&gHav(p,P[0])<1)return;const m=L.marker(p,{draggable:true,icon:L.divIcon({className:'gpt'+(i===0?' s':''),iconSize:[22,22]})}).addTo(gLay);
+      m.on('drag',e=>{const ll=e.target.getLatLng();gp.pts[i]=[+ll.lat.toFixed(5),+ll.lng.toFixed(5)];gPlanUi()});m.on('dragend',()=>gDraw())});
+    if(fit){if(P.length)view=P;else if(gLastFix)gm.setView(gLastFix,16);else{gm.setView([39.5,-98.35],4);gLocate(true)}}}
+  else if(rmode==='track'&&rt){if(rt.r)route(rt.r.pts);if(rt.pts.length>=2)L.polyline(rt.pts.map(p=>[p[0],p[1]]),{color:G_GREEN,weight:5}).addTo(gLay);
+    if(rt.me){L.circle(rt.me,{radius:rt.acc||10,color:G_GREEN,weight:1,fillOpacity:.12}).addTo(gLay);L.circleMarker(rt.me,{radius:8,color:'#fff',weight:3,fillColor:G_GREEN,fillOpacity:1}).addTo(gLay)}
+    if(fit)view=rt.r?rt.r.pts:rt.me?[rt.me]:null;else if(gFollow&&rt.me)gm.panTo(rt.me,{animate:!RM()})}
+  else if(rmode==='done'&&rt){if(rt.r)route(rt.r.pts);if(rt.pts.length>=2){L.polyline(rt.pts.map(p=>[p[0],p[1]]),{color:G_GREEN,weight:5}).addTo(gLay)}if(fit)view=rt.pts.length?rt.pts.map(p=>[p[0],p[1]]):rt.r?rt.r.pts:null}
+  else{const run=gShow&&G.runs.find(r=>r.id===gShow),sel=gSel();if(run&&run.pts.length>=2){L.polyline(run.pts,{color:G_GREEN,weight:5}).addTo(gLay);view=run.pts}else if(sel){route(sel.pts);view=sel.pts}
+    if(fit&&!view){if(gLastFix)gm.setView(gLastFix,15);else gm.setView([39.5,-98.35],4)}}
+  if(view&&fit){if(view.length===1)gm.setView(view[0],16);else gm.fitBounds(view,{padding:[28,28],maxZoom:17})}}
+function gPlanUi(){const L2=gLen(gp.pts),k=gpsS().kind,d=document.getElementById('gpD'),t=document.getElementById('gpT');if(d)d.textContent=gDist(L2);
+  if(t)t.textContent=L2?'About '+gEst(L2)+' at a '+(k==='ruck'?'15:00':'9:00')+' min/mi '+(k==='ruck'?'ruck':'run')+' pace':'Add at least two points';
+  document.querySelectorAll('[data-a=gundo],[data-a=gclear]').forEach(b=>b.disabled=!gp.pts.length);document.querySelectorAll('[data-a=gloop],[data-a=gback]').forEach(b=>b.disabled=gp.pts.length<2)}
+function gLocate(center){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{gLastFix=[p.coords.latitude,p.coords.longitude];if(center&&gm)gm.setView(gLastFix,16)},()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:60000})}
+/* tracking */
+let gWake=null;
+async function gWakeOn(){try{if('wakeLock' in navigator&&!gWake){gWake=await navigator.wakeLock.request('screen');gWake.addEventListener('release',()=>{gWake=null})}}catch(e){}}
+function gWakeOff(){try{if(gWake)gWake.release()}catch(e){}gWake=null}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&rt&&rmode==='track'&&!rt.pauseAt)gWakeOn()});
+function gStart(){const G=gpsS();if(!navigator.geolocation){alertNote('This phone does not share its location with web apps.');return}
+  const r=gSel();rt={kind:G.kind,lb:G.kind==='ruck'?G.lb:0,r:r?{id:r.id,n:r.n,pts:r.pts}:null,rd:r?gDense(r.pts):null,start:Date.now(),paused:0,pauseAt:0,pts:[],m:0,me:null,acc:0,off:false};
+  rmode='track';gFollow=true;gFin=0;rtSave();FX.view=true;render();window.scrollTo(0,0);
+  rt.watch=navigator.geolocation.watchPosition(gFix,gErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});gWakeOn();
+  clearInterval(rt.tick);rt.tick=setInterval(gTick,1000)}
+function alertNote(t){const s=document.getElementById('gtS');if(s)s.textContent=t}
+function gErr(e){const s=document.getElementById('gtS');if(s)s.textContent=e&&e.code===1?'Location is blocked. Allow location for h2ftrainer.com in your phone settings.':'Looking for GPS… Step outside or wait a moment.'}
+function gFix(p){if(!rt||rmode!=='track')return;const c=p.coords,pt=[c.latitude,c.longitude],t=p.timestamp||Date.now();rt.me=pt;rt.acc=c.accuracy;gLastFix=pt;
+  const s=document.getElementById('gtS');
+  if(c.accuracy>40){if(s)s.textContent='Weak GPS (±'+Math.round(c.accuracy)+' m). Waiting for a better fix…';gDraw();return}
+  if(rt.pauseAt){gDraw();return}
+  const last=rt.pts[rt.pts.length-1];
+  if(last){const d=gHav(last,pt),dt=Math.max(.5,(t-last[2])/1000);if(d<4){gDraw();return}if(d/dt>8){if(s)s.textContent='Skipped a GPS jump.';return}rt.m+=d}
+  rt.pts.push([+pt[0].toFixed(6),+pt[1].toFixed(6),t]);if(rt.pts.length>6000)rt.pts=rt.pts.filter((x,i)=>i%2===0);
+  let msg='GPS good (±'+Math.round(c.accuracy)+' m).';
+  if(rt.rd){/* follow progress forward along the route, so loops and out-and-backs count the right way */
+    const D=rt.rd.pts,ri=rt.ri||0,near=(a,b)=>{let bi=-1,bd=1e9;for(let i=Math.max(0,a);i<Math.min(D.length,b);i++){const d=gHav(D[i],pt);if(d<bd){bd=d;bi=i}}return [bi,bd]};
+    let [bi,bd]=near(ri-5,ri+40);if(bd>60){const g=near(0,D.length);if(g[1]<bd-30){bi=g[0];bd=g[1]}}if(bi>=0&&bd<=60&&bi>=ri-5)rt.ri=Math.max(ri,bi);
+    rt.left=Math.max(0,rt.rd.len-rt.rd.cum[rt.ri||0]);
+    const off=bd>60;if(off&&!rt.off){if(navigator.vibrate)try{navigator.vibrate([80,60,80])}catch(e){}}rt.off=off;if(off)msg='Off route by about '+Math.round(bd)+' m. The gold dashes show the way.'}
+  if(s){s.textContent=msg;s.classList.toggle('warn',!!rt.off)}
+  if(Date.now()-(rt.saved||0)>10000)rtSave();gTick();gDraw()}
+function gTick(){if(!rt||rmode!=='track')return;const ms=rtMs(),q=id=>document.getElementById(id);
+  if(q('gtT'))q('gtT').textContent=gClock(ms);if(q('gtD'))q('gtD').textContent=gDist(rt.m);if(q('gtP'))q('gtP').textContent=gPace(ms,rt.m);
+  if(q('gtL')&&rt.rd)q('gtL').textContent=gDist(rt.left!=null?rt.left:rt.rd.len)}
+function gStop(){if(rt){if(rt.watch!=null)try{navigator.geolocation.clearWatch(rt.watch)}catch(e){}clearInterval(rt.tick)}gWakeOff()}
+function rtSave(){if(!rt)return;rt.saved=Date.now();try{localStorage.setItem('h2f.rt',JSON.stringify({kind:rt.kind,lb:rt.lb,r:rt.r,start:rt.start,paused:rt.paused,pauseAt:rt.pauseAt,pts:rt.pts.slice(-3000),m:rt.m}))}catch(e){}}
+function rtDrop(){try{localStorage.removeItem('h2f.rt')}catch(e){}}
+function gKeep(){if(!rt)return;const G=gpsS(),ms=rtMs(),pts=gSimp(rt.pts.map(p=>[p[0],p[1]]),4).slice(0,500).map(p=>[+p[0].toFixed(5),+p[1].toFixed(5)]);
+  const run={id:'g'+Date.now().toString(36),ts:rt.start,kind:rt.kind,ms,m:Math.round(rt.m),lb:rt.lb,rid:rt.r?rt.r.id:'',pts};
+  G.runs.unshift(run);G.runs=G.runs.slice(0,30);
+  if(ms>=60000){const u=G.u==='km'?(rt.m/1000).toFixed(1)+' km':(rt.m/1609.344).toFixed(1)+' mi';S.hist=S.hist||[];
+    S.hist.unshift({id:'h'+Date.now().toString(36),ts:rt.start,day:WD7[(new Date(rt.start).getDay()+6)%7],type:(rt.kind==='ruck'?'Ruck · '+u+(rt.lb?' · '+rt.lb+' lb':''):'Run · '+u).slice(0,30),ms,d:1,n:1});S.hist=S.hist.slice(0,200)}
+  rt=null;rtDrop();rmode='home';gShow=run.id;save();render()}
+function gResumeOffer(){if(rt||rmode!=='home')return '';let o=null;try{o=JSON.parse(localStorage.getItem('h2f.rt')||'null')}catch(e){}
+  if(!o||!Number.isFinite(o.start)||Date.now()-o.start>12*3600e3)return '';
+  return `<div class="note">You have an unfinished ${o.kind==='run'?'run':'ruck'} from ${new Date(o.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}, ${gDist(o.m||0)} so far. <div class="row" style="margin-top:8px"><button class="btn small" data-a="gresume">Resume it</button><button class="btn ghost small" data-a="gdropold">Discard</button></div></div>`}
+function gAct(a,v,b){const G=gpsS();
+  if(a==='gkind'){G.kind=v==='run'?'run':'ruck';render();return true}
+  if(a==='gunit'){G.u=G.u==='mi'?'km':'mi';render();return true}
+  if(a==='gplan'){gp={pts:[],n:'',edit:''};rmode='plan';render();return true}
+  if(a==='gedit'){const r=G.routes.find(x=>x.id===v);if(!r)return true;gp={pts:r.pts.map(p=>p.slice()),n:r.n,edit:r.id};rmode='plan';render();return true}
+  if(a==='gundo'){gp.pts.pop();gDraw();gPlanUi();return true}
+  if(a==='gclear'){gp.pts=[];gDraw();gPlanUi();return true}
+  if(a==='gloop'){if(gp.pts.length>=2&&gHav(gp.pts[0],gp.pts[gp.pts.length-1])>5)gp.pts.push(gp.pts[0].slice());gDraw();gPlanUi();return true}
+  if(a==='gback'){if(gp.pts.length>=2&&gp.pts.length<=150)gp.pts=gp.pts.concat(gp.pts.slice(0,-1).reverse().map(p=>p.slice()));gDraw();gPlanUi();return true}
+  if(a==='gme'){gLocate(true);return true}
+  if(a==='gcancel'){rmode='home';render();return true}
+  if(a==='gsave'){const n=((document.getElementById('gpName')||{}).value||'').trim().slice(0,40),er=document.getElementById('gpErr');
+    if(gp.pts.length<2){er.textContent='Add at least two points on the map.';er.hidden=false;return true}
+    if(!n){er.textContent='Give the route a name.';er.hidden=false;return true}
+    if(!gp.edit&&G.routes.length>=30){er.textContent='You have 30 routes. Delete one first.';er.hidden=false;return true}
+    let r=gp.edit&&G.routes.find(x=>x.id===gp.edit);if(r){r.n=n;r.pts=gp.pts}else{r={id:'r'+Date.now().toString(36),n,pts:gp.pts};G.routes.unshift(r)}
+    G.sel=r.id;gShow='';rmode='home';save();render();return true}
+  if(a==='guse'){G.sel=G.sel===v?'':v;gShow='';render();return true}
+  if(a==='gdel'){G.routes=G.routes.filter(r=>r.id!==v);if(G.sel===v)G.sel='';render();return true}
+  if(a==='gview'){gShow=gShow===v?'':v;G.sel='';render();return true}
+  if(a==='gstart'){gStart();return true}
+  if(a==='gpause'){if(!rt)return true;if(rt.pauseAt){rt.paused+=Date.now()-rt.pauseAt;rt.pauseAt=0;gWakeOn()}else{rt.pauseAt=Date.now();gWakeOff()}b.textContent=rt.pauseAt?'Resume':'Pause';rtSave();gTick();return true}
+  if(a==='gfinish'){if(!rt)return true;if(Date.now()-gFin>3000){gFin=Date.now();b.textContent='Tap again to finish';setTimeout(()=>{if(b.isConnected)b.textContent='Finish'},3000);return true}
+    if(!rt.pauseAt)rt.pauseAt=Date.now();gStop();rmode='done';render();return true}
+  if(a==='gkeep'){gKeep();return true}
+  if(a==='gtoss'){rt=null;rtDrop();rmode='home';render();return true}
+  if(a==='gresume'){let o=null;try{o=JSON.parse(localStorage.getItem('h2f.rt')||'null')}catch(e){}if(!o)return true;
+    rt={kind:o.kind,lb:o.lb||0,r:o.r||null,rd:o.r?gDense(o.r.pts):null,start:o.start,paused:o.paused||0,pauseAt:o.pauseAt||0,pts:Array.isArray(o.pts)?o.pts:[],m:o.m||0,me:null,acc:0,off:false};
+    if(!rt.pauseAt){rt.pauseAt=Date.now()}rmode='track';gFollow=true;render();rt.watch=navigator.geolocation.watchPosition(gFix,gErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});clearInterval(rt.tick);rt.tick=setInterval(gTick,1000);gTick();return true}
+  if(a==='gdropold'){rtDrop();render();return true}
+  return false}
+
+function viewOther(t){return t==='ruck'?viewRuck()+gResumeOffer():t==='unit'?viewUnit():t==='assess'?viewAssess():t==='fm'?viewFM():t==='nut'?viewNut():t==='sleep'?viewSleep():t==='mind'?viewMind():t==='creator'?viewCreator():viewSpirit()}
 
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
@@ -4265,6 +4441,7 @@ document.addEventListener('input',ev=>{
   else if(f==='squnit'){S.squad.unit=t.value.slice(0,40);const c=document.getElementById('ruCode');if(c)c.value=ruCode();save()}
   else if(f==='sqname'){S.squad.name=t.value.slice(0,40);const c=document.getElementById('sqCode'),pv=document.getElementById('sqPrev'),pc=document.getElementById('ptCode');if(c)c.value=sqCode();if(pv)pv.innerHTML=sqMeInner();if(pc)pc.value=ptCode();sqLinkUpd();save()}
   else if(f==='ptnote'){S.squad.note=t.value.slice(0,200);const pc=document.getElementById('ptCode');if(pc)pc.value=ptCode();sqLinkUpd();save()}
+  else if(f==='glb'){const n=parseInt(t.value,10);if(n>=0&&n<=150){gpsS().lb=n;save()}}
   else if(f==='gr'){const d=today();const e=S.mind.log[d]||(S.mind.log[d]={mood:-1,g:['','','']});e.g[+t.dataset.i]=t.value;save()}
   else if(f==='sldate'){slDay=t.value;slArm='';slDraft=null;render()}
   else if(f==='slbw'){const b=(document.getElementById('sl_b')||{}).value,w=(document.getElementById('sl_w')||{}).value,h=document.getElementById('sl_h');
@@ -4473,7 +4650,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes','body','rk'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes','body','rk','gps'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -4557,6 +4734,7 @@ function cleanBackup(raw){
   if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object'){mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s};['b','w'].forEach(x=>{if(isStr(v[x])&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v[x]))mt[k][x]=v[x]})}});out.sleepMeta=mt}
   if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg}}
   out.rb=rbClean(o.rb);
+  {const g=gpsClean(o.gps);if(g)out.gps=g}
   if(o.rk&&typeof o.rk==='object'&&Number.isInteger(o.rk.seen)&&o.rk.seen>=-1&&o.rk.seen<RK.length)out.rk={seen:o.rk.seen};
   if(o.body&&typeof o.body==='object')out.body=bcpClean(o.body);
   if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)}}
@@ -4569,6 +4747,7 @@ function applyBackup(c){
   if(c.nut)S.nut=c.nut;
   if(c.body)S.body=c.body;
   if(c.rk)S.rk=c.rk;
+  if(c.gps)S.gps=c.gps;
   if(c.rb)S.rb=rbMerge(S.rb,c.rb);
   if(c.assess)S.assess=c.assess;
   if(c.stations)S.stations=c.stations;
@@ -5347,6 +5526,7 @@ function jrHtml(k){
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,k=b.dataset.t,v=b.dataset.v;
   if(a==='fdcat'){fdCat=v;fdAdded='';render();return}
+  if(/^g[a-z]+$/.test(a)&&gAct(a,v,b))return;
   if(a==='mimeal'&&MIDEAS[v]){miMeal=v;miPage=0;miAdded='';miRefresh();return}
   if(a==='mimore'){miPage=(miPage+2)%6;miAdded='';miRefresh();return}
   if(a==='milog'){const meal=miMeal||miDefault(),idea=MIDEAS[meal][+v];if(!idea)return;const b=miBuild(idea,meal),d=nuDay||today();
