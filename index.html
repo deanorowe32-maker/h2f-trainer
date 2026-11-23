@@ -1138,7 +1138,7 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .g4gbar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:6px;gap:2px}.g4gbar i{display:block}
 .g4gbar .g4g-g{background:#4caf6e}.g4gbar .g4g-y{background:#d9b43a}.g4gbar .g4g-r{background:#d0604a}
 .heatd{margin-top:20px}.heatd>summary{font-weight:700}
-.tdcut{margin-top:-4px}
+.tdcut{display:block;margin-top:4px}
 /* ===== FUTURE x10 (preview): holo grid world, telemetry bar, decode titles, staged entrances, HUD type.
    Safari-safe: only transform and opacity animate; every layer is pointer-events:none; all motion off with reduced motion. */
 .fx-world{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:radial-gradient(120% 70% at 50% -10%,rgba(36,85,58,.45),transparent 60%),radial-gradient(80% 50% at 50% 115%,rgba(232,191,85,.10),transparent 70%)}
@@ -1963,7 +1963,7 @@ function viewToday(){
   <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
   ${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
-  <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}</p>${(()=>{const c=slCut();return c?`<p class="tag tdcut">☕ Last caffeine by <b>${c.cut}</b> for a ${c.bed} bedtime.</p>`:''})()}<button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
+  <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}${(()=>{const c=slCut();return c?`<span class="tdcut">☕ Last caffeine by <b>${c.cut}</b></span>`:''})()}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
   <section class="tdcard"><h3>${ico('nut')}Fuel</h3><div class="tdbig">${t.k}<small>${tg?' of '+tg.kcal:''} kcal</small></div><p class="tag">Protein ${t.p}${tg?' of '+tg.p:''} g today.${tg?'':' Set targets under Readiness, Fuel.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="nut">Log a meal</button></section>
   <section class="tdcard"><h3>${ico('assess')}AFT</h3><div class="tdbig">${af?af.t:'–'}<small>${af?' points':''}</small></div><p class="tag">${af?(aftPass(af)?'Pass':'Fail')+', '+(af.std==='c'?'combat':'general')+' standard, '+esc(jrLabel(af.d))+'.':'No score saved yet.'}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="assess">${af?'Score again':'Score my AFT'}</button></section>

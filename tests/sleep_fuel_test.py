@@ -27,7 +27,8 @@ with sync_playwright() as p:
     t = E("document.querySelector('.slrh').textContent")
     check('rhythm card shows spreads and shortfall', '1h 45m' in t and 'a bit uneven' in t and '1.5 h' in t)
     E("S.sleep.wake='06:00';S.tab='today';render()"); pg.wait_for_timeout(200)
-    check('Today shows caffeine cut-off (bed 10:15 PM, cut 4:15 PM)', 'Last caffeine by 4:15 PM for a 10:15 PM bedtime' in E("document.querySelector('.tdcut').textContent"))
+    check('Today shows caffeine cut-off (4:15 PM for a 6:00 wake)', 'Last caffeine by 4:15 PM' in E("document.querySelector('.tdcut').textContent"))
+    check('caffeine line sits inside the sleep text, not on top of it', E("document.querySelector('.tdcut').parentElement.matches('.tdcard p.tag')") and E("document.querySelectorAll('.tdgrid .tdcard')[0].querySelectorAll(':scope > p').length") == 1)
     # --- Fuel
     E("S.tab='nut';render()"); pg.wait_for_timeout(200)
     check('heat guide folded by default', E("!document.getElementById('heatGuide').open"))
