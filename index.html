@@ -1129,6 +1129,32 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* Today hero (from the electric demo): ring up top, gold start, list you tick off here */
+.tdhero{text-align:center;margin:4px 0 6px}
+.tdhero .reactor{width:min(300px,78vw)}
+.tdk{display:inline-flex;align-items:center;gap:6px;margin:0;font:600 11px/1 var(--hud);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.tdk svg{width:14px;height:14px}
+.tdh1{margin:6px 0 4px;font:800 30px/1.1 var(--display);letter-spacing:-.02em;text-transform:none}
+.tdsum{margin:0 auto;max-width:32ch;color:var(--muted,#93a99b);font-size:15px}
+.tdcta{display:flex;gap:10px;align-items:center;margin:16px 0 4px}
+.tdcta .tdgold{flex:1;min-height:54px;border-radius:16px;background:linear-gradient(90deg,#c4962c,var(--gold));color:#14160f;box-shadow:0 0 0 1px rgba(255,241,194,.4) inset,0 8px 30px rgba(232,191,85,.3);position:relative;overflow:hidden}
+.tdcta .tdgold::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);transform:translateX(-120%)}
+@keyframes tdsheen{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@media (prefers-reduced-motion:no-preference){.tdcta .tdgold::after{animation:tdsheen 3.6s 2s cubic-bezier(.32,.72,0,1) infinite}}
+.tdcta .ghost{flex:0 0 auto;min-height:54px;border-radius:16px}
+.tdhero .readyq,.tdhero>section{text-align:left}
+.tdlh{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdlh h3{margin:0}
+.tdtog{min-height:44px;border:0;background:none;color:var(--muted,#93a99b);font:600 14px var(--body);display:flex;align-items:center;gap:6px;cursor:pointer}
+.tdtog span{color:var(--gold);font-family:var(--hud)}
+.tdlb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.32,.72,0,1)}.tdlistp.open .tdlb{grid-template-rows:1fr}.tdlb>div{overflow:hidden;min-height:0;padding-left:8px;margin-left:-8px}
+.tdph{margin:14px 0 4px;font:600 11px/1 var(--hud);letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.tdrow{display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid rgba(255,255,255,.06)}
+.tdchk{flex:none;width:44px;height:44px;margin-left:-8px;display:grid;place-items:center;border:0;background:none;cursor:pointer}
+.tdchk svg{width:22px;height:22px;padding:3px;box-sizing:border-box;border-radius:7px;border:1.5px solid rgba(232,191,85,.45);color:transparent;transition:all .3s}
+.tdrow.done .tdchk svg{background:var(--gold);border-color:var(--gold);color:#14160f;box-shadow:0 0 12px var(--gold)}
+.tdn{flex:1;min-width:0;min-height:44px;text-align:left;border:0;background:none;color:inherit;font:600 16px var(--body);padding:4px 0;cursor:pointer}
+.tdrow.done .tdn{color:var(--muted,#93a99b);text-decoration:line-through;text-decoration-color:rgba(232,191,85,.5)}
+.tds{font-weight:700;color:var(--gold);font-size:14px;text-align:right}
 /* Readiness: plate check, sleep rhythm */
 .g4g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
 .g4gb{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:84px;padding:10px 4px;border-radius:12px;border:1.5px solid;background:rgba(5,7,5,.5);color:inherit;font:inherit;cursor:pointer;touch-action:manipulation}
@@ -1939,6 +1965,25 @@ function recapHtml(now){now=now||new Date();const wd=(now.getDay()+6)%7;if(wd>2)
 function coachHtml(){const T=coachTips();return `<section class="coach" id="coach"><h3>Coach</h3>${T.map(x=>`<div class="coachtip"><b>${esc(x.head)}</b><p class="tag">${esc(x.txt)}</p><button type="button" class="btn ghost" data-a="${x.a}" data-v="${esc(x.v)}">${esc(x.btn)}</button></div>`).join('')}<p class="tag coachnote">Tips come from your own logs on this phone. Not medical advice.</p></section>`}
 function reactorHtml(n,t){let g='';for(let i=0;i<t;i++){const st=360/t,a0=(-90+i*st+st*.1)*Math.PI/180,a1=(-90+(i+1)*st-st*.1)*Math.PI/180,r=100;g+=`<path class="rx-seg${i<n?' on':''}" d="M${(150+r*Math.cos(a0)).toFixed(1)},${(150+r*Math.sin(a0)).toFixed(1)} A${r},${r} 0 0 1 ${(150+r*Math.cos(a1)).toFixed(1)},${(150+r*Math.sin(a1)).toFixed(1)}" fill="none" stroke-width="10" stroke-linecap="round"/>`}
   return `<div class="reactor" role="img" aria-label="${n} of ${t} exercises done"><svg viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="rxg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2f7a4f"/><stop offset="1" stop-color="#e8bf55"/></linearGradient></defs><circle cx="150" cy="150" r="140" fill="none" stroke="rgba(232,191,85,.18)" stroke-width="1"/><g class="rx-spin"><circle cx="150" cy="150" r="128" fill="none" stroke="url(#rxg)" stroke-width="2" stroke-dasharray="2 10 40 10" opacity=".7"/></g><g class="rx-spinr"><circle cx="150" cy="150" r="116" fill="none" stroke="rgba(232,191,85,.35)" stroke-width="1" stroke-dasharray="1 6"/></g>${g}<circle cx="150" cy="150" r="86" fill="none" stroke="rgba(47,122,79,.5)" stroke-width="1"/></svg><div class="rx-core" aria-hidden="true"><b>${n}<small>/${t}</small></b><span>exercises done</span></div></div>`}
+/* Today hero: the workout ring up top, the day's title and a gold Start button, then the list to tick off right here */
+let tdListOpen=(()=>{try{return localStorage.getItem('h2f.tdlist')!=='0'}catch(e){return true}})();
+function tdHeroHtml(W,wd){const P=W.plan[wd]||[],idx=P.map((it,i)=>i).filter(i=>EX[P[i].id]),items=idx.map(i=>P[i]),n=items.length,done=items.filter(it=>it.done).length;
+  const mains=items.filter(it=>(it.s||EX[it.id].sec)==='M'),names=mains.slice(0,3).map(it=>EX[it.id].name),dn=doneOn(today()),man=dn.find(x=>x.man);
+  const rows=['W','M','C'].flatMap(sc=>{const g=idx.filter(i=>(P[i].s||EX[P[i].id].sec)===sc);return g.length?[`<p class="tdph">${SECNAME[sc]}</p>`,...g.map(i=>{const it=P[i],e=EX[it.id];
+    return `<div class="tdrow${it.done?' done':''}"><button type="button" class="tdchk" data-a="tdtick" data-i="${i}" aria-pressed="${!!it.done}" aria-label="${esc(e.name)} done">${TICK}</button><button type="button" class="tdn" data-a="info" data-v="${e.id}">${esc(e.name)}</button><span class="tds">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
+  return `<section class="tdhero" id="tdhero">${reactorHtml(done,n)}
+  <p class="tdk">${ico('train')}Workout</p><h3 class="tdh1">${esc(DTYPES[W.types[wd]]||'Training')}</h3>
+  <p class="tdsum">${n} exercise${n===1?'':'s'}${names.length?'. Main work: '+names.map(esc).join(', ')+(mains.length>3?' and more':''):''}.</p>
+  <div class="tdcta"><button class="btn tdgold" data-a="tdtimer">${active()?'Open timer':'Start workout'}</button>${dn.length?`<span class="tddone">${TICK}Done today</span>${man?'<button class="btn ghost small" data-a="tdundo">Undo</button>':''}`:'<button class="btn ghost" data-a="tddone">Mark done</button>'}</div>
+  ${readyHtml(wd)}</section>
+  <section class="tdwide tdlistp${tdListOpen?' open':''}" id="tdlist"><div class="tdlh"><h3>Today's workout</h3><button type="button" class="tdtog" data-a="tdlist" aria-expanded="${tdListOpen}" aria-controls="tdlb"><span id="tdcnt">${done} of ${n}</span> ${tdListOpen?'Hide':'Show'}</button></div>
+  <div class="tdlb" id="tdlb"><div>${rows.join('')}<div class="row" style="margin-top:10px"><button class="btn ghost" data-a="tdgo" data-v="train">Open in Train</button></div></div></div></section>`}
+function tdTick(b){const W=wkData(0),wd=(new Date().getDay()+6)%7,P=W&&W.plan[wd],it=P&&P[+b.dataset.i];if(!it)return;it.done=!it.done;save();
+  const row=b.closest('.tdrow');row.classList.toggle('done',it.done);b.setAttribute('aria-pressed',it.done);
+  const items=P.filter(x=>EX[x.id]),n=items.length,d=items.filter(x=>x.done).length,rx=document.querySelector('#tdhero .reactor');
+  if(rx){rx.querySelectorAll('.rx-seg').forEach((sg,i)=>sg.classList.toggle('on',i<d));const c=rx.querySelector('.rx-core b');if(c)c.innerHTML=`${d}<small>/${n}</small>`;rx.setAttribute('aria-label',`${d} of ${n} exercises done`)}
+  const ct=document.getElementById('tdcnt');if(ct)ct.textContent=`${d} of ${n}`;
+  if(navigator.vibrate&&it.done)try{navigator.vibrate(12)}catch(e){}}
 function viewToday(){
   const now=new Date(),wd=(now.getDay()+6)%7,key=today();
   const dateLab=now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
@@ -1955,12 +2000,14 @@ function viewToday(){
   const tg=nuTargets(),t=nuTot(nuMeals(key)),af=S.aft.hist[0];
   if(wd<5&&W){const dn=doneOn(key),man=dn.find(x=>x.man);
     work+=dn.length?`<div class="row" style="margin-top:6px"><span class="tddone">${TICK}Done today</span>${man?'<button class="btn ghost small" data-a="tdundo">Undo</button>':''}</div>`:`<div class="row" style="margin-top:6px"><button class="btn ghost" data-a="tddone">Mark workout done</button></div>`}
-  if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),cnt={W:0,M:0,C:0};
+  let hero='';
+  if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)&&!isCiW(W,wd)&&(W.plan[wd]||[]).some(it=>EX[it.id])){hero=tdHeroHtml(W,wd);work=''}
+  else if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),cnt={W:0,M:0,C:0};
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
     if(rows.length)work=work.replace('<div class="row">',`<div class="tdrows">${rows.join('')}</div><div class="row">`)
     if(items.length)work=reactorHtml(items.filter(it=>it.done).length,items.length)+work}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
-  <section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>
+  ${hero||`<section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>`}
   ${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}${(()=>{const c=slCut();return c?`<span class="tdcut">☕ Last caffeine by <b>${c.cut}</b></span>`:''})()}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
@@ -2662,6 +2709,8 @@ document.addEventListener('click',ev=>{
   else if(a==='cftpractice'){FX.view=true;S.tab='assess';render();const c=document.getElementById('cft');if(c){c.scrollIntoView({block:'start'});window.scrollBy(0,-((document.querySelector('header.top')?.offsetHeight||0)+(document.querySelector('.subwrap')?.offsetHeight||0)+8))}}
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
   else if(a==='tdundo'){const k=today();S.hist=(S.hist||[]).filter(x=>!(x.man&&dayKeyTs(x.ts)===k));render()}
+  else if(a==='tdtick'){tdTick(b)}
+  else if(a==='tdlist'){tdListOpen=!tdListOpen;try{localStorage.setItem('h2f.tdlist',tdListOpen?'1':'0')}catch(e){}const p=document.getElementById('tdlist');p.classList.toggle('open',tdListOpen);b.setAttribute('aria-expanded',tdListOpen);b.lastChild.nodeValue=' '+(tdListOpen?'Hide':'Show')}
   else if(a==='tdgo'){const wd=(new Date().getDay()+6)%7;if(v==='train'&&S.week!==0)wkGo(0);if(v==='train'&&wd<5)S.day=wd;const setup=v==='train'&&b.classList.contains('step');if(setup)trEdit=true;if(S.tab!==v)FX.view=true;S.tab=v;render();const w=!setup&&v==='train'&&wd<5&&document.getElementById('wkout');if(w){const y=w.getBoundingClientRect().top+window.scrollY-(document.querySelector('header.top')?.offsetHeight||0)-72;window.scrollTo(0,Math.max(0,y))}else window.scrollTo(0,0)}
   else if(a==='tdtimer'){const wd=(new Date().getDay()+6)%7;if(S.week!==0)wkGo(0);if(wd<5)S.day=wd;if(S.tab!=='train')FX.view=true;S.tab='train';render();openTimer()}
   else if(a==='day'){const was=k==='train'?S.day:S.ptDay;if(k==='train')S.day=+v;else S.ptDay=+v;if(was!==+v)FX.ink=[k,v];render()}
@@ -5535,7 +5584,7 @@ function updBar(){if(document.getElementById('updBar'))return;document.body.inse
  function burst(){const c=reactor();if(!c)return;for(let i=0;i<5;i++)setTimeout(()=>{const a=Math.random()*6.28;bolt(c[0]+Math.cos(a)*c[2],c[1]+Math.sin(a)*c[2],c[0]+Math.cos(a+2)*c[2]*.5,c[1]+Math.sin(a+2)*c[2]*.5,1.3,14)},i*110);spark(c[0],c[1],26)}
  function powerUp(full){if(RM)return;const v=document.getElementById('view');if(!v)return;v.classList.remove('epwr');void v.offsetWidth;v.classList.add('epwr');setTimeout(()=>v.classList.remove('epwr'),1100);
   if(full){sc.classList.remove('go');void sc.offsetWidth;sc.classList.add('go')}setTimeout(burst,full?700:300)}
- document.addEventListener('click',e=>{const b=e.target.closest('.btn,.chip,.tab,.iconbtn,.subnav button,.dcell');if(b)surge(b)},true);
+ document.addEventListener('click',e=>{const b=e.target.closest('.btn,.chip,.tab,.iconbtn,.subnav button,.dcell,.tdchk');if(b&&!(b.matches('.tdchk')&&b.getAttribute('aria-pressed')==='false'))surge(b)},true);
  if(typeof render==='function'){const r0=render;let last=null;const tab=()=>typeof S!=='undefined'&&S?S.tab:null;window.render=render=function(){r0.apply(this,arguments);const n=tab();if(last!==null&&n!==last)powerUp(false);last=n}}
  window.efx={bolt,spark,surge,powerUp};
  if(!RM){const first=!sessionStorage.getItem('h2f.boot');try{sessionStorage.setItem('h2f.boot','1')}catch(_){}setTimeout(()=>powerUp(first),150);setTimeout(ambient,1500)}

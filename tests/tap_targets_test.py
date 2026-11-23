@@ -18,7 +18,7 @@ with sync_playwright() as p:
             r = pg.evaluate("(()=>{const b=[...document.querySelectorAll('main [data-a=info]')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0);return [b.length,Math.round(Math.min(...b.map(r=>r.height)))]})()")
             check(f'{t}: {r[0]} exercise buttons, smallest {r[1]} px', r[0] > 0 and r[1] >= 44)
         pg.evaluate("S.tab='today';render()"); pg.wait_for_timeout(200)
-        h = pg.evaluate("document.querySelector('.tdrows .item').getBoundingClientRect().height")
+        h = pg.evaluate("document.querySelector('#tdlist .tdrow').getBoundingClientRect().height")
         check(f'Today rows stay compact ({round(h)} px)', h <= 50)
     except Exception as e:
         check('ran: ' + str(e).splitlines()[0], False)
