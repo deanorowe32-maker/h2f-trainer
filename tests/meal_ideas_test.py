@@ -1,0 +1,42 @@
+"""Fuel meal ideas: breakfast/lunch/dinner ideas built from FOODS, sized to targets, whole foods stay whole, Log this adds to the meal log. Server on :8765."""
+import sys
+from playwright.sync_api import sync_playwright
+fails = []
+def check(n, ok):
+    print(('PASS ' if ok else 'FAIL ') + n)
+    if not ok: fails.append(n)
+with sync_playwright() as p:
+    b = p.chromium.launch(); pg = b.new_page(viewport={'width': 390, 'height': 844})
+    errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
+    E = pg.evaluate
+    pg.goto('http://localhost:8765/'); pg.wait_for_timeout(500)
+    E("localStorage.clear();sessionStorage.setItem('h2f.boot','1');localStorage.setItem('h2f.access',CODE_HASH);localStorage.setItem('h2f.tour','1')"); pg.reload(); pg.wait_for_timeout(900)
+    pg.add_style_tag(content='#rbSheet{display:none!important}')
+    E("document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);S.tab='nut';miMeal='';render()"); pg.wait_for_timeout(300)
+    check('meal ideas card on Fuel', E("!!document.getElementById('miTop')"))
+    check('asks for targets when none are set', 'Set your targets' in E("document.getElementById('miWrap').textContent"))
+    check('every ingredient exists in the food list', E("Object.values(MIDEAS).flat().every(i=>i[2].every(([id])=>!!fdById(id)))"))
+    check('six ideas per meal', E("['Breakfast','Lunch','Dinner'].every(m=>MIDEAS[m].length===6)"))
+    check('totals add up from FOODS values', E("(()=>{const b=miBuild(MIDEAS.Breakfast[0],'Breakfast');return b.k===Math.round(150+133+84+164*.5)&&b.sc===1})()"))
+    E("Object.assign(S.nut,{wt:'180',unit:'lb',ht:'70',hu:'in',age:'30',sex:'m',act:'1.55',goal:'m'});render()")
+    check('sized to the meal share of targets', 'your breakfast share' in E("(miMeal='Breakfast',miRefresh(),document.getElementById('miWrap').textContent)") or 'share' in E("document.getElementById('miWrap').textContent"))
+    big = E("MIDEAS.Breakfast.map(i=>miBuild(i,'Breakfast').k)")
+    E("Object.assign(S.nut,{wt:'130',ht:'64',age:'28',sex:'f',act:'1.375',goal:'l'})")
+    small = E("MIDEAS.Breakfast.map(i=>miBuild(i,'Breakfast').k)")
+    check('bigger targets get bigger portions', all(x > y for x, y in zip(big, small)))
+    check('eggs and fruit stay whole', E("Object.values(MIDEAS).flat().every(i=>['Breakfast','Lunch','Dinner'].every(m=>miBuild(i,m).items.every(({f,q})=>!/large|medium|slice/.test(f[2])||Number.isInteger(+(miLead(f[2])[0]*q).toFixed(6)))))"))
+    check('amounts read naturally', E("[miAmt('2 large',1.5),miAmt('1/2 cup',1.5),miAmt('1 cup',1.5),miAmt('1 oz (about 23)',.5)].join('|')") == '3 large|3/4 cup|1 1/2 cups|1/2 oz (about 12)')
+    pg.click('[data-a=mimeal][data-v=Dinner]'); pg.wait_for_timeout(150)
+    first = E("document.querySelector('.mi b').textContent")
+    pg.click('[data-a=mimore]'); pg.wait_for_timeout(150)
+    check('More ideas shows different meals', E("document.querySelector('.mi b').textContent") != first)
+    n0 = E("S.nut.meals.length")
+    E("document.querySelector('[data-a=milog]').click()"); pg.wait_for_timeout(200)
+    e = E("S.nut.meals[S.nut.meals.length-1]")
+    check('Log this adds the meal as Dinner with its macros', E("S.nut.meals.length") == n0 + 1 and e['m'] == 'Dinner' and e['k'] > 200 and e['p'] > 10)
+    check('button confirms', 'Logged' in E("document.getElementById('miWrap').textContent"))
+    check('page fits the screen', E("document.documentElement.scrollWidth") <= 390)
+    check('no page errors', not errs)
+    if errs: print(errs[:3])
+    b.close()
+print('RESULT ' + ('OK' if not fails else 'FAIL %d' % len(fails))); sys.exit(1 if fails else 0)

@@ -1129,6 +1129,14 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* Meal ideas */
+.milist{display:grid;gap:10px;margin:10px 0}
+.mi{border:1px solid rgba(232,191,85,.18);border-radius:14px;padding:12px 14px;background:rgba(5,7,5,.35)}
+.mih{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.mih b{font-size:17px}.mih span{color:var(--gold);font:700 14px var(--hud);white-space:nowrap}
+.mi .tag{margin:4px 0 8px}
+.miing{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:15px}
+.miing li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed rgba(255,255,255,.06);padding:3px 0}.miing em{font-style:normal;color:var(--muted,#93a99b)}
+.mif{display:flex;justify-content:space-between;align-items:center;margin-top:8px}.mif small{color:var(--muted,#93a99b)}
 /* Rank */
 .rkcard{padding-top:14px}
 .rkhead{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer;min-height:44px}
@@ -3803,6 +3811,51 @@ function fdHtml(){
   <div class="chips" role="group" aria-label="Food group">${chips.map(([k,n])=>`<button class="chip" aria-pressed="${fdCat===k}" data-a="fdcat" data-v="${k}">${esc(n)}</button>`).join('')}</div>
   <div class="fdlist">${body}</div>`}
 
+/* Meal ideas: breakfast, lunch and dinner built from the FOODS list (same values as the rest of Fuel), scaled to your targets */
+const MIDEAS={Breakfast:[
+ ['Overnight oats','Make it the night before; grab and go.',[['oat',1],['gyo',1],['blu',1],['alm',.5]]],
+ ['Eggs and toast','Classic, fast, high protein.',[['egg',1.5],['brd',1],['spn',1],['org',1]]],
+ ['Protein oats','Stir whey into cooked oats after they cool a bit.',[['oat',1],['why',1],['ban',1]]],
+ ['Cottage cheese bowl','No cooking; good before early PT.',[['cot',1],['blu',1],['alm',1]]],
+ ['Peanut butter toast','Quick carbs and fat for a long morning.',[['brd',1],['pnb',1],['ban',1],['mlk',1]]],
+ ['Dining facility plate','Eggs, a potato and fruit from the line.',[['egg',1.5],['pot',1],['org',1]]]],
+Lunch:[
+ ['Chicken rice bowl','Batch-cook the chicken and rice for the week.',[['chk',1],['rcb',1],['brc',1],['avo',.5]]],
+ ['Tuna sandwich','Pantry staples; good in the field office.',[['tna',1],['brd',1],['chs',1],['spn',1],['apl',1]]],
+ ['Steak and potato','Iron and carbs for heavy training days.',[['stk',1],['pot',1],['brc',1],['olv',.5]]],
+ ['Bean burrito bowl','Fibre-rich and cheap; add salsa freely.',[['bns',1],['rcw',1],['chs',1],['avo',.5]]],
+ ['Tofu stir-fry','Plant protein with rice and greens.',[['tof',1],['rcb',1],['brc',1],['olv',.5]]],
+ ['Chicken pasta salad','Eat it cold; packs well.',[['chk',1],['pst',1],['spn',1],['olv',.5]]]],
+Dinner:[
+ ['Salmon and sweet potato','Omega-3s and slow carbs.',[['slm',1],['swp',1],['brc',1],['olv',.5]]],
+ ['Chicken pasta','Refuels after a hard session.',[['chk',1],['pst',1.5],['spn',1],['olv',.5]]],
+ ['Steak and rice','High protein for recovery.',[['stk',1.5],['rcw',1],['car',1]]],
+ ['Egg and bean bowl','No meat needed; ready in 10 minutes.',[['bns',1],['egg',1],['rcb',.5],['avo',.5]]],
+ ['Tofu rice plate','Light but filling.',[['tof',1],['rcw',1],['brc',1],['car',1]]],
+ ['Recovery plate','Chicken, potato and chocolate milk after training.',[['chk',1],['pot',1],['brc',1],['cmk',1]]]]};
+const MSPLIT={Breakfast:.25,Lunch:.35,Dinner:.3};
+let miMeal='',miPage=0,miAdded='';
+function miDefault(){const h=new Date().getHours();return h<10?'Breakfast':h<15?'Lunch':'Dinner'}
+function miFrac(x){const w=Math.floor(x+1e-9),r=Math.round((x-w)*4)/4,F={.25:'1/4',.5:'1/2',.75:'3/4'};if(r===1)return String(w+1);return (w?w+(F[r]?' '+F[r]:''):(F[r]||'0'))}
+function miLead(sv){const m=/^(\d+\/\d+|\d+(?:\.\d+)?)(.*)$/.exec(sv);return m?[m[1].includes('/')?m[1].split('/').reduce((a,b)=>a/b):parseFloat(m[1]),m[2]]:null}
+/* whole items (eggs, fruit, slices, potatoes) round to whole numbers; scoops and avocado to halves */
+function miRound(sv,q){const L=miLead(sv);if(!L)return q;const [n,u]=L;if(/large|medium|slice/.test(u))return Math.max(1,Math.round(n*q))/n;if(/scoop|fruit/.test(u))return Math.max(.5,Math.round(n*q*2)/2)/n;return q}
+function miAmt(sv,q){const L=miLead(sv);if(!L)return (q===1?'':miFrac(q)+' × ')+sv;const [n,u]=L;return miFrac(n*q)+u.replace(/^ cup\b/,n*q>1?' cups':' cup').replace(/\(about (\d+)\)/,(m,c)=>'(about '+Math.round(c*q)+')')}
+function miBuild(idea,meal){const tg=nuTargets(),base=idea[2].map(([id,q])=>[fdById(id),q]).filter(x=>x[0]);
+  const raw=base.reduce((s,[f,q])=>s+f[3]*q,0);let sc=1;if(tg&&raw>0){sc=Math.round(Math.min(1.5,Math.max(.75,tg.kcal*MSPLIT[meal]/raw))*4)/4}
+  const items=base.map(([f,q])=>({f,q:miRound(f[2],q*sc)})),t=items.reduce((s,{f,q})=>({k:s.k+f[3]*q,p:s.p+f[4]*q,c:s.c+f[5]*q,f:s.f+f[6]*q}),{k:0,p:0,c:0,f:0});
+  return {name:idea[0],why:idea[1],items,sc,k:Math.round(t.k),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f)}}
+function miHtml(){const meal=miMeal||miDefault(),L=MIDEAS[meal],tg=nuTargets(),n=L.length,shown=[L[miPage%n],L[(miPage+1)%n]];
+  const card=(idea,j)=>{const b=miBuild(idea,meal),key=meal+'|'+idea[0];return `<div class="mi"><div class="mih"><b>${esc(b.name)}</b><span>${b.k} kcal · P ${b.p} g</span></div><p class="tag">${esc(b.why)}</p>
+    <ul class="miing">${b.items.map(({f,q})=>`<li><span>${esc(f[1].replace(/,.*$/,''))}</span><em>${esc(miAmt(f[2],q))}</em></li>`).join('')}</ul>
+    <div class="mif"><small>C ${b.c} g · F ${b.f} g</small><button class="btn ghost small" data-a="milog" data-v="${(miPage+j)%n}" aria-label="Log ${esc(b.name)} as ${meal}">${miAdded===key?'Logged ✓':'Log this'}</button></div></div>`};
+  return `<h3 style="margin-top:24px" id="miTop">Meal ideas</h3>
+  <p class="tag">${tg?`Sized for about ${Math.round(tg.kcal*MSPLIT[meal]/10)*10} kcal, your ${meal.toLowerCase()} share of ${tg.kcal} a day.`:'Set your targets above and these resize to fit you.'} Values are approximate.</p>
+  <div class="chips" role="group" aria-label="Meal">${Object.keys(MIDEAS).map(m=>`<button class="chip" aria-pressed="${m===meal}" data-a="mimeal" data-v="${m}">${m}</button>`).join('')}</div>
+  <div class="milist">${shown.map(card).join('')}</div>
+  <div class="row"><button class="btn ghost" data-a="mimore">More ${meal.toLowerCase()} ideas</button></div>`}
+function miRefresh(){const el=document.getElementById('miWrap');if(el)el.innerHTML=miHtml()}
+
 /* Nutrition tracking */
 var nuDay='',nuArm='';
 const MEALS=['Breakfast','Lunch','Dinner','Snack'];
@@ -3958,6 +4011,7 @@ function viewNut(){
   <label class="wide">Activity level<select class="nin" data-f="nutf" data-t="act">${NACT.map(a=>`<option value="${a[0]}"${S.nut.act===a[0]?' selected':''}>${a[1]}</option>`).join('')}</select></label>
   <label class="wide">Goal<select class="nin" data-f="nutf" data-t="goal"><option value="m"${S.nut.goal==='m'?' selected':''}>Maintain weight</option><option value="l"${S.nut.goal==='l'?' selected':''}>Lose weight (about 15% less)</option><option value="g"${S.nut.goal==='g'?' selected':''}>Gain muscle (about 10% more)</option></select></label></div>
   <div class="res" id="tgtRes">${targetsHtml()}</div>
+  <div id="miWrap">${miHtml()}</div>
   ${nuLogHtml()}
   ${fdHtml()}
   ${nuWeekHtml()}
@@ -5293,6 +5347,11 @@ function jrHtml(k){
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,k=b.dataset.t,v=b.dataset.v;
   if(a==='fdcat'){fdCat=v;fdAdded='';render();return}
+  if(a==='mimeal'&&MIDEAS[v]){miMeal=v;miPage=0;miAdded='';miRefresh();return}
+  if(a==='mimore'){miPage=(miPage+2)%6;miAdded='';miRefresh();return}
+  if(a==='milog'){const meal=miMeal||miDefault(),idea=MIDEAS[meal][+v];if(!idea)return;const b=miBuild(idea,meal),d=nuDay||today();
+    if(S.nut.meals.length>=600)return;S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m:meal,t:b.name.slice(0,80),k:b.k,p:b.p,c:b.c,f:b.f});
+    miAdded=meal+'|'+idea[0];const y=scrollY;render();scrollTo(0,y);return}
   if(a==='fdadd'){const f=fdById(v);if(!f)return;const d=nuDay||today(),el=document.getElementById('nu_m'),m=el&&MEALS.includes(el.value)?el.value:'Snack';
     if(S.nut.meals.length>=600)return;
     S.nut.meals.push({id:'n'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),d,m,t:(f[1]+', '+f[2]).slice(0,80),k:f[3],p:f[4],c:f[5],f:f[6]});
