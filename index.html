@@ -1129,6 +1129,35 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rmdon b{white-space:nowrap}.bcpok b{color:#8fd6a6}.bcphi b{color:#f1a585}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
+/* Rank */
+.rkb .rkbg{fill:rgba(15,28,20,.9);stroke:var(--gold);stroke-width:2}
+.rkb .rkc{fill:var(--gold);stroke:var(--gold);filter:drop-shadow(0 0 3px rgba(232,191,85,.6))}
+.rkcard{padding-top:14px}
+.rkhead{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer;min-height:44px}
+.rkhead span{display:flex;flex-direction:column;gap:2px}
+.rkhead small{font:600 11px/1 var(--hud);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.rkhead b{font:800 24px/1.1 var(--hud);text-transform:uppercase;letter-spacing:.04em}
+.rkhead em{font-style:normal;color:var(--muted,#93a99b);font-size:14px}
+.rkbar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin:12px 0 8px}
+.rkbar i{display:block;height:100%;background:linear-gradient(90deg,#2f7a4f,var(--gold));box-shadow:0 0 10px var(--gold)}
+.rkreq{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px;color:var(--muted,#93a99b)}
+.rkreq li::before{content:"○";display:inline-block;width:20px;color:rgba(232,191,85,.6)}
+.rkreq li.ok{color:inherit}.rkreq li.ok::before{content:"✓";color:var(--gold)}
+.rkrules{margin:6px 0;padding-left:20px}.rkrules li{margin:3px 0}.rkrules b{color:var(--gold)}
+.rkladder{list-style:none;margin:6px 0;padding:0}
+.rkladder li{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);opacity:.6}
+.rkladder li.done,.rkladder li.cur{opacity:1}.rkladder li.cur{background:rgba(232,191,85,.08);border-radius:10px;padding-left:8px}
+.rkladder .rkb{flex:none}.rkladder span{display:flex;flex-direction:column}.rkladder small{color:var(--muted,#93a99b);font-size:13px}.rkladder .rkwhen{color:var(--gold)}
+.rkcer{position:fixed;inset:0;z-index:300;display:grid;place-items:center;pointer-events:none;background:radial-gradient(60% 45% at 50% 45%,rgba(36,85,58,.85),rgba(5,7,5,.94));text-align:center;color:#f4f3ec;transition:opacity .5s}
+.rkcer.out{opacity:0}
+.rkcer .rkb{display:block;margin:0 auto}
+.rkcer .rkk{margin:16px 0 4px;font:600 12px/1 var(--hud);letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.rkcer b{font:800 40px/1 var(--hud);text-transform:uppercase;letter-spacing:.06em;text-shadow:0 0 24px rgba(232,191,85,.5)}
+.rkcer .rks{color:#b9cbbf;margin:10px 0 0}
+@keyframes rkin{from{transform:scale(.4) rotate(-12deg);opacity:0}60%{transform:scale(1.12)}to{transform:none;opacity:1}}
+@keyframes rkpin{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:no-preference){.rkcer .rkb{animation:rkin .7s cubic-bezier(.2,.8,.2,1) both}.rkcer .rkc>*{animation:rkpin .35s cubic-bezier(.2,.8,.2,1) both}
+ .rkcer .rkc>*:nth-child(1){animation-delay:.45s}.rkcer .rkc>*:nth-child(2){animation-delay:.6s}.rkcer .rkc>*:nth-child(3){animation-delay:.75s}.rkcer .rkc>*:nth-child(4){animation-delay:.9s}.rkcer .rkc>*:nth-child(5){animation-delay:1.05s}.rkcer .rkc>*:nth-child(6){animation-delay:1.2s}.rkcer .rkc>*:nth-child(7){animation-delay:1.35s}.rkcer .rkc>*:nth-child(8){animation-delay:1.5s}}
 /* Today hero (from the electric demo): ring up top, gold start, list you tick off here */
 .tdhero{text-align:center;margin:4px 0 6px}
 .tdhero .reactor{width:min(300px,78vw)}
@@ -1260,6 +1289,7 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 <div class="sheet" id="rbSheet" hidden style="z-index:80"><div class="panel" role="dialog" aria-label="Ribbon"><div id="rbBody"></div></div></div>
 <div class="sheet" id="bkSheet" hidden style="z-index:75"><div class="panel" role="dialog" aria-label="Backup"><div id="bkBody"></div></div></div>
 <div class="sheet" id="pgrSheet" hidden style="z-index:61"><div class="panel" role="dialog" aria-label="Your progress"><div id="pgrBody"></div></div></div>
+<div class="sheet" id="rkSheet" hidden style="z-index:61"><div class="panel" role="dialog" aria-label="Rank and points"><div id="rkBody"></div></div></div>
 <div class="sheet" id="infoSheet" hidden style="z-index:60"><div class="panel" role="dialog" aria-label="Exercise detail"><div id="infoBody"></div></div></div>
 
 <script>
@@ -1812,6 +1842,86 @@ function afterRender(){const v=document.getElementById('view');if(S.cft&&S.cft.r
 function dayKeyTs(ts){return dk(new Date(ts))}
 function doneOn(k){return (S.hist||[]).filter(x=>dayKeyTs(x.ts)===k)}
 function wkCount(off){const a=monday(off);a.setHours(0,0,0,0);const z=a.getTime()+7*864e5;return new Set((S.hist||[]).filter(x=>x.ts>=a.getTime()&&x.ts<z).map(x=>dayKeyTs(x.ts))).size}
+/* ===== Rank: Readiness Points from what you already log, promotions with time in grade and boards ===== */
+const RK=[['Recruit',0,0,null],['Striker',60,7,null],['Charger',150,14,null],['Vanguard',300,14,null],
+ ['Sentinel',500,21,'aft'],['Operator',800,21,'whole'],['Elite',1300,28,'s8'],['Paragon',2000,28,'s12'],['Legend',3000,42,'s16']];
+const RK_BOARD={aft:'Pass a practice AFT',whole:'Log all five areas in one week: train, sleep, fuel, mind and spirit',
+ s8:'An 8-week streak and an AFT of 450 or more',s12:'A 12-week streak and an AFT of 450 or more',s16:'A 16-week streak and an AFT of 500 or more'};
+const RK_CAP=20;
+const rkMon=k=>{const d=vzDay(k);d.setDate(d.getDate()-(d.getDay()+6)%7);return dk(d)};
+const rkAdd=(k,n)=>{const d=vzDay(k);d.setDate(d.getDate()+n);return dk(d)};
+const rkDays=(a,b)=>Math.round((vzDay(b)-vzDay(a))/864e5);
+function rkData(){
+  const work={},wkDays={},pts={},why={},jr={},add=(k,n,w)=>{pts[k]=(pts[k]||0)+n;(why[k]=why[k]||[]).push([w,n])};
+  (S.hist||[]).forEach(x=>{if(Number.isFinite(x.ts)){const k=dayKeyTs(x.ts);if(!work[k]){work[k]=1;const m=rkMon(k);(wkDays[m]=wkDays[m]||[]).push(k)}}});
+  ((S.journal&&S.journal.entries)||[]).forEach(e=>{if(e&&/^\d{4}-\d\d-\d\d$/.test(e.d||''))(jr[e.d]=jr[e.d]||{})[e.k]=1});
+  const keys=new Set([...Object.keys(work),...Object.keys(S.sleep.log||{}),...Object.keys(S.nut.wlog||{}),...Object.keys(S.nut.g4g||{}),...Object.keys(S.mind.log||{}),...Object.keys(jr),...(S.nut.meals||[]).map(m=>m.d)]);
+  const daily={};
+  keys.forEach(k=>{if(!/^\d{4}-\d\d-\d\d$/.test(k)||k>today())return;let h=0;const r=[];
+    if(work[k]){h+=10;r.push(['Workout day',10])}
+    const sl=S.sleep.log[k];if(typeof sl==='number'&&sl>=7){h+=3;r.push(['7+ hours of sleep',3])}
+    const g=(S.nut.g4g||{})[k]||'',gc=[...g].filter(c=>c==='g').length;
+    if((S.nut.wlog[k]||0)>=8||(g.length>=3&&gc*2>=g.length)||nuMeals(k).length>=2){h+=2;r.push(['Fuel on target',2])}
+    const md=S.mind.log[k];if((md&&md.mood>=0)||(jr[k]&&jr[k].mind)){h+=2;r.push(['Mind check-in',2])}
+    if(jr[k]&&jr[k].spirit){h+=3;r.push(['Spirit reflection',3])}
+    if(h){daily[k]={h,r}}});
+  Object.entries(daily).forEach(([k,v])=>{const n=Math.min(RK_CAP,v.h);add(k,n,v.h>RK_CAP?'Daily habits (capped at '+RK_CAP+')':'Daily habits');why[k].pop();v.r.forEach(x=>why[k].push(x));if(v.h>RK_CAP)why[k].push(['Daily cap',RK_CAP-v.h])});
+  Object.values(wkDays).forEach(ds=>{ds.sort();if(ds.length>=3)add(ds[2],20,'Full training week')});
+  let best=0;[...(S.aft.hist||[])].filter(e=>e&&/^\d{4}-\d\d-\d\d$/.test(e.d||'')&&Number.isFinite(e.t)).sort((a,b)=>a.d<b.d?-1:1).forEach(e=>{const up=best?Math.min(30,Math.max(0,e.t-best)):0;add(e.d,15+up,up?'AFT saved, +'+up+' improved':'AFT saved');best=Math.max(best,e.t)});
+  Object.values((S.rb&&S.rb.aw)||{}).forEach(a=>{if(a&&/^\d{4}-\d\d-\d\d$/.test(a.d||''))add(a.d,10,'Ribbon earned')});
+  return {pts,why,work,wkDays,jr}}
+function rkStreakAt(D,wkDays){let m=rkMon(D);if(!((wkDays[m]||[]).filter(k=>k<=D).length>=3))m=rkAdd(m,-7);let n=0;while(n<200&&(wkDays[m]||[]).length>=3){n++;m=rkAdd(m,-7)}return n}
+function rkBestAft(D){return Math.max(0,...(S.aft.hist||[]).filter(e=>e&&(e.d||'')<=D&&Number.isFinite(e.t)).map(e=>e.t))}
+function rkWhole(D,X){const m=rkMon(D);for(let w=0;w<160;w++){const a=rkAdd(m,-7*w);if(a<'2020-01-01')break;let t=0,sl=0,fu=0,mi=0,sp=0;
+  for(let i=0;i<7;i++){const k=rkAdd(a,i);if(k>D)break;if(X.work[k])t=1;if(typeof S.sleep.log[k]==='number')sl=1;if((S.nut.wlog[k]||0)>0||((S.nut.g4g||{})[k]||'').length||nuMeals(k).length)fu=1;
+    const md=S.mind.log[k];if((md&&md.mood>=0)||(X.jr[k]&&X.jr[k].mind))mi=1;if(X.jr[k]&&X.jr[k].spirit)sp=1}
+  if(t&&sl&&fu&&mi&&sp)return true}return false}
+function rkBoardOk(b,D,X){if(!b)return true;
+  if(b==='aft')return (S.aft.hist||[]).some(e=>e&&(e.d||'')<=D&&aftPass(e));
+  if(b==='whole')return rkWhole(D,X);
+  const need={s8:[8,450],s12:[12,450],s16:[16,500]}[b];return rkStreakAt(D,X.wkDays)>=need[0]&&rkBestAft(D)>=need[1]}
+let rkMemo=null;
+function rkState(){const sig=JSON.stringify([today(),(S.hist||[]).length,Object.keys(S.sleep.log).length,(S.aft.hist||[]).length,Object.keys((S.rb&&S.rb.aw)||{}).length,S.nut.meals.length,JSON.stringify(S.nut.wlog).length,JSON.stringify(S.nut.g4g||{}).length,Object.keys(S.mind.log).length,((S.journal&&S.journal.entries)||[]).length,S.mind.log[today()]&&S.mind.log[today()].mood]);
+  if(rkMemo&&rkMemo.sig===sig)return rkMemo;
+  const X=rkData(),days=Object.keys(X.pts).sort(),hist=[];let tier=0,cum=0,since=days[0]||today();
+  if(days.length){for(let d=days[0];d<=today();d=rkAdd(d,1)){cum+=X.pts[d]||0;const nx=RK[tier+1];
+    if(nx&&cum>=nx[1]&&rkDays(since,d)>=nx[2]&&rkBoardOk(nx[3],d,X)){tier++;since=d;hist.push({t:tier,d,p:cum})}}}
+  const last=days.filter(k=>(X.pts[k]||0)>0).pop(),inactive=!!last&&rkDays(last,today())>14;
+  rkMemo={sig,tier,pts:cum,since,hist,X,inactive};return rkMemo}
+function rkBadge(t,sz){sz=sz||48;const c=Math.min(t,3),bars=t>=4?Math.min(2,t-3):0,stars=t>=6?t-5:0;let g='';
+  for(let i=0;i<c;i++){const y=30+i*9;g+=`<path d="M14 ${y} L32 ${y-10} L50 ${y} L50 ${y+5} L32 ${y-5} L14 ${y+5}Z"/>`}
+  for(let i=0;i<bars;i++){const y=58+i*7;g+=`<rect x="16" y="${y}" width="32" height="4" rx="1"/>`}
+  for(let i=0;i<stars;i++){const x=32+(i-(stars-1)/2)*11;g+=`<path transform="translate(${x} 12) scale(.42)" d="M0-10L2.9-3.1 10-3.1 4.3 1.2 6.5 8.1 0 4 -6.5 8.1 -4.3 1.2 -10-3.1 -2.9-3.1Z"/>`}
+  if(!t)g='<circle cx="32" cy="38" r="9" fill="none" stroke-width="2.5"/>';
+  return `<svg class="rkb" viewBox="0 0 64 76" width="${sz}" height="${Math.round(sz*76/64)}" aria-hidden="true"><path class="rkbg" d="M32 2 L60 12 V44 C60 60 47 70 32 74 C17 70 4 60 4 44 V12Z"/><g class="rkc">${g}</g></svg>`}
+function rkNext(R){const nx=RK[R.tier+1];if(!nx)return null;const dig=rkDays(R.since,today()),bd=nx[3];
+  return {nx,need:nx[1],have:R.pts,tig:Math.max(0,nx[2]-dig),bd,bok:rkBoardOk(bd,today(),R.X)}}
+function rkCardHtml(){const R=rkState(),N=rkNext(R),name=RK[R.tier][0];
+  let lines='';if(N){const pc=Math.min(100,Math.round((R.pts-RK[R.tier][1])/(N.need-RK[R.tier][1])*100));
+    lines=`<div class="rkbar" role="img" aria-label="${pc}% of the way to ${N.nx[0]}"><i style="width:${pc}%"></i></div>
+    <ul class="rkreq"><li class="${R.pts>=N.need?'ok':''}">${R.pts} / ${N.need} points</li><li class="${N.tig?'':'ok'}">${N.tig?N.tig+' more day'+(N.tig>1?'s':'')+' in grade':'Time in grade met'}</li>${N.bd?`<li class="${N.bok?'ok':''}">Board: ${esc(RK_BOARD[N.bd])}</li>`:''}</ul>`}
+  else lines='<p class="tag">Top rank. Keep your streak alive and lead by example.</p>';
+  return `<section class="tdwide rkcard" id="rkcard" data-p="${R.pts}" data-t="${R.tier}"><button type="button" class="rkhead" data-a="rkopen" aria-label="Rank: ${name}. Open ranks and points">${rkBadge(R.tier,52)}<span><small>Rank${R.inactive?' · Inactive':''}</small><b>${name}</b>${N?`<em>Next: ${N.nx[0]}</em>`:''}</span></button>${lines}</section>`}
+function rkSheetHtml(){const R=rkState(),dt=d=>esc(vzLong(d));
+  const ladder=RK.map(([n,p,tg,b],i)=>`<li class="${i===R.tier?'cur':i<R.tier?'done':''}">${rkBadge(i,34)}<span><b>${n}</b><small>${i?`${p} points · ${tg} days in grade${b?' · '+esc(RK_BOARD[b]):''}`:'Where everyone starts'}</small>${(R.hist.find(h=>h.t===i)||{}).d?`<small class="rkwhen">Promoted ${dt(R.hist.find(h=>h.t===i).d)}</small>`:''}</span></li>`).join('');
+  const recent=Object.keys(R.X.pts).sort().reverse().slice(0,7).map(k=>`<div class="item"><span class="nm">${dt(k)}</span><span class="rxv">+${R.X.pts[k]}</span></div>`).join('');
+  return `<h2>${esc(RK[R.tier][0])}</h2><p>${R.pts} Readiness Points${R.inactive?'. Inactive: no points in the last 14 days. You never lose rank; log anything to get back to active.':'.'}</p>
+  <h3>How you earn points</h3><ul class="rkrules"><li>Workout day <b>10</b></li><li>Full training week (3+ days) <b>+20</b></li><li>7+ hours of sleep <b>3</b></li><li>Fuel on target: 8 cups, half Green plate or 2 meals logged <b>2</b></li><li>Mind check-in <b>2</b></li><li>Spirit reflection <b>3</b></li><li>AFT saved <b>15</b>, plus 1 per point improved (up to 30)</li><li>Ribbon earned <b>10</b></li></ul>
+  <p class="tag">Daily habits are worth at most ${RK_CAP} points a day, so steady weeks beat cramming. Logged on trust, like challenges.</p>
+  <h3>The ladder</h3><ol class="rkladder">${ladder}</ol>
+  ${recent?`<h3>Recent points</h3><div class="list">${recent}</div>`:''}
+  <p class="tag">Ranks are H2F Trainer tiers, not Army rank. Share yours with your squad under Unit, Squad, if you want to.</p>
+  <div class="row"><button class="btn ghost" data-a="closerk">Close</button></div>`}
+function rkShow(){document.getElementById('rkBody').innerHTML=rkSheetHtml();document.getElementById('rkSheet').hidden=false}
+let rkLate=0;
+function rkCheck(late){if(!S||!S.sleep)return;if(!late){clearTimeout(rkLate);rkLate=setTimeout(()=>rkCheck(true),700)}const R=rkState();
+  const cd=document.getElementById('rkcard');if(cd&&(+cd.dataset.p!==R.pts||+cd.dataset.t!==R.tier)){const t=document.createElement('div');t.innerHTML=rkCardHtml();const nw=t.firstElementChild;cd.replaceWith(nw);if(typeof eRun==='function')try{eRun(nw.parentNode)}catch(e){}}
+  if(typeof fxTele==='function')fxTele();if(!S.rk||typeof S.rk!=='object')S.rk={seen:-1};const seen=Number.isInteger(S.rk.seen)?S.rk.seen:-1;
+  if(R.tier>seen){const first=seen<0;S.rk.seen=R.tier;save();if(!(first&&R.tier===0))rkCeremony(R.tier,first)}}
+function rkCeremony(t,first){if(document.getElementById('gate')&&!document.getElementById('gate').hidden)return;const o=document.createElement('div');o.className='rkcer';o.setAttribute('role','status');
+  o.innerHTML=`<div>${rkBadge(t,120)}<p class="rkk">${first?'Starting rank':'Promoted'}</p><b>${esc(RK[t][0])}</b><p class="rks">${first?'Based on what you have already logged.':'Earned. Keep leading from the front.'}</p></div>`;
+  document.body.appendChild(o);try{if(window.efx&&!RM())setTimeout(()=>{const r=o.querySelector('.rkb').getBoundingClientRect();efx.spark(r.left+r.width/2,r.top+r.height/2,40)},500)}catch(e){}
+  if(navigator.vibrate)try{navigator.vibrate([30,60,30])}catch(e){}setTimeout(()=>o.classList.add('out'),3200);setTimeout(()=>o.remove(),3800)}
 function streakWeeks(){let n=0,off=wkCount(0)>=3?0:-1;while(off>-60&&wkCount(off)>=3){n++;off--}return n}
 function streakHtml(){const st=streakWeeks(),days=[0,1,2,3,4].map(i=>{const d=monday(0);d.setDate(d.getDate()+i);return doneOn(dayKeyTs(d.getTime())).length>0});
   return `<div class="tdstreak">
@@ -2008,7 +2118,7 @@ function viewToday(){
     if(items.length)work=reactorHtml(items.filter(it=>it.done).length,items.length)+work}
   return `<h2>Today</h2><p>${esc(dateLab)}</p>
   ${hero||`<section class="tdwide"><div class="sechead"><h3>${ico('train')}Workout</h3></div>${work}${readyHtml(wd)}</section>`}
-  ${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
+  ${rkCardHtml()}${coachHtml()}${aftCdHtml()}${recapHtml()}${bkRemindHtml()}${schedHtml()}${streakHtml()}${chHtml()}${rbNextHtml()}${startHtml()}
   <div class="tdgrid">
   <section class="tdcard"><h3>${ico('sleep')}Sleep</h3><div class="tdbig">${sl===null?'–':slFmt(sl)+' h'}</div><p class="tag">${sl===null?'Last night is not logged yet.':'Last logged night.'}${sa.n?' 7-day average '+slFmt(sa.avg)+'\u00a0h.':''}${(()=>{const c=slCut();return c?`<span class="tdcut">☕ Last caffeine by <b>${c.cut}</b></span>`:''})()}</p><button class="btn ghost tdbtn" data-a="tdgo" data-v="sleep">Log sleep</button></section>
   <section class="tdcard"><h3>${ico('water')}Water</h3><div class="tdbig">${S.hyd.n}<small> of 8 cups</small></div><p class="tag">${S.hyd.n>=8?'Goal reached. Keep sipping on hard days.':(8-S.hyd.n)+' to go today.'}</p><button class="btn ghost tdbtn" data-a="hyd" data-v="1">Add a cup</button></section>
@@ -2537,6 +2647,7 @@ function render(){
   const fxv=!!FX.view;
   afterRender();placeSeg();jumpLinks(v);setHdr();
   try{fxRender(fxv)}catch(e){}
+  try{rkCheck()}catch(e){}
   save();
 }
 
@@ -2710,6 +2821,8 @@ document.addEventListener('click',ev=>{
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
   else if(a==='tdundo'){const k=today();S.hist=(S.hist||[]).filter(x=>!(x.man&&dayKeyTs(x.ts)===k));render()}
   else if(a==='tdtick'){tdTick(b)}
+  else if(a==='rkopen'){rkShow()}
+  else if(a==='closerk'){document.getElementById('rkSheet').hidden=true}
   else if(a==='tdlist'){tdListOpen=!tdListOpen;try{localStorage.setItem('h2f.tdlist',tdListOpen?'1':'0')}catch(e){}const p=document.getElementById('tdlist');p.classList.toggle('open',tdListOpen);b.setAttribute('aria-expanded',tdListOpen);b.lastChild.nodeValue=' '+(tdListOpen?'Hide':'Show')}
   else if(a==='tdgo'){const wd=(new Date().getDay()+6)%7;if(v==='train'&&S.week!==0)wkGo(0);if(v==='train'&&wd<5)S.day=wd;const setup=v==='train'&&b.classList.contains('step');if(setup)trEdit=true;if(S.tab!==v)FX.view=true;S.tab=v;render();const w=!setup&&v==='train'&&wd<5&&document.getElementById('wkout');if(w){const y=w.getBoundingClientRect().top+window.scrollY-(document.querySelector('header.top')?.offsetHeight||0)-72;window.scrollTo(0,Math.max(0,y))}else window.scrollTo(0,0)}
   else if(a==='tdtimer'){const wd=(new Date().getDay()+6)%7;if(S.week!==0)wkGo(0);if(wd<5)S.day=wd;if(S.tab!=='train')FX.view=true;S.tab='train';render();openTimer()}
@@ -2800,7 +2913,7 @@ if(typeof S.curKey!=='string'||!/^\d{4}-\d\d-\d\d$/.test(S.curKey))S.curKey=mkey
 S.week=wkOff(S.curKey);
 if(S.week<0)wkGo(0);
 S.aft=Object.assign({age:'',sex:'',std:'g',hist:[]},S.aft||{});S.cft=Object.assign({hist:[],run:null},S.cft||{});S.goal=Object.assign({cur:null,past:[]},S.goal||{});S.ch=chClean(S.ch);S.aft.in=Object.assign({mdl:'',hrp:'',sdc:'',plk:'',run:''},S.aft.in||{});
-S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1,ch:1},S.squad.inc||{});
+S.squad=Object.assign({name:'',members:[],unit:'',units:[]},S.squad||{});if(!Array.isArray(S.squad.units))S.squad.units=[];S.squad.inc=Object.assign({tr:1,sl:1,nu:1,aft:1,rb:1,ch:1,rk:0},S.squad.inc||{});
 S.sleep=S.sleep||{wake:'06:00',checks:{date:'',v:[]}};
 S.sleep.log=S.sleep.log||{};S.sleep.meta=S.sleep.meta||{};
 if(S.sleep.checks.date!==today())S.sleep.checks={date:today(),v:[]};
@@ -3312,7 +3425,7 @@ function aftUpd(){const e=document.getElementById('aftRes');if(e)e.innerHTML=aft
 
 /* Squad sharing: a Soldier makes a summary code and sends it; a leader pastes codes into a roster. Nothing leaves the phone unless the Soldier copies and sends the code. */
 var sqMode='me',sqArm='',sqMsg='';
-const SQ_INC=[['tr','Training'],['sl','Sleep'],['nu','Nutrition'],['aft','AFT score'],['rb','Ribbons'],['ch','Challenges']];
+const SQ_INC=[['tr','Training'],['sl','Sleep'],['nu','Nutrition'],['aft','AFT score'],['rb','Ribbons'],['ch','Challenges'],['rk','Rank']];
 function sqMake(){
   const Q=S.squad,o={v:1,n:(Q.name||'').trim().slice(0,40),id:'',d:today()};
   if(Q.inc.tr){const lim=Date.now()-7*864e5,hs=(S.hist||[]).filter(x=>x.ts>=lim);o.tr={c:hs.length}}
@@ -3320,6 +3433,7 @@ function sqMake(){
   if(Q.inc.nu){const d=nuWeek(),lg=d.filter(x=>x.n),wl=d.filter(x=>x.w>0);o.nu={n:lg.length,k:lg.length?Math.round(lg.reduce((s,x)=>s+x.t.k,0)/lg.length):0,p:lg.length?Math.round(lg.reduce((s,x)=>s+x.t.p,0)/lg.length):0,w:wl.length?Math.round(wl.reduce((s,x)=>s+x.w,0)/wl.length*10)/10:0}}
   if(Q.inc.aft&&S.aft.hist.length){const e=S.aft.hist[0];o.aft={t:e.t,ok:aftPass(e)?1:0,s:e.std,d:e.d}}
   if(Q.inc.rb)o.rb=rbPack();
+  if(Q.inc.rk){const R=rkState();o.rk={t:R.tier,p:R.pts}}
   if(Q.inc.ch){const t=today(),st=chState(t);let dd=0;for(let i=0;i<7;i++){const d=chDk(chMs(t)-i*864e5),k=chDayKey(d);if(chLevel((S.ch.log[d]||{})[k]||0,CH_BY[k].d)>=1)dd++}
     o.ch={dd,wk:st.week.k,wt:Math.round(st.week.total*10)/10,wl:st.week.lvl,ml:st.month.lvl}}
   return o}
@@ -3332,6 +3446,7 @@ function sqClean(o){
   if(o.sl&&typeof o.sl==='object')c.sl={n:Math.round(num(o.sl.n,7)),a:num(o.sl.a,24),r:num(o.sl.r,5)};
   if(o.nu&&typeof o.nu==='object')c.nu={n:Math.round(num(o.nu.n,7)),k:Math.round(num(o.nu.k,20000)),p:Math.round(num(o.nu.p,2000)),w:num(o.nu.w,30)};
   {const r=rbCleanList(o.rb);if(r)c.rb=r}
+  if(o.rk&&typeof o.rk==='object'&&Number.isInteger(o.rk.t)&&o.rk.t>=0&&o.rk.t<RK.length)c.rk={t:o.rk.t,p:Math.round(num(o.rk.p,1e6))};
   if(o.ch&&typeof o.ch==='object'){const ch=o.ch,lv=x=>[0,1,2,3].includes(x)?x:0;c.ch={dd:Math.round(Math.min(7,num(ch.dd,1e9))),wk:typeof ch.wk==='string'&&CH.some(x=>x.k===ch.wk)?ch.wk:'',wt:num(ch.wt,100000),wl:lv(ch.wl),ml:lv(ch.ml)}}
   if(o.aft&&typeof o.aft==='object'&&dt(o.aft.d))c.aft={t:Math.round(num(o.aft.t,500)),ok:o.aft.ok?1:0,s:o.aft.s==='c'?'c':'g',d:dt(o.aft.d)};
   return c}
@@ -3340,6 +3455,7 @@ function sqLines(m){const L=[];
   if(m.sl)L.push(m.sl.n?`Sleep: ${m.sl.a} h average over ${m.sl.n} night${m.sl.n===1?'':'s'}${m.sl.r?', rested '+m.sl.r+' of 5':''}`:'Sleep: nothing logged');
   if(m.nu)L.push(m.nu.n?`Nutrition: ${m.nu.k} kcal and ${m.nu.p} g protein a day over ${m.nu.n} day${m.nu.n===1?'':'s'}${m.nu.w?', water '+m.nu.w+' cups':''}`:'Nutrition: nothing logged'+(m.nu.w?', water '+m.nu.w+' cups':''));
   if(m.aft)L.push(`AFT: ${m.aft.t} points, ${m.aft.ok?'pass':'fail'}, ${m.aft.s==='c'?'combat':'general'} standard (${jrLabel(m.aft.d)})`);
+  if(m.rk)L.push(`Rank: ${RK[m.rk.t][0]}, ${m.rk.p} points`);
   if(m.rb)L.push(`Ribbons: ${m.rb.length} earned`);
   if(m.ch)L.push(`Challenges: ${m.ch.dd} of 7 dailies done${m.ch.wk?`, weekly ${CH_BY[m.ch.wk].name} ${chNum(CH_BY[m.ch.wk].u,m.ch.wt)}${chUnit(CH_BY[m.ch.wk].u)}${m.ch.wl?' ('+CH_LV[m.ch.wl]+')':''}`:''}${m.ch.ml?', month at '+CH_LV[m.ch.ml]:''}`);
   return L}
@@ -4246,7 +4362,7 @@ if(active()){ensureTick()}
 renderMini();
 
 /* backup and restore */
-const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes','body'];
+const BK_KEYS=['sg','ch','goal','cft','rb','types','plan','pt','custom','hist','nut','sleep','mind','spirit','breath','assess','stations','journal','aft','squad','fmt','dst','dcir','circuit','prog','grp','lad','rem','weeks','curKey','maxes','body','rk'];
 const BK_TAG='H2FBACKUP1:';
 function makeBackup(){const o={};BK_KEYS.forEach(k=>{o[k]=S[k]});return BK_TAG+JSON.stringify(o)}
 /* weekly backup reminder on Today: data lives only on this phone, so ask for a fresh backup code every 7 days */
@@ -4323,13 +4439,14 @@ function cleanBackup(raw){
     out.aft={age:s8(a.age),sex:a.sex==='m'||a.sex==='f'?a.sex:'',std:a.std==='c'?'c':'g',in:{mdl:s8(i.mdl),hrp:s8(i.hrp),sdc:s8(i.sdc),plk:s8(i.plk),run:s8(i.run)},hist:[]};if([300,350,400,450,500].includes(a.goal))out.aft.goal=a.goal;if(isStr(a.date)&&/^\d{4}-\d\d-\d\d$/.test(a.date))out.aft.date=a.date;
     if(Array.isArray(a.hist))out.aft.hist=a.hist.filter(e=>e&&isStr(e.id)&&/^[a-z0-9]{1,24}$/.test(e.id)&&isStr(e.d)&&/^\d{4}-\d\d-\d\d$/.test(e.d)&&Number.isInteger(e.age)&&e.age>=17&&e.age<=99&&Array.isArray(e.r)&&e.r.length===5&&e.r.every(x=>Number.isFinite(x)&&x>=0&&x<=3600)&&Array.isArray(e.p)&&e.p.length===5&&e.p.every(x=>Number.isInteger(x)&&x>=0&&x<=100)).slice(0,100).map(e=>({id:e.id,d:e.d,age:e.age,sex:e.sex==='f'?'f':'m',std:e.std==='c'?'c':'g',r:e.r.slice(),p:e.p.slice(),t:e.p.reduce((s,x)=>s+x,0)}))}
   if(o.squad&&typeof o.squad==='object'){const q=o.squad,ic=q.inc&&typeof q.inc==='object'?q.inc:{};
-    out.squad={name:isStr(q.name)?q.name.slice(0,40):'',inc:{tr:ic.tr?1:0,sl:ic.sl?1:0,nu:ic.nu?1:0,aft:ic.aft?1:0,rb:ic.rb===0?0:1,ch:ic.ch===0?0:1},members:[]};
+    out.squad={name:isStr(q.name)?q.name.slice(0,40):'',inc:{tr:ic.tr?1:0,sl:ic.sl?1:0,nu:ic.nu?1:0,aft:ic.aft?1:0,rb:ic.rb===0?0:1,ch:ic.ch===0?0:1,rk:ic.rk?1:0},members:[]};
     if(Array.isArray(q.members))q.members.slice(0,60).forEach(m=>{const c=sqClean(m);if(c&&isStr(m.k)&&/^[a-z0-9-]{1,40}$/.test(m.k)&&!out.squad.members.some(x=>x.k===m.k)){c.k=m.k;{const pr=rbCleanList(m.prb);if(pr)c.prb=pr}if(m.p&&typeof m.p==='object'){const pc=sqClean({v:1,n:'p',d:m.p.d,tr:m.p.tr,sl:m.p.sl,aft:m.p.aft});if(pc)c.p={d:pc.d,tr:pc.tr,sl:pc.sl,aft:pc.aft}}out.squad.members.push(c)}});out.squad.unit=isStr(q.unit)?q.unit.slice(0,40):'';out.squad.units=[];if(Array.isArray(q.units))q.units.slice(0,40).forEach(u=>{const c=ruClean(u);if(c&&isStr(u.k)&&/^[a-z0-9]{1,40}$/.test(u.k)&&!out.squad.units.some(x=>x.k===u.k)){c.k=u.k;out.squad.units.push(c)}})}
   if(o.sleep&&isStr(o.sleep.wake)&&/^\d\d:\d\d$/.test(o.sleep.wake))out.sleepWake=o.sleep.wake;
   if(o.sleep&&o.sleep.log&&typeof o.sleep.log==='object'){const lg={};Object.entries(o.sleep.log).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&typeof v==='number'&&v>=0&&v<=24)lg[k]=Math.round(v*100)/100});out.sleepLog=lg}
   if(o.sleep&&o.sleep.meta&&typeof o.sleep.meta==='object'){const mt={};Object.entries(o.sleep.meta).slice(0,800).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v==='object'){mt[k]={r:Number.isInteger(v.r)&&v.r>=0&&v.r<=5?v.r:0,c:!!v.c,s:!!v.s};['b','w'].forEach(x=>{if(isStr(v[x])&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v[x]))mt[k][x]=v[x]})}});out.sleepMeta=mt}
   if(o.mind&&o.mind.log&&typeof o.mind.log==='object'){const lg={};Object.entries(o.mind.log).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&Number.isFinite(v.mood)&&Array.isArray(v.g))lg[k]={mood:v.mood,g:[0,1,2].map(i=>isStr(v.g[i])?v.g[i].slice(0,120):'')}});out.mind={log:lg}}
   out.rb=rbClean(o.rb);
+  if(o.rk&&typeof o.rk==='object'&&Number.isInteger(o.rk.seen)&&o.rk.seen>=-1&&o.rk.seen<RK.length)out.rk={seen:o.rk.seen};
   if(o.body&&typeof o.body==='object')out.body=bcpClean(o.body);
   if(o.spirit&&typeof o.spirit==='object'){const lg={};Object.entries(o.spirit.log||{}).slice(0,400).forEach(([k,v])=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&isStr(v))lg[k]=v.slice(0,5000)});out.spirit={values:(Array.isArray(o.spirit.values)?o.spirit.values:[]).filter(v=>VALUES.includes(v)).slice(0,3),log:lg,va:vaClean(o.spirit.va)}}
   return out;
@@ -4340,6 +4457,7 @@ function applyBackup(c){
   S.custom=c.custom;S.types=c.types;S.plan=c.plan;S.pt=c.pt;S.hist=c.hist;
   if(c.nut)S.nut=c.nut;
   if(c.body)S.body=c.body;
+  if(c.rk)S.rk=c.rk;
   if(c.rb)S.rb=rbMerge(S.rb,c.rb);
   if(c.assess)S.assess=c.assess;
   if(c.stations)S.stations=c.stations;
@@ -5520,7 +5638,7 @@ showGate(!unlocked());
   document.addEventListener('pointerdown',e=>{if(RM()||!e.target.closest('.btn,.chip,.tab,.iconbtn,.urow'))return;const t=document.createElement('i');t.className='fx-tap';t.style.left=e.clientX+'px';t.style.top=e.clientY+'px';document.body.appendChild(t);setTimeout(()=>t.remove(),500)},{passive:true});
   fxTele();setInterval(fxTele,30000)})();
 function fxTele(){const el=document.getElementById('fxTele');if(!el)return;const d=new Date(),z=n=>String(n).padStart(2,'0'),st=streakWeeks(),af=(S.aft.hist||[])[0],n=typeof aftDays==='function'?aftDays():-1;
-  const parts=[`<i></i><b>${z(d.getHours())}${z(d.getMinutes())}</b>`,`<span>${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).replace(',','')}</span>`,`<span>Streak</span><b>${st} wk</b>`];
+  const parts=[`<i></i><b>${z(d.getHours())}${z(d.getMinutes())}</b>`,`<span>${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).replace(',','')}</span>`,`<span>Rank</span><b>${typeof rkState==='function'?RK[rkState().tier][0]:st+' wk'}</b>`];
   if(n>=0&&n<=120)parts.push(`<span>AFT</span><b>T-${n}</b>`);else if(af)parts.push(`<span>AFT</span><b>${af.t}</b>`);
   el.innerHTML=parts.join('')+'<em class="fx-sep"></em>'}
 const FX_CH='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789/<>#';
