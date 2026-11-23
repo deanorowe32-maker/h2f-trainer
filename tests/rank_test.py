@@ -38,7 +38,11 @@ with sync_playwright() as p:
     check('promotion ceremony shows the new rank', E("!!document.querySelector('.rkcer')") and E("RK[rkState().tier][0]") in E("document.querySelector('.rkcer').textContent"))
     check('ceremony does not block taps', E("getComputedStyle(document.querySelector('.rkcer')).pointerEvents") == 'none')
     check('seen rank saved', E("S.rk.seen") == E("rkState().tier"))
-    pg.wait_for_timeout(4000); check('ceremony clears itself', not E("!!document.querySelector('.rkcer')"))
+    check('promotion shows old badge being struck, then the new one', E("!!document.querySelector('.rkcer.up .rkold')&&!!document.querySelector('.rkcer .rknew')"))
+    pg.wait_for_timeout(1200)
+    check('lightning drawn above the ceremony', E("document.getElementById('efx').style.zIndex") == '320')
+    pg.wait_for_timeout(4400); check('ceremony clears itself', not E("!!document.querySelector('.rkcer')"))
+    check('lightning layer back to normal', E("document.getElementById('efx').style.zIndex") != '320')
     E("render()"); pg.wait_for_timeout(200); check('no repeat ceremony', not E("!!document.querySelector('.rkcer')"))
     # Card, telemetry, sheet
     check('telemetry shows rank', E("RK[rkState().tier][0]") in E("document.getElementById('fxTele').textContent"))
