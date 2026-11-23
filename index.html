@@ -1130,8 +1130,6 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .bcpform{grid-template-columns:1fr 1fr}
 .bcprow .nm{flex:1;min-width:0}.bcprow .iconbtn{min-width:44px;min-height:44px}
 /* Rank */
-.rkb .rkbg{fill:rgba(15,28,20,.9);stroke:var(--gold);stroke-width:2}
-.rkb .rkc{fill:var(--gold);stroke:var(--gold);filter:drop-shadow(0 0 3px rgba(232,191,85,.6))}
 .rkcard{padding-top:14px}
 .rkhead{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer;min-height:44px}
 .rkhead span{display:flex;flex-direction:column;gap:2px}
@@ -1156,8 +1154,9 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .rkcer .rks{color:#b9cbbf;margin:10px 0 0}
 @keyframes rkin{from{transform:scale(.4) rotate(-12deg);opacity:0}60%{transform:scale(1.12)}to{transform:none;opacity:1}}
 @keyframes rkpin{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:no-preference){.rkcer .rkb{animation:rkin .7s cubic-bezier(.2,.8,.2,1) both}.rkcer .rkc>*{animation:rkpin .35s cubic-bezier(.2,.8,.2,1) both}
- .rkcer .rkc>*:nth-child(1){animation-delay:.45s}.rkcer .rkc>*:nth-child(2){animation-delay:.6s}.rkcer .rkc>*:nth-child(3){animation-delay:.75s}.rkcer .rkc>*:nth-child(4){animation-delay:.9s}.rkcer .rkc>*:nth-child(5){animation-delay:1.05s}.rkcer .rkc>*:nth-child(6){animation-delay:1.2s}.rkcer .rkc>*:nth-child(7){animation-delay:1.35s}.rkcer .rkc>*:nth-child(8){animation-delay:1.5s}}
+@media (prefers-reduced-motion:no-preference){.rkcer .rkb{animation:rkin .7s cubic-bezier(.2,.8,.2,1) both}.rkcer .rkc{animation:rkpin .5s .45s cubic-bezier(.2,.8,.2,1) both}
+ .rkcer .rksh{animation:rksheen 1.4s 1s cubic-bezier(.4,0,.2,1) both}}
+@keyframes rksheen{from{transform:translateX(-70px)}to{transform:translateX(70px)}}
 /* Today hero (from the electric demo): ring up top, gold start, list you tick off here */
 .tdhero{text-align:center;margin:4px 0 6px}
 .tdhero .reactor{width:min(300px,78vw)}
@@ -1888,12 +1887,33 @@ function rkState(){const sig=JSON.stringify([today(),(S.hist||[]).length,Object.
     if(nx&&cum>=nx[1]&&rkDays(since,d)>=nx[2]&&rkBoardOk(nx[3],d,X)){tier++;since=d;hist.push({t:tier,d,p:cum})}}}
   const last=days.filter(k=>(X.pts[k]||0)>0).pop(),inactive=!!last&&rkDays(last,today())>14;
   rkMemo={sig,tier,pts:cum,since,hist,X,inactive};return rkMemo}
-function rkBadge(t,sz){sz=sz||48;const c=Math.min(t,3),bars=t>=4?Math.min(2,t-3):0,stars=t>=6?t-5:0;let g='';
-  for(let i=0;i<c;i++){const y=30+i*9;g+=`<path d="M14 ${y} L32 ${y-10} L50 ${y} L50 ${y+5} L32 ${y-5} L14 ${y+5}Z"/>`}
-  for(let i=0;i<bars;i++){const y=58+i*7;g+=`<rect x="16" y="${y}" width="32" height="4" rx="1"/>`}
-  for(let i=0;i<stars;i++){const x=32+(i-(stars-1)/2)*11;g+=`<path transform="translate(${x} 12) scale(.42)" d="M0-10L2.9-3.1 10-3.1 4.3 1.2 6.5 8.1 0 4 -6.5 8.1 -4.3 1.2 -10-3.1 -2.9-3.1Z"/>`}
-  if(!t)g='<circle cx="32" cy="38" r="9" fill="none" stroke-width="2.5"/>';
-  return `<svg class="rkb" viewBox="0 0 64 76" width="${sz}" height="${Math.round(sz*76/64)}" aria-hidden="true"><path class="rkbg" d="M32 2 L60 12 V44 C60 60 47 70 32 74 C17 70 4 60 4 44 V12Z"/><g class="rkc">${g}</g></svg>`}
+let rkBid=0;
+/* Rank badge: a metal shield (gunmetal, bronze, silver, gold, platinum) with wings, a laurel wreath that grows,
+   the tier numeral, and stars for the top three. Original artwork. */
+const RK_MET={gun:['#d5dadd','#8b9296','#40474b','#b3babe','#2f3539'],bronze:['#ffd9b0','#cf8f52','#6e3f19','#e3a96f','#4d2a0f'],silver:['#ffffff','#cfd4d8','#7a828a','#eef1f3','#535a61'],gold:['#fff6cf','#efc65a','#93661a','#f8dc85','#664510'],plat:['#ffffff','#e6ecef','#9aa7ae','#f7fafb','#6d7a82']};
+function rkEmblem(t){const N=['I','II','III','IV','V','VI','VII','VIII','IX'][t],leaf='M0 0C1.9-1.6 2.1-4.6 0-7C-2.1-4.6-1.9-1.6 0 0Z',wf=1+Math.floor(t/3),lv=3+Math.floor(t/2);let g='';
+  for(let i=0;i<wf;i++){const y=28.5+i*2.9,L=15-i*3.4,lift=5.2-i*1.4;for(const sd of [-1,1]){const x0=32+sd*2.6,x1=32+sd*L;g+=`<path d="M${x0} ${y} L${x1} ${(y-lift).toFixed(1)} L${(x1-sd*1.6).toFixed(1)} ${(y-lift+2.6).toFixed(1)} L${x0} ${(y+2.4).toFixed(1)}Z"/>`}}
+  g+='<path d="M32 26.2l2.6 3.4-2.6 3.4-2.6-3.4z"/>';
+  for(const sd of [-1,1]){const P=u=>{const m=1-u,a=[32+sd*1.5,62],b=[32+sd*14,60],c=[32+sd*18,48],d=[32+sd*15,33];return [m*m*m*a[0]+3*m*m*u*b[0]+3*m*u*u*c[0]+u*u*u*d[0],m*m*m*a[1]+3*m*m*u*b[1]+3*m*u*u*c[1]+u*u*u*d[1]]};
+    g+=`<path d="M${32+sd*1.5} 62 C${32+sd*14} 60 ${32+sd*18} 48 ${32+sd*15} 33" fill="none" stroke-width="1.1"/>`;
+    for(let i=0;i<lv;i++){const u=(i+.5)/lv,[x,y]=P(u),[x2,y2]=P(Math.min(1,u+.02)),dir=Math.atan2(y2-y,x2-x)*180/Math.PI+90;
+      g+=`<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(dir-sd*62).toFixed(0)})" d="${leaf}"/><path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(dir+sd*28).toFixed(0)}) scale(.85)" d="${leaf}"/>`}}
+  const st=t>=6?t-5:0;for(let i=0;i<st;i++){const x=32+(i-(st-1)/2)*8;g+=`<path transform="translate(${x} 17) scale(.33)" d="M0-10L2.9-3.1 10-3.1 4.3 1.2 6.5 8.1 0 4 -6.5 8.1 -4.3 1.2 -10-3.1 -2.9-3.1Z"/>`}
+  const fs=N.length>3?10.5:N.length>2?12:N.length>1?13.5:15;
+  return g+`<text x="32" y="46" text-anchor="middle" font-family="Chakra Petch,Arial Black,sans-serif" font-weight="700" font-size="${fs}" letter-spacing="-.2">${N}</text>`}
+function rkBadge(t,sz){sz=sz||48;const i=++rkBid,m=RK_MET[t===0?'gun':t<=2?'bronze':t<=5?'silver':t<=7?'gold':'plat'],em=t===8?RK_MET.gold:m,E=rkEmblem(t),
+  O='M32 2 L60 12 V44 C60 60 47 70 32 74 C17 70 4 60 4 44 V12Z',I='M32 7 L55 15.5 V44 C55 57 44 65.5 32 69 C20 65.5 9 57 9 44 V15.5Z';
+  return `<svg class="rkb" viewBox="0 0 64 76" width="${sz}" height="${Math.round(sz*76/64)}" aria-hidden="true"><defs>
+<linearGradient id="rkf${i}" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="${m[0]}"/><stop offset=".28" stop-color="${m[1]}"/><stop offset=".55" stop-color="${m[2]}"/><stop offset=".78" stop-color="${m[3]}"/><stop offset="1" stop-color="${m[4]}"/></linearGradient>
+<linearGradient id="rkv${i}" x1="0" y1="1" x2=".35" y2="0"><stop offset="0" stop-color="${m[0]}"/><stop offset=".5" stop-color="${m[2]}"/><stop offset="1" stop-color="${m[4]}"/></linearGradient>
+<radialGradient id="rke${i}" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#1d3527"/><stop offset="1" stop-color="#07100b"/></radialGradient>
+<linearGradient id="rkm${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${em[0]}"/><stop offset=".45" stop-color="${em[1]}"/><stop offset=".7" stop-color="${em[2]}"/><stop offset="1" stop-color="${em[3]}"/></linearGradient>
+<linearGradient id="rks${i}" x1="0" y1="0" x2="1" y2="1"><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset=".62" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<clipPath id="rkc${i}"><path d="${O}"/></clipPath></defs>
+<path class="rkbg" d="${O}" fill="url(#rkf${i})"/><path d="${I}" fill="url(#rke${i})" stroke="url(#rkv${i})" stroke-width="1.6"/>
+<g transform="translate(0 1.2)" fill="#000" stroke="#000" opacity=".55">${E}</g>
+<g class="rkc" fill="url(#rkm${i})" stroke="${em[4]}" stroke-width=".5">${E}</g>
+<rect class="rksh" x="-20" y="0" width="110" height="80" fill="url(#rks${i})" clip-path="url(#rkc${i})"/></svg>`}
 function rkNext(R){const nx=RK[R.tier+1];if(!nx)return null;const dig=rkDays(R.since,today()),bd=nx[3];
   return {nx,need:nx[1],have:R.pts,tig:Math.max(0,nx[2]-dig),bd,bok:rkBoardOk(bd,today(),R.X)}}
 function rkCardHtml(){const R=rkState(),N=rkNext(R),name=RK[R.tier][0];
@@ -1901,7 +1921,7 @@ function rkCardHtml(){const R=rkState(),N=rkNext(R),name=RK[R.tier][0];
     lines=`<div class="rkbar" role="img" aria-label="${pc}% of the way to ${N.nx[0]}"><i style="width:${pc}%"></i></div>
     <ul class="rkreq"><li class="${R.pts>=N.need?'ok':''}">${R.pts} / ${N.need} points</li><li class="${N.tig?'':'ok'}">${N.tig?N.tig+' more day'+(N.tig>1?'s':'')+' in grade':'Time in grade met'}</li>${N.bd?`<li class="${N.bok?'ok':''}">Board: ${esc(RK_BOARD[N.bd])}</li>`:''}</ul>`}
   else lines='<p class="tag">Top rank. Keep your streak alive and lead by example.</p>';
-  return `<section class="tdwide rkcard" id="rkcard" data-p="${R.pts}" data-t="${R.tier}"><button type="button" class="rkhead" data-a="rkopen" aria-label="Rank: ${name}. Open ranks and points">${rkBadge(R.tier,52)}<span><small>Rank${R.inactive?' · Inactive':''}</small><b>${name}</b>${N?`<em>Next: ${N.nx[0]}</em>`:''}</span></button>${lines}</section>`}
+  return `<section class="tdwide rkcard" id="rkcard" data-p="${R.pts}" data-t="${R.tier}"><button type="button" class="rkhead" data-a="rkopen" aria-label="Rank: ${name}. Open ranks and points">${rkBadge(R.tier,64)}<span><small>Rank${R.inactive?' · Inactive':''}</small><b>${name}</b>${N?`<em>Next: ${N.nx[0]}</em>`:''}</span></button>${lines}</section>`}
 function rkSheetHtml(){const R=rkState(),dt=d=>esc(vzLong(d));
   const ladder=RK.map(([n,p,tg,b],i)=>`<li class="${i===R.tier?'cur':i<R.tier?'done':''}">${rkBadge(i,34)}<span><b>${n}</b><small>${i?`${p} points · ${tg} days in grade${b?' · '+esc(RK_BOARD[b]):''}`:'Where everyone starts'}</small>${(R.hist.find(h=>h.t===i)||{}).d?`<small class="rkwhen">Promoted ${dt(R.hist.find(h=>h.t===i).d)}</small>`:''}</span></li>`).join('');
   const recent=Object.keys(R.X.pts).sort().reverse().slice(0,7).map(k=>`<div class="item"><span class="nm">${dt(k)}</span><span class="rxv">+${R.X.pts[k]}</span></div>`).join('');
