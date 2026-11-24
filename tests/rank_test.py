@@ -24,8 +24,8 @@ with sync_playwright() as p:
     check('3rd training day of a week adds the +20 bonus', E("rkData().pts[rkAdd(M,2)]") == 30 and E("rkData().pts[rkAdd(M,0)]") == 10)
     E("""S.aft.hist=[{id:'a1',d:rkAdd(M,3),age:30,std:'g',t:380,p:[80,70,80,70,80],r:[0,0,0,0,0]},{id:'a2',d:rkAdd(M,4),age:30,std:'g',t:420,p:[80,80,90,80,90],r:[0,0,0,0,0]}];rkMemo=null""")
     check('AFT saved 15, improvement adds up to 30 more', E("rkData().pts[rkAdd(M,3)]") == 15 and E("rkData().pts[rkAdd(M,4)]") == 45)
-    # Time in grade: 60+ points in 4 days but Striker needs 7 days
-    E("""(()=>{S.aft.hist=[];S.journal.entries=[];S.sleep.log={};S.mind.log={};S.nut.wlog={};const s=rkAdd(today(),-3);S.hist=[0,1,2,3].map(i=>({id:'t'+i,ts:vzDay(rkAdd(s,i)).setHours(9),t:'1',d:1,n:1}));rkMemo=null})()""")
+    # Time in grade: 60+ points in 6 days (any weekday) but Striker needs 7 days
+    E("""(()=>{S.aft.hist=[];S.journal.entries=[];S.sleep.log={};S.mind.log={};S.nut.wlog={};const s=rkAdd(today(),-5);S.hist=[0,1,2,3,4,5].map(i=>({id:'t'+i,ts:vzDay(rkAdd(s,i)).setHours(9),t:'1',d:1,n:1}));rkMemo=null})()""")
     r = E("(()=>{const R=rkState();return [R.tier,R.pts,rkNext(R).tig]})()")
     check(f'points alone do not promote: time in grade (got {r})', r[0] == 0 and r[1] >= 60 and r[2] > 0)
     # Board: lots of history but no AFT pass -> stops at Vanguard
