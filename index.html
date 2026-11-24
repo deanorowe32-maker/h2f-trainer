@@ -2731,7 +2731,7 @@ function render(){
   afterRender();placeSeg();jumpLinks(v);setHdr();
   try{fxRender(fxv)}catch(e){}
   try{rkCheck()}catch(e){}
-  if(S.tab==='ruck')try{gMount()}catch(e){}else if(gm){try{gm.remove()}catch(e){}gm=null}
+  if(S.tab==='ruck')try{gMount()}catch(e){}else if(gm){try{gm.remove()}catch(e){}gm=null;gMeStop()}
   save();
 }
 
@@ -4342,14 +4342,23 @@ function gMount(){const el=document.getElementById('gMap');if(!el)return;
   lfLoad().then(()=>{if(!document.body.contains(el))return;if(gm){try{gm.remove()}catch(e){}gm=null}
     gm=L.map(el,{zoomControl:true,attributionControl:true,tap:true});gm.attributionControl.setPrefix(false);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(gm);
-    gLay=L.layerGroup().addTo(gm);
+    gLay=L.layerGroup().addTo(gm);gMeLay=L.layerGroup().addTo(gm);gMeDraw();
     const Loc=L.Control.extend({options:{position:'topleft'},onAdd(){const d=L.DomUtil.create('div','leaflet-bar gloc'),a=L.DomUtil.create('a','',d);a.href='#';a.setAttribute('role','button');a.setAttribute('aria-label','Find my location');a.title='Find my location';a.textContent='◎';
       L.DomEvent.on(a,'click',ev=>{L.DomEvent.stop(ev);gFollow=true;if(rmode==='track'&&rt&&rt.me)gm.setView(rt.me,Math.max(gm.getZoom(),16));else gLocate(true)});L.DomEvent.disableClickPropagation(d);return d}});
     new Loc().addTo(gm);
     if(rmode==='plan'){gm.on('click',e=>{if(gp.pts.length>=300)return;gp.pts.push([+e.latlng.lat.toFixed(5),+e.latlng.lng.toFixed(5)]);gp.legs[gp.pts.length-1]=null;if(gp.pts.length>1)gLegFetch(gp.pts.length-1);gDraw();gPlanUi()})}
     if(rmode==='track'){gm.on('dragstart',()=>{gFollow=false})}
-    gDraw(true)}).catch(()=>{el.innerHTML='<p class="tag" style="padding:16px">The map could not load. Check your signal and try again.</p>'})}
+    gDraw(true);gMeWatch()}).catch(()=>{el.innerHTML='<p class="tag" style="padding:16px">The map could not load. Check your signal and try again.</p>'})}
 const G_GOLD='#e8bf55',G_GREEN='#5fd08a';
+/* "You are here" on the plan and home maps: only a fix taken this session (never the saved last fix), drawn on its own
+   layer that ignores taps, so it never adds a route point. Tracking draws its own dot. */
+let gMeLay=null,gMe=null,gMeId=null;
+function gMeStop(){if(gMeId!=null){try{navigator.geolocation.clearWatch(gMeId)}catch(e){}gMeId=null}}
+function gMeWatch(){gMeStop();if(!navigator.geolocation||rmode==='track'||rmode==='done')return;
+  try{gMeId=navigator.geolocation.watchPosition(p=>{if(p.coords.accuracy>500)return;gMe={ll:[p.coords.latitude,p.coords.longitude],acc:p.coords.accuracy};gMeDraw()},()=>{},{enableHighAccuracy:true,maximumAge:10000,timeout:30000})}catch(e){}}
+function gMeDraw(){if(!gMeLay)return;gMeLay.clearLayers();if(!gMe||rmode==='track'||rmode==='done')return;
+  L.circle(gMe.ll,{radius:Math.min(gMe.acc||20,300),color:'#4da3ff',weight:1,fillColor:'#4da3ff',fillOpacity:.12,interactive:false}).addTo(gMeLay);
+  L.circleMarker(gMe.ll,{radius:8,color:'#fff',weight:3,fillColor:'#4da3ff',fillOpacity:1,interactive:false,className:'gmedot'}).addTo(gMeLay)}
 function gDraw(fit){if(!gm||!gLay)return;gLay.clearLayers();const G=gpsS();let view=null;
   const route=P=>{L.polyline(P,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(P,{color:G_GOLD,weight:4,dashArray:'8 7'}).addTo(gLay);L.circleMarker(P[0],{radius:7,color:'#000',weight:2,fillColor:G_GREEN,fillOpacity:1}).addTo(gLay).bindTooltip('Start');if(P.length>1&&gHav(P[0],P[P.length-1])>20)L.circleMarker(P[P.length-1],{radius:7,color:'#000',weight:2,fillColor:'#d0604a',fillOpacity:1}).addTo(gLay).bindTooltip('Finish')};
   if(rmode==='plan'){const P=gp.pts,PP=gPath();if(PP.length>=2){L.polyline(PP,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(PP,{color:G_GOLD,weight:4}).addTo(gLay)}
@@ -4371,7 +4380,7 @@ function gPlanUi(){const L2=gLen(gPath()),k=gpsS().kind,d=document.getElementByI
   const sv=document.querySelector('[data-a=gsave]');if(sv)sv.disabled=wt;
   document.querySelectorAll('[data-a=gundo],[data-a=gclear]').forEach(b=>b.disabled=!gp.pts.length);document.querySelectorAll('[data-a=gloop],[data-a=gback]').forEach(b=>b.disabled=gp.pts.length<2)}
 function gLocate(center){if(!navigator.geolocation){gNote('This browser does not share location, so the map cannot find you. You can still pan and zoom to your area.');return}
-  navigator.geolocation.getCurrentPosition(p=>{gLastFix=[+p.coords.latitude.toFixed(4),+p.coords.longitude.toFixed(4)];try{localStorage.setItem('h2f.lastfix',JSON.stringify(gLastFix))}catch(e){}gNote('');
+  navigator.geolocation.getCurrentPosition(p=>{gMe={ll:[p.coords.latitude,p.coords.longitude],acc:p.coords.accuracy};gMeDraw();gLastFix=[+p.coords.latitude.toFixed(4),+p.coords.longitude.toFixed(4)];try{localStorage.setItem('h2f.lastfix',JSON.stringify(gLastFix))}catch(e){}gNote('');
     if(center&&gm&&!(rmode==='plan'&&gp.pts.length))gm.setView(gLastFix,Math.max(gm.getZoom(),15))},
   e=>{gNote(e&&e.code===1?'Location is blocked for this app. On iPhone: Settings, Privacy & Security, Location Services, then Safari Websites (or H2F Trainer if installed), set to While Using. Then tap ◎ on the map.':'Could not get your location yet. Step outside or tap ◎ on the map to try again.')},
   {enableHighAccuracy:true,timeout:15000,maximumAge:120000})}
@@ -4382,7 +4391,7 @@ function gWakeOff(){try{if(gWake)gWake.release()}catch(e){}gWake=null}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&rt&&rmode==='track'&&!rt.pauseAt)gWakeOn()});
 function gStart(){const G=gpsS();if(!navigator.geolocation){alertNote('This phone does not share its location with web apps.');return}
   const r=gSel();rt={kind:G.kind,lb:G.kind==='ruck'?G.lb:0,r:r?{id:r.id,n:r.n,pts:r.pts}:null,rd:r?gDense(r.pts):null,start:Date.now(),paused:0,pauseAt:0,pts:[],m:0,me:null,acc:0,off:false};
-  rmode='track';gFollow=true;gFin=0;rtSave();FX.view=true;render();window.scrollTo(0,0);
+  gMeStop();rmode='track';gFollow=true;gFin=0;rtSave();FX.view=true;render();window.scrollTo(0,0);
   rt.watch=navigator.geolocation.watchPosition(gFix,gErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});gWakeOn();
   clearInterval(rt.tick);rt.tick=setInterval(gTick,1000)}
 function alertNote(t){const s=document.getElementById('gtS');if(s)s.textContent=t}

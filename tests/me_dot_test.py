@@ -1,0 +1,45 @@
+"""Plan a route shows a blue 'you are here' dot from a live fix; tapping still adds points; dot moves with the phone;
+no dot without a fix this session; tracking keeps its own green dot."""
+import sys, json
+from playwright.sync_api import sync_playwright
+fails=[]
+def check(n,ok):
+    print(('PASS ' if ok else 'FAIL ')+n)
+    if not ok: fails.append(n)
+with sync_playwright() as p:
+    b=p.chromium.launch()
+    ctx=b.new_context(viewport={'width':390,'height':844},geolocation={'latitude':49.6986,'longitude':11.9335,'accuracy':8},permissions=['geolocation'],timezone_id='Europe/Berlin')
+    pg=ctx.new_page();E=pg.evaluate;errs=[];pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
+    pg.route('https://tile.openstreetmap.org/**',lambda r:r.fulfill(status=404,body=''))
+    pg.route('**/functions/v1/route',lambda r:r.fulfill(status=503,headers={'Access-Control-Allow-Origin':'*'},body='{}'))
+    pg.goto('http://localhost:8765/');pg.wait_for_timeout(400)
+    E("localStorage.clear();sessionStorage.setItem('h2f.boot','1');localStorage.setItem('h2f.access',CODE_HASH);localStorage.setItem('h2f.tour','1')");pg.reload();pg.wait_for_timeout(900)
+    pg.add_style_tag(content='#rbSheet{display:none!important}')
+    E("S.rk={seen:0};document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);S.tab='ruck';render()");pg.wait_for_timeout(1200)
+    check('home map shows the you-are-here dot',E("!!document.querySelector('#gMap .gmedot')"))
+    pg.click('[data-a=gplan]');pg.wait_for_timeout(1500)
+    check('plan map shows the you-are-here dot',E("!!document.querySelector('#gMap .gmedot')"))
+    ll=E("gm.latLngToContainerPoint(gMe.ll)");c=E("gm.getSize()")
+    check('map is centred on you',abs(ll['x']-c['x']/2)<5 and abs(ll['y']-c['y']/2)<5)
+    bx=pg.query_selector('#gMap').bounding_box()
+    pg.mouse.click(bx['x']+bx['width']/2,bx['y']+bx['height']/2);pg.wait_for_timeout(200)
+    check('tapping on the dot still adds a point',E("gp.pts.length")==1)
+    pg.mouse.click(bx['x']+80,bx['y']+80);pg.wait_for_timeout(300)
+    check('dot survives route redraws',E("!!document.querySelector('#gMap .gmedot')"))
+    ctx.set_geolocation({'latitude':49.7010,'longitude':11.9370,'accuracy':8});pg.wait_for_timeout(1500)
+    check('dot follows the phone',abs(E("gMe.ll[0]")-49.7010)<1e-4)
+    pg.click('[data-a=gcancel]') if E("!!document.querySelector('[data-a=gcancel]')") else None;pg.wait_for_timeout(800)
+    check('watch keeps one listener',E("gMeId!=null"))
+    E("S.tab='today';render()");pg.wait_for_timeout(300)
+    check('leaving the tab stops location',E("gMeId===null"))
+    # no fix this session: no dot even with a saved last fix
+    ctx2=b.new_context(viewport={'width':390,'height':844},timezone_id='Europe/Berlin');pg2=ctx2.new_page()
+    pg2.route('https://tile.openstreetmap.org/**',lambda r:r.fulfill(status=404,body=''))
+    pg2.goto('http://localhost:8765/');pg2.wait_for_timeout(400)
+    pg2.evaluate("localStorage.clear();sessionStorage.setItem('h2f.boot','1');localStorage.setItem('h2f.access',CODE_HASH);localStorage.setItem('h2f.tour','1');localStorage.setItem('h2f.lastfix','[49.7,11.93]')");pg2.reload();pg2.wait_for_timeout(900)
+    pg2.add_style_tag(content='#rbSheet{display:none!important}')
+    pg2.evaluate("S.rk={seen:0};document.querySelectorAll('.sheet').forEach(x=>x.hidden=true);S.tab='ruck';render()");pg2.wait_for_timeout(1500)
+    check('no dot from an old saved spot',not pg2.evaluate("!!document.querySelector('#gMap .gmedot')"))
+    check('no page errors',not errs)
+    b.close()
+print('ALL PASS' if not fails else f'{len(fails)} FAIL');sys.exit(1 if fails else 0)
