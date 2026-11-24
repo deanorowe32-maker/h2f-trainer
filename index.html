@@ -1144,6 +1144,20 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .gst{margin:4px 0 0;color:var(--muted,#93a99b);font-size:14px;min-height:20px}.gst.warn{color:#f1a585;font-weight:700}
 .gctl .btn{flex:1;min-height:56px}
 .gsel{margin-top:0}
+.cxintro{padding:14px 16px;border-radius:16px;background:var(--raised);box-shadow:inset 0 0 0 1px var(--line);margin:0 0 12px}.cxintro p{margin:0 0 8px}.cxintro p:last-child{margin:0}
+.cxlog{display:flex;flex-direction:column;gap:10px;margin:4px 0 12px}
+.cxm{max-width:88%;padding:10px 14px;border-radius:18px;line-height:1.45}.cxm p{margin:0;overflow-wrap:anywhere}
+.cxm.me{align-self:flex-end;background:#e8bf55;color:#14110a;border-bottom-right-radius:6px}
+.cxm.ai{align-self:flex-start;background:var(--raised);box-shadow:inset 0 0 0 1px var(--line);border-bottom-left-radius:6px}
+.cxwho{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e8bf55;margin-bottom:4px;font-weight:700}
+.cxdots i{display:inline-block;width:5px;height:5px;margin-left:3px;border-radius:50%;background:currentColor;animation:cxd 1.2s infinite ease-in-out}.cxdots i:nth-child(2){animation-delay:.15s}.cxdots i:nth-child(3){animation-delay:.3s}
+@keyframes cxd{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.cxdots i{animation:none}}
+.cxsug{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.cxsug .chip{min-height:44px}
+.cxbar{display:flex;gap:8px;align-items:flex-end}.cxbar textarea{flex:1;min-height:48px;resize:vertical;font:inherit;font-size:16px}.cxbar .btn{min-height:48px;flex:none}
+.cxerr{color:#f0a08a;margin:0 0 8px}
+.cxsent{margin:8px 0 12px}.cxsent summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:#e8bf55}.cxsent pre{white-space:pre-wrap;font-size:13px;line-height:1.45;padding:12px;border-radius:12px;background:rgba(0,0,0,.3);max-height:260px;overflow:auto}
+.cxfoot{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .gtrail{display:flex;gap:12px;align-items:center;min-height:48px;margin:0 0 8px;cursor:pointer}.gtrail input{width:22px;height:22px;accent-color:#e8bf55;flex:none}
 .gtrail span{display:flex;flex-direction:column}.gtrail small{color:var(--muted,#93a99b);font-size:13px}
 .gmap .gloc a{background:#0f1c14;color:#e8bf55;width:36px;height:36px;line-height:36px;font-size:20px;border-color:rgba(232,191,85,.3)}
@@ -1751,7 +1765,7 @@ var fresh=false,OPENED_AT=Date.now();
 if(!S||!S.pt||!S.plan){S=init();fresh=true}
 if(typeof S.savedAt!=='number')S.savedAt=fresh?0:Date.now();
 try{const dk=new Date().toDateString();if(!S.tab||localStorage.getItem('h2f.day')!==dk)S.tab='today';localStorage.setItem('h2f.day',dk)}catch(e){if(!S.tab)S.tab='today'}
-try{const h=location.hash.slice(1);if(/^[a-z]+$/.test(h)&&['today','train','ruck','pt','assess','lib','fm','nut','sleep','mind','spirit','creator','unit'].includes(h))S.tab=h}catch(e){}
+try{const h=location.hash.slice(1);if(/^[a-z]+$/.test(h)&&['today','coach','train','ruck','pt','assess','lib','fm','nut','sleep','mind','spirit','creator','unit'].includes(h))S.tab=h}catch(e){}
 var lsOK=true,lastBk=null;
 try{localStorage.setItem('h2f.t','1');lsOK=localStorage.getItem('h2f.t')==='1'}catch(e){lsOK=false}
 /* Two copies open (Home Screen app and a browser tab): when the other copy saves, this one reloads to pick up
@@ -1793,7 +1807,7 @@ const DN=['Mon','Tue','Wed','Thu','Fri'];
 const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 function dayDate(i){const d=monday(S.week);d.setDate(d.getDate()+i);return d}
 
-const TABS=[['today','Today'],['train','Workout'],['ruck','Ruck & Run'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
+const TABS=[['today','Today'],['coach','Coach'],['train','Workout'],['ruck','Ruck & Run'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
 const TAB_ICON={
  today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
  train:'<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>',
@@ -1825,8 +1839,8 @@ document.addEventListener('keydown',ev=>{if(ev.key!=='Escape')return;['moreSheet
 let tabsKey='',FX={view:false,wk:0,ink:null,strike:null,complete:false,cup:-1};
 const TICK='<svg class="tk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 /* Navigation: five destinations. Train, Readiness and Unit hold several sections behind a switcher. */
-const GROUPS=[['today','Today',['today']],['train','Train',['train','ruck','lib','assess']],['rehab','Recovery',['pt']],['ready','Readiness',['sleep','nut','mind','spirit']],['unit','Unit',['unit','fm','creator']]];
-const SUBLAB={train:'Plan',ruck:'Ruck & Run',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
+const GROUPS=[['today','Today',['today','coach']],['train','Train',['train','ruck','lib','assess']],['rehab','Recovery',['pt']],['ready','Readiness',['sleep','nut','mind','spirit']],['unit','Unit',['unit','fm','creator']]];
+const SUBLAB={today:'Today',coach:'Coach',train:'Plan',ruck:'Ruck & Run',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
 Object.assign(TAB_ICON,{rehab:TAB_ICON.pt,ready:'<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',unit:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M16 14.2c2.4.1 4.1 1.7 4.6 4.3"/>',
  backup:'<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>',heart:'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>',home:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',chev:'<path d="M9 6l6 6-6 6"/>'});
@@ -4465,7 +4479,74 @@ function gAct(a,v,b){const G=gpsS();
   if(a==='gdropold'){rtDrop();render();return true}
   return false}
 
-function viewOther(t){return t==='ruck'?viewRuck()+gResumeOffer():t==='unit'?viewUnit():t==='assess'?viewAssess():t==='fm'?viewFM():t==='nut'?viewNut():t==='sleep'?viewSleep():t==='mind'?viewMind():t==='creator'?viewCreator():viewSpirit()}
+/* H2F Coach: questions answered by Claude (Haiku) through our Supabase "coach" function. Off until the Soldier turns it
+   on. Each question sends the chat so far (last 8 turns) and the summary below; the chat itself stays on this phone. */
+const CX_SUG=['How should I train this week?','Am I on track for my AFT?','What should I eat before a ruck?','How can I sleep better?'];
+let cxBusy=false,cxErr='',cxLeft=null;
+function cxS(){let o=null;try{o=JSON.parse(localStorage.getItem('h2f.coach')||'null')}catch(e){}
+  if(!o||typeof o!=='object')o={};if(typeof o.dev!=='string'||!/^[a-z0-9]{16}$/.test(o.dev)){let d='';const a=new Uint8Array(16);try{crypto.getRandomValues(a)}catch(e){a.forEach((_,i)=>a[i]=Math.random()*256)}a.forEach(x=>d+='abcdefghijklmnopqrstuvwxyz0123456789'[x%36]);o.dev=d}
+  o.on=o.on===true;o.msgs=Array.isArray(o.msgs)?o.msgs.filter(m=>m&&(m.r==='u'||m.r==='a')&&typeof m.t==='string').slice(-40):[];return o}
+function cxSave(o){try{localStorage.setItem('h2f.coach',JSON.stringify(o))}catch(e){}}
+function cxCtx(){const L=[],t=(f)=>{try{const s=f();if(s)L.push(s)}catch(e){}};const now=new Date(),wd=(now.getDay()+6)%7;
+  t(()=>'Today: '+WD7[wd]+' '+today()+'.');
+  t(()=>{const n=S.nut,bits=[];if(parseFloat(n.age)>0)bits.push('age '+parseFloat(n.age));if(n.sex==='m'||n.sex==='f')bits.push(n.sex==='m'?'male':'female');
+    if(parseFloat(n.wt)>0)bits.push('weight '+parseFloat(n.wt)+' '+(n.unit==='kg'?'kg':'lb'));if(parseFloat(n.ht)>0)bits.push('height '+parseFloat(n.ht)+' '+(n.hu==='in'?'in':'cm'));
+    const g={l:'lose fat',g:'gain muscle'}[n.goal];if(g)bits.push('goal '+g);return bits.length?'Profile: '+bits.join(', ')+'.':''});
+  t(()=>{const W=wkData(0);if(wd>4||!W)return 'Today: no planned workout (weekend).';const its=readyItems(wd);const ty=DTYPES[W.types[wd]]||'';
+    return 'Planned workout today: '+ty+(its.length?' ('+its.slice(0,10).map(it=>EX[it.id].name+(it.w?' '+it.w:'')).join(', ')+')':'')+'.'});
+  t(()=>{const c=Date.now()-14*864e5,h=(S.hist||[]).filter(e=>e&&e.ts>=c).slice(0,20);
+    return h.length?'Workouts logged in the last 14 days ('+h.length+'): '+h.map(e=>dk(new Date(e.ts)).slice(5)+' '+e.type+(e.ms?' '+Math.round(e.ms/60000)+' min':'')+(e.n?' '+e.d+'/'+e.n+' done':'')).join('; ')+'.':'No workouts logged in the last 14 days.'});
+  t(()=>{const w=slAvg(7),m=slAvg(30);return w.n?'Sleep: '+slFmt(w.avg)+' h average over '+w.n+' of the last 7 nights'+(m.n>w.n?', '+slFmt(m.avg)+' h over 30 days':'')+(S.sleep.wake?', wake time '+S.sleep.wake:'')+'.':'Sleep: not logged.'});
+  t(()=>{const r=[];for(let i=6;i>=0;i--){const e=S.mind.log[slKey(i)];if(e&&e.mood>=0)r.push(MOODS[e.mood])}return r.length?'Mood, last 7 days: '+r.join(', ')+'.':''});
+  t(()=>{const g=nuTargets();return g?'Daily food targets from the app: '+g.kcal+' kcal, protein '+g.p+' g, carbs '+g.c+' g, fat '+g.f+' g.':''});
+  t(()=>S.hyd&&S.hyd.n?'Water so far today: '+S.hyd.n+' of 8 cups.':'');
+  t(()=>{const a=(S.aft.hist||[])[0];if(!a)return 'AFT: no score saved yet.';
+    return 'Last AFT ('+a.d+'): '+a.t+' points; '+AFT_EV.map(([k,n],i)=>n+' '+(a.r&&a.r[i]!=null?(typeof a.r[i]==='number'&&(k==='sdc'||k==='plk'||k==='run')?Math.floor(a.r[i]/60)+':'+String(Math.round(a.r[i]%60)).padStart(2,'0'):a.r[i])+' ':'')+'= '+a.p[i]+' pts').join('; ')+'.'});
+  t(()=>{const n=aftDays();return n>=0?'Next AFT: '+aftDate()+' ('+n+' days away).':''});
+  t(()=>{const B=bcpS().log,w=B.find(e=>e.w!==null),wa=B.find(e=>e.wa!==null),ht=bcpHt(),b=[];
+    if(w)b.push('weight '+w.w+' lb on '+w.d);if(wa&&ht)b.push('waist-to-height '+bcpRatio(wa.wa,ht).toFixed(3)+' on '+wa.d+' (Army standard: under 0.55)');return b.length?'Body: '+b.join('; ')+'.':''});
+  t(()=>'App rank: '+RK[rkState().tier][0]+'.');
+  return L.join('\n').slice(0,4000)}
+function cxText(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}
+function cxLogHtml(o){return o.msgs.map(m=>`<div class="cxm ${m.r==='u'?'me':'ai'}">${m.r==='a'?'<span class="cxwho">Coach</span>':''}<p>${cxText(m.t)}</p></div>`).join('')+(cxBusy?'<div class="cxm ai cxwait" role="status"><span class="cxwho">Coach</span><p>Thinking<span class="cxdots"><i></i><i></i><i></i></span></p></div>':'')}
+function cxSentHtml(){return `<details class="cxsent"><summary>What gets sent</summary><p class="tag">With each question: your question, the chat so far, and this summary of your app data. Nothing else (no name, no location).</p><pre>${esc(cxCtx())}</pre></details>`}
+function viewCoach(){const o=cxS();
+  if(!o.on)return `<h2>Coach</h2>
+  <p>Ask about training, the AFT, food, sleep and recovery. Answers use your own logs, so they fit you.</p>
+  <div class="cxintro"><p><b>How it works.</b> Replies are written by Claude, an AI from Anthropic. To answer, your question and a short summary of your app data go to Anthropic through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
+  <p><b>AI can be wrong.</b> Coach is not medical advice. For pain, injury or feeling unwell, see your medic.</p></div>
+  ${cxSentHtml()}
+  <button class="btn" data-a="cxon">Turn on Coach</button>`;
+  return `<h2>Coach</h2>
+  <div class="cxlog" id="cxLog" aria-live="polite">${o.msgs.length||cxBusy?cxLogHtml(o):`<p class="tag">Ask anything about your training, food, sleep or recovery. Try one of these:</p>`}</div>
+  ${o.msgs.length?'':`<div class="cxsug">${CX_SUG.map((s,i)=>`<button class="chip" data-a="cxsug" data-v="${i}">${esc(s)}</button>`).join('')}</div>`}
+  <p class="cxerr" id="cxErr" role="alert"${cxErr?'':' hidden'}>${esc(cxErr)}</p>
+  <div class="cxbar"><label class="vh" for="cxIn">Your question</label><textarea id="cxIn" rows="2" maxlength="600" placeholder="Ask your coach…"${cxBusy?' disabled':''}></textarea><button class="btn" data-a="cxsend"${cxBusy?' disabled':''} aria-label="Send">Send</button></div>
+  <p class="tag" id="cxLeft">${cxLeft!=null?cxLeft+' question'+(cxLeft===1?'':'s')+' left today. ':''}AI can be wrong. Not medical advice: for pain or injury, see your medic.</p>
+  ${cxSentHtml()}
+  <div class="cxfoot">${o.msgs.length?'<button class="btn ghost small" data-a="cxclear">Clear chat</button>':''}<button class="btn ghost small" data-a="cxoff">Turn off Coach</button></div>`}
+function cxScroll(){const l=document.getElementById('cxLog');if(l&&l.lastElementChild&&S.tab==='coach')l.lastElementChild.scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'})}
+function cxRedraw(){if(S.tab!=='coach')return;const y=scrollY;render();scrollTo(0,y);cxScroll()}
+async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return;const o=cxS();if(!o.on)return;
+  o.msgs.push({r:'u',t:q});cxSave(o);cxBusy=true;cxErr='';cxRedraw();
+  let res=null,code=0;
+  try{const r=await fetch(CLOUD.url+'/functions/v1/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dev:o.dev,ctx:cxCtx(),msgs:o.msgs.slice(-8).map(m=>({r:m.r,t:m.t}))})});
+    code=r.status;res=await r.json().catch(()=>null)}catch(e){code=-1}
+  const o2=cxS();cxBusy=false;
+  if(code===200&&res&&typeof res.text==='string'&&res.text){o2.msgs.push({r:'a',t:res.text.slice(0,4000)});if(typeof res.left==='number')cxLeft=res.left}
+  else{if(o2.msgs.length&&o2.msgs[o2.msgs.length-1].r==='u')o2.msgs.pop();
+    cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach is busy right now. Try again in a minute.':'Coach could not answer that. Try again.';
+    if(code===429&&res&&res.error==='cap')cxLeft=0;setTimeout(()=>{const i=document.getElementById('cxIn');if(i&&!i.value)i.value=q},0)}
+  cxSave(o2);cxRedraw()}
+function cxAct(a,v,b){const o=cxS();
+  if(a==='cxon'){o.on=true;cxSave(o);render();return true}
+  if(a==='cxoff'){o.on=false;cxSave(o);cxErr='';render();return true}
+  if(a==='cxclear'){o.msgs=[];cxSave(o);cxErr='';render();return true}
+  if(a==='cxsug'){const s=CX_SUG[+v];if(s)cxAsk(s);return true}
+  if(a==='cxsend'){const i=document.getElementById('cxIn');if(i&&i.value.trim()){const q=i.value;i.value='';cxAsk(q)}return true}
+  return false}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target&&e.target.id==='cxIn'){e.preventDefault();const q=e.target.value;if(q.trim()){e.target.value='';cxAsk(q)}}});
+function viewOther(t){return t==='coach'?viewCoach():t==='ruck'?viewRuck()+gResumeOffer():t==='unit'?viewUnit():t==='assess'?viewAssess():t==='fm'?viewFM():t==='nut'?viewNut():t==='sleep'?viewSleep():t==='mind'?viewMind():t==='creator'?viewCreator():viewSpirit()}
 
 document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;
@@ -5576,6 +5657,7 @@ document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,k=b.dataset.t,v=b.dataset.v;
   if(a==='fdcat'){fdCat=v;fdAdded='';render();return}
   if(/^g[a-z]+$/.test(a)&&gAct(a,v,b))return;
+  if(/^cx[a-z]+$/.test(a)&&cxAct(a,v,b))return;
   if(a==='mimeal'&&MIDEAS[v]){miMeal=v;miPage=0;miAdded='';miRefresh();return}
   if(a==='mimore'){miPage=(miPage+2)%6;miAdded='';miRefresh();return}
   if(a==='milog'){const meal=miMeal||miDefault(),idea=MIDEAS[meal][+v];if(!idea)return;const b=miBuild(idea,meal),d=nuDay||today();
