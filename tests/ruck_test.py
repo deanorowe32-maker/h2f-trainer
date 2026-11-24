@@ -88,7 +88,7 @@ with sync_playwright() as p:
     c = E("cleanBackup(makeBackup()).gps")
     check('backup keeps routes and runs', len(c['routes']) == 1 and len(c['runs']) == 1 and c['u'] == 'km' and c['kind'] == 'run')
     check('a loop track keeps its shape when saved', len(E("gSimp([[0,0],[0,.001],[.001,.001],[.001,0],[0,0]],4)")) == 5)
-    check('backup drops junk', E("JSON.stringify(gpsClean({routes:[{id:'x',n:'a',pts:[[999,0]]}],runs:[{id:'y'}],lb:900}))") == '{"u":"mi","kind":"ruck","lb":35,"sel":"","routes":[],"runs":[]}')
+    check('backup drops junk', E("JSON.stringify(gpsClean({routes:[{id:'x',n:'a',pts:[[999,0]]}],runs:[{id:'y'}],lb:900}))") == '{"u":"mi","kind":"ruck","trail":true,"lb":35,"sel":"","routes":[],"runs":[]}')
     check('page fits the screen', E("document.documentElement.scrollWidth") <= 390)
     check('no page errors', not errs)
     if errs: print(errs[:3])

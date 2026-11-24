@@ -1144,6 +1144,8 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .gst{margin:4px 0 0;color:var(--muted,#93a99b);font-size:14px;min-height:20px}.gst.warn{color:#f1a585;font-weight:700}
 .gctl .btn{flex:1;min-height:56px}
 .gsel{margin-top:0}
+.gtrail{display:flex;gap:12px;align-items:center;min-height:48px;margin:0 0 8px;cursor:pointer}.gtrail input{width:22px;height:22px;accent-color:#e8bf55;flex:none}
+.gtrail span{display:flex;flex-direction:column}.gtrail small{color:var(--muted,#93a99b);font-size:13px}
 .gmap .gloc a{background:#0f1c14;color:#e8bf55;width:36px;height:36px;line-height:36px;font-size:20px;border-color:rgba(232,191,85,.3)}
 /* Meal ideas */
 .milist{display:grid;gap:10px;margin:10px 0}
@@ -4261,10 +4263,10 @@ function viewCreator(){
    OpenStreetMap. Routes and tracks stay on this phone. ===== */
 const WD7=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 function gpsS(){if(!S.gps||typeof S.gps!=='object')S.gps={};const G=S.gps;if(!Array.isArray(G.routes))G.routes=[];if(!Array.isArray(G.runs))G.runs=[];
-  if(G.u!=='km')G.u='mi';if(G.kind!=='run')G.kind='ruck';if(!(G.lb>=0&&G.lb<=150))G.lb=35;if(G.sel&&!G.routes.some(r=>r.id===G.sel))G.sel='';return G}
+  if(G.u!=='km')G.u='mi';if(G.kind!=='run')G.kind='ruck';if(!(G.lb>=0&&G.lb<=150))G.lb=35;if(typeof G.trail!=='boolean')G.trail=true;if(G.sel&&!G.routes.some(r=>r.id===G.sel))G.sel='';return G}
 function gpsClean(o){if(!o||typeof o!=='object')return null;const P=a=>(Array.isArray(a)?a:[]).filter(p=>Array.isArray(p)&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180).slice(0,500).map(p=>[+(+p[0]).toFixed(5),+(+p[1]).toFixed(5)]);
-  return {u:o.u==='km'?'km':'mi',kind:o.kind==='run'?'run':'ruck',lb:Number.isFinite(o.lb)&&o.lb>=0&&o.lb<=150?Math.round(o.lb):35,sel:isStr(o.sel)?o.sel.slice(0,20):'',
-    routes:(Array.isArray(o.routes)?o.routes:[]).filter(r=>r&&isStr(r.id)).slice(0,30).map(r=>({id:r.id.slice(0,20),n:isStr(r.n)?r.n.slice(0,40):'Route',pts:P(r.pts)})).filter(r=>r.pts.length>=2),
+  return {u:o.u==='km'?'km':'mi',kind:o.kind==='run'?'run':'ruck',trail:o.trail!==false,lb:Number.isFinite(o.lb)&&o.lb>=0&&o.lb<=150?Math.round(o.lb):35,sel:isStr(o.sel)?o.sel.slice(0,20):'',
+    routes:(Array.isArray(o.routes)?o.routes:[]).filter(r=>r&&isStr(r.id)).slice(0,30).map(r=>{const o2={id:r.id.slice(0,20),n:isStr(r.n)?r.n.slice(0,40):'Route',pts:P(r.pts)};const w=P(r.wp).slice(0,300);if(w.length>=2){o2.wp=w;o2.tr=!!r.tr}return o2}).filter(r=>r.pts.length>=2),
     runs:(Array.isArray(o.runs)?o.runs:[]).filter(r=>r&&isStr(r.id)&&Number.isFinite(r.ts)&&Number.isFinite(r.ms)&&Number.isFinite(r.m)).slice(0,30).map(r=>({id:r.id.slice(0,20),ts:r.ts,kind:r.kind==='run'?'run':'ruck',ms:Math.max(0,r.ms),m:Math.max(0,r.m),lb:Number.isFinite(r.lb)?Math.round(r.lb):0,rid:isStr(r.rid)?r.rid.slice(0,20):'',pts:P(r.pts)}))}}
 const gHav=(a,b)=>{const R=6371000,t=Math.PI/180,dLa=(b[0]-a[0])*t,dLo=(b[1]-a[1])*t,x=Math.sin(dLa/2)**2+Math.cos(a[0]*t)*Math.cos(b[0]*t)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)))};
 const gLen=P=>{let m=0;for(let i=1;i<P.length;i++)m+=gHav(P[i-1],P[i]);return m};
@@ -4287,15 +4289,29 @@ function gTzView(){let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().time
   const Z={'Europe/Berlin':[51.1,10.4,6],'Europe/Vienna':[47.6,14.1,7],'Europe/Rome':[42.5,12.5,6],'Europe/Brussels':[50.6,4.6,7],'Europe/Amsterdam':[52.2,5.3,7],'Europe/Warsaw':[52,19.4,6],'Europe/Vilnius':[55.2,23.9,7],'Europe/Riga':[56.9,24.6,7],'Europe/Tallinn':[58.7,25.5,7],'Europe/Bucharest':[45.9,25,6],'Europe/London':[54,-2.5,6],'Asia/Seoul':[36.4,127.9,7],'Asia/Tokyo':[36.2,138.3,5],'Asia/Kuwait':[29.3,47.6,8],'Asia/Qatar':[25.3,51.2,8],'Asia/Riyadh':[24,45,5],'Asia/Baghdad':[33.2,43.7,6],'Pacific/Honolulu':[20.8,-157.5,7],'America/Anchorage':[62,-150,4],'Pacific/Guam':[13.45,144.8,10],'America/Puerto_Rico':[18.2,-66.5,8]};
   if(Z[tz])return Z[tz];if(/^Europe\//.test(tz))return [50,10,4];if(/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Detroit|Indiana|Kentucky|Boise)/.test(tz))return [39.5,-98.35,4];return [25,10,2]}
 function gNote(t){const n=document.getElementById('gNote');if(n){n.textContent=t||'';n.hidden=!t}}
+/* Follow trails: each leg between two tapped points is snapped to walkable paths by our Supabase "route" function
+   (openrouteservice foot-hiking). gp.legs[i] is the path from point i-1 to point i: an array, 'wait', or null (straight). */
+let gSeq=0,gQ=Promise.resolve();
+function gPath(){const P=gp.pts,Lg=gp.legs||[];if(P.length<2)return P.slice();const out=[P[0]];
+  for(let i=1;i<P.length;i++){const l=Lg[i];if(Array.isArray(l)&&l.length>=2){out.push(...l.slice(1))}else out.push(P[i])}return out}
+function gLegFetch(i){if(!gpsS().trail||i<1||i>=gp.pts.length){if(gp.legs)gp.legs[i]=null;return}
+  gp.legs[i]='wait';const a=gp.pts[i-1],b=gp.pts[i],tok=++gSeq;gp.tok=gp.tok||[];gp.tok[i]=tok;
+  gQ=gQ.then(()=>fetch(CLOUD.url+'/functions/v1/route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pts:[a,b]})})
+    .then(r=>r.json().then(j=>({ok:r.ok,j}))).then(({ok,j})=>{if(rmode!=='plan'||gp.tok[i]!==tok)return;
+      if(ok&&Array.isArray(j.pts)&&j.pts.length>=2){gp.legs[i]=j.pts;gNote('')}
+      else{gp.legs[i]=null;gNote(j&&(j.error==='limit'||j.error==='busy')?'Trail routing is busy right now, so this leg is a straight line. Try again in a minute.':'Could not find a path for this leg, so it is a straight line. Move the point closer to a trail or road.')}})
+    .catch(()=>{if(gp.tok[i]!==tok)return;gp.legs[i]=null;gNote('No signal for trail routing, so this leg is a straight line.')})
+    .then(()=>{if(rmode==='plan'){gDraw();gPlanUi()}}));gDraw();gPlanUi()}
 let lfP=null;
 function lfLoad(){if(window.L)return Promise.resolve();if(!lfP)lfP=new Promise((ok,no)=>{const c=document.createElement('link');c.rel='stylesheet';c.href='/vendor/leaflet/leaflet.css';document.head.appendChild(c);
   const s=document.createElement('script');s.src='/vendor/leaflet/leaflet.js';s.onload=ok;s.onerror=()=>{lfP=null;no(new Error('leaflet'))};document.head.appendChild(s)});return lfP}
 function gSel(){const G=gpsS();return G.routes.find(r=>r.id===G.sel)||null}
 function viewRuck(){const G=gpsS(),k=G.kind,K=k==='ruck'?'ruck':'run';
-  if(rmode==='plan'){const L=gLen(gp.pts);
+  if(rmode==='plan'){const L=gLen(gPath());
     return `<h2>Plan a route</h2><p class="tag">Tap the map to add points along your route. Drag a point to move it.</p>
     <div id="gMap" class="gmap tall" role="application" aria-label="Route map. Tap to add a point."></div><p class="gst warn" id="gNote" role="status" hidden></p>
     <div class="gsum"><b id="gpD">${gDist(L)}</b><span id="gpT">${L?'About '+gEst(L)+' at a '+(k==='ruck'?'15:00':'9:00')+' min/mi '+K+' pace':'Add at least two points'}</span></div>
+    <label class="gtrail"><input type="checkbox" data-a="gtrail"${G.trail?' checked':''}> <span><b>Follow trails</b><small>Bends each leg along paths and roads. Off: straight lines.</small></span></label>
     <div class="gtools"><button class="btn ghost small" data-a="gundo"${gp.pts.length?'':' disabled'}>Undo</button><button class="btn ghost small" data-a="gloop"${gp.pts.length>=2?'':' disabled'}>Loop to start</button><button class="btn ghost small" data-a="gback"${gp.pts.length>=2?'':' disabled'}>Out and back</button><button class="btn ghost small" data-a="gclear"${gp.pts.length?'':' disabled'}>Clear</button><button class="btn ghost small" data-a="gme">My location</button></div>
     <div class="form"><label class="wide">Route name<input type="text" id="gpName" maxlength="40" value="${esc(gp.n)}" placeholder="e.g. Post loop 6 mi" autocomplete="off"></label></div>
     <div class="err" id="gpErr" role="alert" hidden></div>
@@ -4320,7 +4336,7 @@ function viewRuck(){const G=gpsS(),k=G.kind,K=k==='ruck'?'ruck':'run';
   <div class="row"><button class="btn tdgold" data-a="gstart">Start ${K}</button><button class="btn ghost" data-a="gplan">Plan a route</button></div>
   ${G.routes.length?`<h3 style="margin-top:20px">My routes</h3><div class="list">${G.routes.map(r=>`<div class="item"><button class="nm" data-a="guse" data-v="${r.id}" aria-pressed="${G.sel===r.id}">${esc(r.n)}<small>${gDist(gLen(r.pts))} · about ${gEst(gLen(r.pts))}${G.sel===r.id?' · Picked':''}</small></button><button class="iconbtn" data-a="gedit" data-v="${r.id}" aria-label="Edit ${esc(r.n)}">✎</button><button class="iconbtn" data-a="gdel" data-v="${r.id}" aria-label="Delete ${esc(r.n)}">×</button></div>`).join('')}</div>`:''}
   ${runs.length?`<h3 style="margin-top:20px">History</h3><div class="list">${runs.map(r=>`<div class="item"><button class="nm" data-a="gview" data-v="${r.id}">${new Date(r.ts).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${r.kind==='ruck'?'Ruck':'Run'}${r.lb?' '+r.lb+' lb':''}<small>${gDist(r.m)} · ${gClock(r.ms)} · ${gPace(r.ms,r.m)} /${G.u}</small></button></div>`).join('')}</div>`:''}
-  <p class="tag">Your routes and tracks stay on this phone. The map pictures load from OpenStreetMap, which sees the map area on screen. Map data © OpenStreetMap contributors.</p>`}
+  <p class="tag">Your routes and tracks stay on this phone. The map pictures load from OpenStreetMap, which sees the map area on screen. With Follow trails on, the points you tap while planning go to openrouteservice to find the paths between them. Map data © OpenStreetMap contributors; trail routing by openrouteservice.</p>`}
 function rtMs(){if(!rt)return 0;return (rt.pauseAt||Date.now())-rt.start-rt.paused}
 function gMount(){const el=document.getElementById('gMap');if(!el)return;
   lfLoad().then(()=>{if(!document.body.contains(el))return;if(gm){try{gm.remove()}catch(e){}gm=null}
@@ -4330,15 +4346,17 @@ function gMount(){const el=document.getElementById('gMap');if(!el)return;
     const Loc=L.Control.extend({options:{position:'topleft'},onAdd(){const d=L.DomUtil.create('div','leaflet-bar gloc'),a=L.DomUtil.create('a','',d);a.href='#';a.setAttribute('role','button');a.setAttribute('aria-label','Find my location');a.title='Find my location';a.textContent='◎';
       L.DomEvent.on(a,'click',ev=>{L.DomEvent.stop(ev);gFollow=true;if(rmode==='track'&&rt&&rt.me)gm.setView(rt.me,Math.max(gm.getZoom(),16));else gLocate(true)});L.DomEvent.disableClickPropagation(d);return d}});
     new Loc().addTo(gm);
-    if(rmode==='plan'){gm.on('click',e=>{if(gp.pts.length>=300)return;gp.pts.push([+e.latlng.lat.toFixed(5),+e.latlng.lng.toFixed(5)]);gDraw();gPlanUi()})}
+    if(rmode==='plan'){gm.on('click',e=>{if(gp.pts.length>=300)return;gp.pts.push([+e.latlng.lat.toFixed(5),+e.latlng.lng.toFixed(5)]);gp.legs[gp.pts.length-1]=null;if(gp.pts.length>1)gLegFetch(gp.pts.length-1);gDraw();gPlanUi()})}
     if(rmode==='track'){gm.on('dragstart',()=>{gFollow=false})}
     gDraw(true)}).catch(()=>{el.innerHTML='<p class="tag" style="padding:16px">The map could not load. Check your signal and try again.</p>'})}
 const G_GOLD='#e8bf55',G_GREEN='#5fd08a';
 function gDraw(fit){if(!gm||!gLay)return;gLay.clearLayers();const G=gpsS();let view=null;
   const route=P=>{L.polyline(P,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(P,{color:G_GOLD,weight:4,dashArray:'8 7'}).addTo(gLay);L.circleMarker(P[0],{radius:7,color:'#000',weight:2,fillColor:G_GREEN,fillOpacity:1}).addTo(gLay).bindTooltip('Start');if(P.length>1&&gHav(P[0],P[P.length-1])>20)L.circleMarker(P[P.length-1],{radius:7,color:'#000',weight:2,fillColor:'#d0604a',fillOpacity:1}).addTo(gLay).bindTooltip('Finish')};
-  if(rmode==='plan'){const P=gp.pts;if(P.length>=2){L.polyline(P,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(P,{color:G_GOLD,weight:4}).addTo(gLay)}
+  if(rmode==='plan'){const P=gp.pts,PP=gPath();if(PP.length>=2){L.polyline(PP,{color:'#000',weight:7,opacity:.35}).addTo(gLay);L.polyline(PP,{color:G_GOLD,weight:4}).addTo(gLay)}
+    (gp.legs||[]).forEach((l,i)=>{if(l==='wait'&&P[i-1]&&P[i])L.polyline([P[i-1],P[i]],{color:'#fff',weight:2,dashArray:'3 6',opacity:.8}).addTo(gLay)});
     P.forEach((p,i)=>{if(i&&i===P.length-1&&P.length>2&&gHav(p,P[0])<1)return;const m=L.marker(p,{draggable:true,icon:L.divIcon({className:'gpt'+(i===0?' s':''),iconSize:[22,22]})}).addTo(gLay);
-      m.on('drag',e=>{const ll=e.target.getLatLng();gp.pts[i]=[+ll.lat.toFixed(5),+ll.lng.toFixed(5)];gPlanUi()});m.on('dragend',()=>gDraw())});
+      m.on('drag',e=>{const ll=e.target.getLatLng();gp.pts[i]=[+ll.lat.toFixed(5),+ll.lng.toFixed(5)];if(gp.legs[i]!=='wait')gp.legs[i]=null;if(gp.legs[i+1]!=='wait')gp.legs[i+1]=null;gPlanUi()});
+      m.on('dragend',()=>{if(i>0)gLegFetch(i);if(i+1<gp.pts.length)gLegFetch(i+1);gDraw()})});
     if(fit){if(P.length)view=P;else{const z=gTzView();gm.setView(gLastFix||[z[0],z[1]],gLastFix?16:z[2]);gLocate(true)}}}
   else if(rmode==='track'&&rt){if(rt.r)route(rt.r.pts);if(rt.pts.length>=2)L.polyline(rt.pts.map(p=>[p[0],p[1]]),{color:G_GREEN,weight:5}).addTo(gLay);
     if(rt.me){L.circle(rt.me,{radius:rt.acc||10,color:G_GREEN,weight:1,fillOpacity:.12}).addTo(gLay);L.circleMarker(rt.me,{radius:8,color:'#fff',weight:3,fillColor:G_GREEN,fillOpacity:1}).addTo(gLay)}
@@ -4347,8 +4365,10 @@ function gDraw(fit){if(!gm||!gLay)return;gLay.clearLayers();const G=gpsS();let v
   else{const run=gShow&&G.runs.find(r=>r.id===gShow),sel=gSel();if(run&&run.pts.length>=2){L.polyline(run.pts,{color:G_GREEN,weight:5}).addTo(gLay);view=run.pts}else if(sel){route(sel.pts);view=sel.pts}
     if(fit&&!view){const z=gTzView();gm.setView(gLastFix||[z[0],z[1]],gLastFix?15:z[2]);gLocate(true)}}
   if(view&&fit){if(view.length===1)gm.setView(view[0],16);else gm.fitBounds(view,{padding:[28,28],maxZoom:17})}}
-function gPlanUi(){const L2=gLen(gp.pts),k=gpsS().kind,d=document.getElementById('gpD'),t=document.getElementById('gpT');if(d)d.textContent=gDist(L2);
-  if(t)t.textContent=L2?'About '+gEst(L2)+' at a '+(k==='ruck'?'15:00':'9:00')+' min/mi '+(k==='ruck'?'ruck':'run')+' pace':'Add at least two points';
+function gPlanUi(){const L2=gLen(gPath()),k=gpsS().kind,d=document.getElementById('gpD'),t=document.getElementById('gpT');if(d)d.textContent=gDist(L2);
+  const wt=(gp.legs||[]).some(l=>l==='wait');
+  if(t)t.textContent=wt?'Finding paths…':L2?'About '+gEst(L2)+' at a '+(k==='ruck'?'15:00':'9:00')+' min/mi '+(k==='ruck'?'ruck':'run')+' pace':'Add at least two points';
+  const sv=document.querySelector('[data-a=gsave]');if(sv)sv.disabled=wt;
   document.querySelectorAll('[data-a=gundo],[data-a=gclear]').forEach(b=>b.disabled=!gp.pts.length);document.querySelectorAll('[data-a=gloop],[data-a=gback]').forEach(b=>b.disabled=gp.pts.length<2)}
 function gLocate(center){if(!navigator.geolocation){gNote('This browser does not share location, so the map cannot find you. You can still pan and zoom to your area.');return}
   navigator.geolocation.getCurrentPosition(p=>{gLastFix=[+p.coords.latitude.toFixed(4),+p.coords.longitude.toFixed(4)];try{localStorage.setItem('h2f.lastfix',JSON.stringify(gLastFix))}catch(e){}gNote('');
@@ -4400,19 +4420,26 @@ function gResumeOffer(){if(rt||rmode!=='home')return '';let o=null;try{o=JSON.pa
 function gAct(a,v,b){const G=gpsS();
   if(a==='gkind'){G.kind=v==='run'?'run':'ruck';render();return true}
   if(a==='gunit'){G.u=G.u==='mi'?'km':'mi';render();return true}
-  if(a==='gplan'){gp={pts:[],n:'',edit:''};rmode='plan';render();return true}
-  if(a==='gedit'){const r=G.routes.find(x=>x.id===v);if(!r)return true;gp={pts:r.pts.map(p=>p.slice()),n:r.n,edit:r.id};rmode='plan';render();return true}
-  if(a==='gundo'){gp.pts.pop();gDraw();gPlanUi();return true}
-  if(a==='gclear'){gp.pts=[];gDraw();gPlanUi();return true}
-  if(a==='gloop'){if(gp.pts.length>=2&&gHav(gp.pts[0],gp.pts[gp.pts.length-1])>5)gp.pts.push(gp.pts[0].slice());gDraw();gPlanUi();return true}
-  if(a==='gback'){if(gp.pts.length>=2&&gp.pts.length<=150)gp.pts=gp.pts.concat(gp.pts.slice(0,-1).reverse().map(p=>p.slice()));gDraw();gPlanUi();return true}
+  if(a==='gplan'){gp={pts:[],legs:[],n:'',edit:''};rmode='plan';render();return true}
+  if(a==='gedit'){const r=G.routes.find(x=>x.id===v);if(!r)return true;
+    if(r.wp){gp={pts:r.wp.map(p=>p.slice()),legs:[],n:r.n,edit:r.id};if(r.tr&&G.trail){rmode='plan';render();for(let i=1;i<gp.pts.length&&i<=35;i++)gLegFetch(i);return true}}
+    else gp={pts:r.pts.map(p=>p.slice()),legs:[],n:r.n,edit:r.id};rmode='plan';render();return true}
+  if(a==='gtrail'){G.trail=!!b.checked;save();gp.legs=gp.legs||[];if(G.trail){for(let i=1;i<gp.pts.length&&i<=35;i++)if(!Array.isArray(gp.legs[i]))gLegFetch(i)}else{gp.legs=gp.pts.map(()=>null);gSeq++;gNote('')}gDraw();gPlanUi();return true}
+  if(a==='gundo'){gp.pts.pop();gp.legs.length=gp.pts.length;gDraw();gPlanUi();return true}
+  if(a==='gclear'){gp.pts=[];gp.legs=[];gSeq++;gNote('');gDraw();gPlanUi();return true}
+  if(a==='gloop'){if(gp.pts.length>=2&&gHav(gp.pts[0],gp.pts[gp.pts.length-1])>5){gp.pts.push(gp.pts[0].slice());gp.legs[gp.pts.length-1]=null;gLegFetch(gp.pts.length-1)}gDraw();gPlanUi();return true}
+  if(a==='gback'){if(gp.pts.length>=2&&gp.pts.length<=150){const n=gp.pts.length,L0=gp.legs||[];
+      for(let j=n-2;j>=0;j--){gp.pts.push(gp.pts[j].slice());const src=L0[j+1];gp.legs[gp.pts.length-1]=Array.isArray(src)?src.slice().reverse():null}}gDraw();gPlanUi();return true}
   if(a==='gme'){gLocate(true);return true}
   if(a==='gcancel'){rmode='home';render();return true}
   if(a==='gsave'){const n=((document.getElementById('gpName')||{}).value||'').trim().slice(0,40),er=document.getElementById('gpErr');
     if(gp.pts.length<2){er.textContent='Add at least two points on the map.';er.hidden=false;return true}
+    if((gp.legs||[]).some(l=>l==='wait')){er.textContent='Still finding paths. One moment.';er.hidden=false;return true}
     if(!n){er.textContent='Give the route a name.';er.hidden=false;return true}
     if(!gp.edit&&G.routes.length>=30){er.textContent='You have 30 routes. Delete one first.';er.hidden=false;return true}
-    let r=gp.edit&&G.routes.find(x=>x.id===gp.edit);if(r){r.n=n;r.pts=gp.pts}else{r={id:'r'+Date.now().toString(36),n,pts:gp.pts};G.routes.unshift(r)}
+    const path=gSimp(gPath(),2).slice(0,500).map(p=>[+(+p[0]).toFixed(5),+(+p[1]).toFixed(5)]),tr=(gp.legs||[]).some(Array.isArray);
+    let r=gp.edit&&G.routes.find(x=>x.id===gp.edit);if(r){r.n=n;r.pts=path}else{r={id:'r'+Date.now().toString(36),n,pts:path};G.routes.unshift(r)}
+    r.wp=gp.pts.slice(0,300);r.tr=tr;
     G.sel=r.id;gShow='';rmode='home';save();render();return true}
   if(a==='guse'){G.sel=G.sel===v?'':v;gShow='';render();return true}
   if(a==='gdel'){G.routes=G.routes.filter(r=>r.id!==v);if(G.sel===v)G.sel='';render();return true}
