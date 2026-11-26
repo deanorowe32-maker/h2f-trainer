@@ -828,7 +828,7 @@ nav#tabs.tabs{display:block;grid-template-columns:none;padding:6px max(6px,env(s
 .subwrap{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,58px));z-index:15;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 2px;padding:8px max(16px,env(safe-area-inset-left,0px)) 8px;background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .subnav{position:relative;display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--raised);box-shadow:inset 0 0 0 1px var(--line);overflow-x:auto;scrollbar-width:none}
 .subnav::-webkit-scrollbar{display:none}
-.subnav button{position:relative;z-index:1;flex:1 0 auto;min-height:40px;padding:0 16px;border:0;border-radius:999px;background:none;color:var(--muted);font:650 14px var(--body);white-space:nowrap;transition:color .2s}
+.subnav button{position:relative;z-index:1;flex:1 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:none;color:var(--muted);font:650 14px var(--body);white-space:nowrap;transition:color .2s}
 .subnav button[aria-selected="true"]{color:var(--fg)}
 .subnav button:focus-visible{outline:2px solid var(--sage-text);outline-offset:-2px}
 .segind{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:var(--surface);box-shadow:0 1px 2px rgba(14,31,22,.1),0 3px 10px rgba(14,31,22,.08);}
@@ -916,7 +916,7 @@ body.hasmini #totop{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) +
 .vz-band span{position:absolute;left:4px;top:2px;font:650 12px/1.2 var(--body);color:var(--fg)}
 .vz-tgt{position:absolute;left:0;right:0;height:0;border-top:2px solid color-mix(in srgb,var(--fg) 50%,transparent);z-index:1;pointer-events:none}
 .vz-tgt span{position:absolute;left:0;bottom:3px;padding:0 4px;border-radius:4px;background:color-mix(in srgb,var(--surface) 88%,transparent);font:650 12px/1.4 var(--body);color:var(--fg);font-variant-numeric:tabular-nums}
-.vz-bars{position:absolute;inset:0;display:flex;gap:2px}
+.vz-bars{position:absolute;inset:0;display:flex;gap:0}
 .vz-slot{all:unset;box-sizing:border-box;position:relative;flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;border-radius:6px 6px 0 0;cursor:default;-webkit-tap-highlight-color:transparent}
 button.vz-slot{cursor:pointer}
 .vz-slot:hover{background:color-mix(in srgb,var(--fg) 5%,transparent)}
@@ -1145,7 +1145,7 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .gmap{height:260px;margin:10px 0;border-radius:14px;overflow:hidden;border:1px solid rgba(232,191,85,.25);background:#0b120d;position:relative;z-index:0}
 .gmap.tall{height:min(56vh,460px)}
 .gmap .leaflet-tile-pane{filter:brightness(.82) contrast(1.08) saturate(.85)}
-.gmap .leaflet-control-zoom a{background:#0f1c14;color:#f4f3ec;border-color:rgba(232,191,85,.3);width:36px;height:36px;line-height:36px}
+.gmap .leaflet-control-zoom a{background:#0f1c14;color:#f4f3ec;border-color:rgba(232,191,85,.3);width:44px;height:44px;line-height:44px}
 .gmap .leaflet-control-attribution{background:rgba(5,7,5,.75);color:#b9cbbf;font-size:10px}.gmap .leaflet-control-attribution a{color:#e8bf55}
 .gpt{border-radius:50%;background:#e8bf55;border:3px solid #0b110d;box-shadow:0 0 0 2px #e8bf55,0 2px 6px rgba(0,0,0,.6)}.gpt.s{background:#5fd08a;box-shadow:0 0 0 2px #5fd08a,0 2px 6px rgba(0,0,0,.6)}
 .gsum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:2px 0 8px}.gsum b{font:700 26px/1 var(--hud);color:var(--gold)}.gsum span{color:var(--muted,#93a99b);font-size:14px}
@@ -1158,7 +1158,7 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
 .gsel{margin-top:0}
 .gtrail{display:flex;gap:12px;align-items:center;min-height:48px;margin:0 0 8px;cursor:pointer}.gtrail input{width:22px;height:22px;accent-color:#e8bf55;flex:none}
 .gtrail span{display:flex;flex-direction:column}.gtrail small{color:var(--muted,#93a99b);font-size:13px}
-.gmap .gloc a{background:#0f1c14;color:#e8bf55;width:36px;height:36px;line-height:36px;font-size:20px;border-color:rgba(232,191,85,.3)}
+.gmap .gloc a{background:#0f1c14;color:#e8bf55;width:44px;height:44px;line-height:44px;font-size:20px;border-color:rgba(232,191,85,.3)}
 /* Meal ideas */
 .milist{display:grid;gap:10px;margin:10px 0}
 .mi{border:1px solid rgba(232,191,85,.18);border-radius:14px;padding:12px 14px;background:rgba(5,7,5,.35)}
@@ -1324,7 +1324,7 @@ body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 40px)}
   <div class="sub" id="gateSub">Enter the code you were given to open the app.</div>
 </form></div>
 <div class="fx-world" aria-hidden="true"><div class="fx-stars a"></div><div class="fx-stars b"></div><div class="fx-scan"></div><div class="fx-floor"><div class="fx-plane"><div class="fx-grid"></div></div></div></div>
-<header class="top"><div class="topin"><svg class="logo" viewBox="0 0 100 106" width="34" height="36" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div class="brand"><div class="mark">H2F Trainer</div></div><div id="saveStat" aria-live="polite"></div></div><div class="fx-tele" id="fxTele" aria-hidden="true"></div></header>
+<header class="top"><div class="topin"><svg class="logo" viewBox="0 0 100 106" width="34" height="36" aria-hidden="true"><path d="M50 4 92 16v36c0 25-18 42-42 50C26 94 8 77 8 52V16z" fill="var(--logo-bg)"/><path d="M50 11 85 21v31c0 21-15 35-35 42-20-7-35-21-35-42V21z" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="50" y="61" text-anchor="middle" font-family="Archivo,ui-sans-serif,sans-serif" font-weight="900" font-size="30" fill="#f4f3ec" style="font-stretch:112%" letter-spacing="-1">H2F</text><path d="M33 71 50 79l17-8" fill="none" stroke="var(--gold)" stroke-width="5.5"/></svg><div class="brand"><div class="mark" role="heading" aria-level="1">H2F Trainer</div></div><div id="saveStat" aria-live="polite"></div></div><div class="fx-tele" id="fxTele" aria-hidden="true"></div></header>
 <main>
   
   <div id="view"></div>
@@ -1833,7 +1833,7 @@ function sheetClose(sh){if(sh.id==='timerSheet'&&typeof closeTimer==='function')
     else{p.style.transition=RM.matches?'none':'transform .3s cubic-bezier(.32,.72,0,1)';p.style.transform='';setTimeout(()=>{p.style.transition=''},300)}};
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 document.addEventListener('click',ev=>{const m=ev.target.closest('#menuSheet button,#moreSheet button');if(m){const sh=m.closest('.sheet');if(sh)sh.hidden=true}},true);
-document.addEventListener('keydown',ev=>{if(ev.key!=='Escape')return;['moreSheet','menuSheet'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.hidden){e.hidden=true;ev.preventDefault()}})});
+document.addEventListener('keydown',ev=>{const rb=(ev.key==='Enter'||ev.key===' ')&&ev.target.closest&&ev.target.closest('[role=button][data-a]');if(rb&&rb===ev.target){ev.preventDefault();const ring=rb.classList.contains('rxring');rb.click();if(ring){const n=document.querySelector('#rxdeck .rxring');if(n)n.focus()}return}if(ev.key!=='Escape')return;['moreSheet','menuSheet'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.hidden){e.hidden=true;ev.preventDefault()}})});
 let tabsKey='',FX={view:false,wk:0,ink:null,strike:null,complete:false,cup:-1};
 const TICK='<svg class="tk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 /* Navigation: five destinations. Train, Readiness and Unit hold several sections behind a switcher. */
@@ -1984,7 +1984,7 @@ function rkCardHtml(){const R=rkState(),N=rkNext(R),name=RK[R.tier][0];
     lines=`<div class="rkbar" role="img" aria-label="${pc}% of the way to ${N.nx[0]}"><i style="width:${pc}%"></i></div>
     <ul class="rkreq"><li class="${R.pts>=N.need?'ok':''}">${R.pts} / ${N.need} points</li><li class="${N.tig?'':'ok'}">${N.tig?N.tig+' more day'+(N.tig>1?'s':'')+' in grade':'Time in grade met'}</li>${N.bd?`<li class="${N.bok?'ok':''}">Board: ${esc(RK_BOARD[N.bd])}</li>`:''}</ul>`}
   else lines='<p class="tag">Top rank. Keep your streak alive and lead by example.</p>';
-  return `<section class="tdwide rkcard" id="rkcard" data-p="${R.pts}" data-t="${R.tier}"><button type="button" class="rkhead" data-a="rkopen" aria-label="Rank: ${name}. Open ranks and points">${rkBadge(R.tier,64)}<span><small>Rank${R.inactive?' · Inactive':''}</small><b>${name}</b>${N?`<em>Next: ${N.nx[0]}</em>`:''}</span></button>${lines}</section>`}
+  return `<section class="tdwide rkcard" id="rkcard" data-p="${R.pts}" data-t="${R.tier}"><button type="button" class="rkhead" data-a="rkopen">${rkBadge(R.tier,64)}<span><small>Rank${R.inactive?' · Inactive':''}</small><span class="vh">: </span><b>${name}</b>${N?`<span class="vh">. </span><em>Next: ${N.nx[0]}</em>`:''}<span class="vh">. Open ranks and points</span></span></button>${lines}</section>`}
 function rkSheetHtml(){const R=rkState(),dt=d=>esc(vzLong(d));
   const ladder=RK.map(([n,p,tg,b],i)=>`<li class="${i===R.tier?'cur':i<R.tier?'done':''}">${rkBadge(i,34)}<span><b>${n}</b><small>${i?`${p} points · ${tg} days in grade${b?' · '+esc(RK_BOARD[b]):''}`:'Where everyone starts'}</small>${(R.hist.find(h=>h.t===i)||{}).d?`<small class="rkwhen">Promoted ${dt(R.hist.find(h=>h.t===i).d)}</small>`:''}</span></li>`).join('');
   const recent=Object.keys(R.X.pts).sort().reverse().slice(0,7).map(k=>`<div class="item"><span class="nm">${dt(k)}</span><span class="rxv">+${R.X.pts[k]}</span></div>`).join('');
@@ -2023,7 +2023,7 @@ function streakHtml(){const st=streakWeeks(),days=[0,1,2,3,4].map(i=>{const d=mo
   <p class="tag">${!(S.hist||[]).length?'Your first workout starts your record. Train 3 or more days a week to build a streak.':!wkCount(0)?`${st?`<b>${st}-week streak.</b> `:''}New week, fresh start. Train 3 or more days to ${st?'keep the':'start a'} streak.`:`${st?`<b>${st}-week streak.</b> `:''}${wkCount(0)} workout day${wkCount(0)===1?'':'s'} this week${wkCount(0)>=3?'. Streak secured for this week.':`. ${3-wkCount(0)} more to ${st?'keep':'start'} a streak.`}`}</p><button type="button" class="btn ghost small" data-a="pgopen">See your progress</button></div>`}
 function schedHtml(){const W=wkData(0),tk=today();
   return `<div class="schedmeta"><h3>This week</h3><span class="tag">${fmt(monday(0))} – ${fmt((()=>{const d=monday(0);d.setDate(d.getDate()+4);return d})())}</span></div><div class="sched" aria-label="This week">${DN.map((n,i)=>{const d=monday(0);d.setDate(d.getDate()+i);const k=dayKeyTs(d.getTime()),dn=doneOn(k).length>0,ty=W&&W.types&&W.types[i]?W.types[i]:'',isT=k===tk;
-    return `<button class="sc${isT?' now':''}${ty?'':' off'}" data-a="tdday" data-v="${i}" aria-label="${n} ${d.getDate()}${ty?', '+esc(DTYPES[ty]||ty):', not planned'}${dn?', done':''}${isT?', today':''}"><span class="dw">${n}</span><span class="dn">${d.getDate()}</span>${dn?TICK.replace('class="tk"','class="tk tick"'):''}<span class="dt">${ty?esc(DTYPES[ty]||ty):'–'}</span></button>`}).join('')}</div>`}
+    return `<button class="sc${isT?' now':''}${ty?'':' off'}" data-a="tdday" data-v="${i}"><span class="dw">${n}</span><span class="vh"> </span><span class="dn">${d.getDate()}</span>${dn?TICK.replace('class="tk"','class="tk tick" aria-hidden="true"'):''}<span class="vh">, </span><span class="dt">${ty?esc(DTYPES[ty]||ty):'<span aria-hidden="true">–</span><span class="vh">not planned</span>'}</span>${dn?'<span class="vh">, done</span>':''}${isT?'<span class="vh">, today</span>':''}</button>`}).join('')}</div>`}
 /* ---- Challenges: daily / weekly / monthly / special days. Logged on trust; never counts as training. ---- */
 var CH=[
  {k:'pu',name:'Push-up',ex:'pu',u:'reps',d:[50,100,150],w:[300,500,800]},
@@ -2179,7 +2179,7 @@ function rxModes(){const sl=rxSleep(),w=S.hyd.n,tg=nuTargets(),t=nuTot(nuMeals(t
   {k:'water',lab:'Water',ring:reactorHtml(Math.min(8,w),8,{b:w+'<small>/8</small>',s:'cups of water',aria:w+' of 8 cups of water today'}),act:'<button class="btn ghost small" data-a="hyd" data-v="1">Add a cup</button>'},
   {k:'fuel',lab:'Fuel',ring:reactorHtml(tg&&tg.kcal?Math.min(10,Math.round(10*t.k/tg.kcal)):0,10,{b:tg?String(t.k):'–',s:tg?'of '+tg.kcal+' kcal':'set fuel targets',aria:tg?t.k+' of '+tg.kcal+' calories today':'Fuel targets not set'}),act:'<button class="btn ghost small" data-a="tdgo" data-v="nut">Log a meal</button>'}]}
 function rxDeckHtml(){const M=rxModes();rxM=(rxM+M.length)%M.length;const m=M[rxM];
-  return `<div class="rxdeck" id="rxdeck"><div class="rxring" data-a="rxnext" aria-label="Show the next ring" role="button" tabindex="0">${m.ring}</div>
+  return `<div class="rxdeck" id="rxdeck"><div class="rxring" data-a="rxnext" role="button" tabindex="0" aria-describedby="rxhint">${m.ring.replace(/ role="img" aria-label="[^"]*"/,'').replace('<div class="rx-core" aria-hidden="true">','<div class="rx-core">')}</div><span class="vh" id="rxhint">${m.lab} ring. Press to show the next ring.</span>
   <div class="rxdots" role="group" aria-label="Rings">${M.map((x,i)=>`<button type="button" class="rxdot" data-a="rxm" data-v="${i}" aria-pressed="${i===rxM}" aria-label="${x.lab} ring"><i></i><span>${x.lab}</span></button>`).join('')}</div>
   ${m.act?`<div class="rxact">${m.act}</div>`:''}</div>`}
 function rxGo(i,dir){rxM=i;const d=document.getElementById('rxdeck');if(!d)return;d.outerHTML=rxDeckHtml();const n=document.getElementById('rxdeck');if(n&&dir&&!RM())n.querySelector('.rxring').classList.add(dir>0?'rxin-r':'rxin-l')}
@@ -2558,7 +2558,7 @@ function dstW(w,i){if(w===null)return null;if(w.plan===S.plan)return dayStCfg(i)
 function wkRange(off){const a=monday(off),b=new Date(a);b.setDate(b.getDate()+4);return fmt(a)+' – '+fmt(b)}
 function monthHtml(){
   const rows=[0,1,2,3].map(n=>{const off=S.week+n,w=wkData(off),cur=n===0;
-    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}" aria-label="Week of ${esc(wkRange(off))}${w?'':', not planned'}"><span class="mrng">${esc(wkRange(off))}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isPrW(w,i,off)?'<i>Pr</i>':isStW(w,i)?'<i>St</i>':isCiW(w,i)?'<i>Ci</i>':''):'–'}</span>`).join('')}</button>`}).join('');
+    return `<button class="mrow${cur?' cur':''}" data-a="wkgo" data-v="${off}"><span class="mrng"><span class="vh">Week of </span>${esc(wkRange(off))}${w?'':'<span class="vh">, not planned. </span>'}${off===0?'<small>This week</small>':''}</span>${DN.map((d,i)=>`<span class="mcell${w?'':' empty'}">${w?esc(DSHORT[w.types[i]]||'')+(isPrW(w,i,off)?'<i>Pr</i>':isStW(w,i)?'<i>St</i>':isCiW(w,i)?'<i>Ci</i>':''):'–'}</span>`).join('')}</button>`}).join('');
   const empty=[1,2,3].filter(n=>!wkData(S.week+n)).length;
   return `<h3 style="margin-top:24px">4-week plan</h3>
   <p class="tag">Starts with the week shown above. Tap a week to open and edit it. "St" marks a stations day, "Ci" a circuit day and "Pr" a program day.</p>
@@ -3909,7 +3909,7 @@ function miBuild(idea,meal){const tg=nuTargets(),base=idea[2].map(([id,q])=>[fdB
 function miHtml(){const meal=miMeal||miDefault(),L=MIDEAS[meal],tg=nuTargets(),n=L.length,shown=[L[miPage%n],L[(miPage+1)%n]];
   const card=(idea,j)=>{const b=miBuild(idea,meal),key=meal+'|'+idea[0];return `<div class="mi"><div class="mih"><b>${esc(b.name)}</b><span>${b.k} kcal · P ${b.p} g</span></div><p class="tag">${esc(b.why)}</p>
     <ul class="miing">${b.items.map(({f,q})=>`<li><span>${esc(f[1].replace(/,.*$/,''))}</span><em>${esc(miAmt(f[2],q))}</em></li>`).join('')}</ul>
-    <div class="mif"><small>C ${b.c} g · F ${b.f} g</small><button class="btn ghost small" data-a="milog" data-v="${(miPage+j)%n}" aria-label="Log ${esc(b.name)} as ${meal}">${miAdded===key?'Logged ✓':'Log this'}</button></div></div>`};
+    <div class="mif"><small>C ${b.c} g · F ${b.f} g</small><button class="btn ghost small" data-a="milog" data-v="${(miPage+j)%n}" >${miAdded===key?'Logged ✓':'Log this'}<span class="vh">: ${esc(b.name)} as ${meal}</span></button></div></div>`};
   return `<h3 style="margin-top:24px" id="miTop">Meal ideas</h3>
   <p class="tag">${tg?`Sized for about ${Math.round(tg.kcal*MSPLIT[meal]/10)*10} kcal, your ${meal.toLowerCase()} share of ${tg.kcal} a day.`:'Set your targets above and these resize to fit you.'} Values are approximate.</p>
   <div class="chips" role="group" aria-label="Meal">${Object.keys(MIDEAS).map(m=>`<button class="chip" aria-pressed="${m===meal}" data-a="mimeal" data-v="${m}">${m}</button>`).join('')}</div>
@@ -4033,7 +4033,7 @@ function g4gHtml(){const td=g4gS()[today()]||'',c=g4gCount(td),n=td.length,w=g4g
   const bar=wn?`<div class="g4gbar" role="img" aria-label="Last 7 days: ${pc(w.g/wn)}% Green, ${pc(w.y/wn)}% Yellow, ${pc(w.r/wn)}% Red">${['g','y','r'].map(k=>w[k]?`<i class="g4g-${k}" style="flex:${w[k]}"></i>`:'').join('')}</div>`:'';
   return `<h3 style="margin-top:20px" id="g4gTop">Plate check</h3>
   <p class="tag">At the dining facility, tap the Go for Green label of each item you take. Aim for at least half Green.</p>
-  <div class="g4g" role="group" aria-label="Add an item by its Go for Green color">${G4G.map(([k,l,d])=>`<button type="button" class="g4gb g4g-${k}" data-a="g4g" data-v="${k}" aria-label="Add a ${l} item"><b>${c[k]}</b><span>${l}</span><small>${d}</small></button>`).join('')}</div>
+  <div class="g4g" role="group" aria-label="Add an item by its Go for Green color">${G4G.map(([k,l,d])=>`<button type="button" class="g4gb g4g-${k}" data-a="g4g" data-v="${k}" ><span class="vh">Add one: </span><b>${c[k]}</b><span>${l}</span><small>${d}</small></button>`).join('')}</div>
   <p class="tag" id="g4gSum">${n?`Today: ${n} item${n>1?'s':''}, ${pc(c.g/n)}% Green.`:'Nothing logged today.'}${wn?` Last 7 days: <b>${pc(w.g/wn)}% Green</b> of ${wn} items${w.g/wn>=.5?', on target.':'.'}`:''}</p>${bar}
   ${n?'<div class="row" style="margin-top:6px"><button class="btn ghost small" data-a="g4gundo">Undo last</button></div>':''}`}
 let heatOpen=false;
@@ -4383,19 +4383,19 @@ function viewRuck(){const G=gpsS(),k=G.kind,K=k==='ruck'?'ruck':'run';
   if(rmode==='track'&&rt){return `<div class="gtrk"><p class="tdk">${k==='ruck'?'Ruck'+(rt.lb?' · '+rt.lb+' lb':''):'Run'}${rt.r?' · '+esc(rt.r.n):''}</p>
     <div class="gstats"><div><b id="gtT">0:00</b><span>Time</span></div><div><b id="gtD">${gDist(0)}</b><span>Distance</span></div><div><b id="gtP">--:--</b><span>Pace /${G.u}</span></div><div><b id="gtL">${rt.r?gDist(rt.rd.len):'–'}</b><span>Left</span></div></div>
     <p class="gst" id="gtS" role="status">Waiting for GPS…</p></div>
-    <div id="gMap" class="gmap tall" role="img" aria-label="Map with your planned route and track"></div>
+    <div id="gMap" class="gmap tall" role="region" aria-label="Map with your planned route and track"></div>
     <div class="row gctl"><button class="btn ghost" data-a="gpause">${rt.pauseAt?'Resume':'Pause'}</button><button class="btn" data-a="gfinish" id="gFinBtn">Finish</button></div>
     <p class="tag">Keep this screen open while you go. iPhone pauses GPS for web apps when the screen locks or you switch apps.</p>`}
   if(rmode==='done'&&rt){const m=rt.m,ms=rtMs();return `<h2>${k==='ruck'?'Ruck':'Run'} done</h2>
     <div class="gstats"><div><b>${gDist(m)}</b><span>Distance</span></div><div><b>${gClock(ms)}</b><span>Time</span></div><div><b>${gPace(ms,m)}</b><span>Pace /${G.u}</span></div>${k==='ruck'&&rt.lb?`<div><b>${rt.lb} lb</b><span>Ruck</span></div>`:''}</div>
-    <div id="gMap" class="gmap" role="img" aria-label="Map of your track"></div>
+    <div id="gMap" class="gmap" role="region" aria-label="Map of your track"></div>
     <div class="row"><button class="btn" data-a="gkeep">Save to log</button><button class="btn ghost" data-a="gtoss">Discard</button></div>
     <p class="tag">Saving logs a workout day, which counts toward your streak and rank.</p>`}
   const sel=gSel(),runs=G.runs.slice(0,10);
   return `<h2>Ruck & Run</h2>
   <div class="chips" role="group" aria-label="Activity"><button class="chip" aria-pressed="${k==='ruck'}" data-a="gkind" data-v="ruck">Ruck</button><button class="chip" aria-pressed="${k==='run'}" data-a="gkind" data-v="run">Run</button><button class="chip" aria-pressed="false" data-a="gunit">${G.u==='mi'?'Miles':'Kilometres'}</button></div>
   ${k==='ruck'?`<div class="form"><label>Ruck weight (lb)<input type="number" inputmode="numeric" id="gLb" data-f="glb" min="0" max="150" value="${G.lb}"></label></div>`:''}
-  <div id="gMap" class="gmap" role="img" aria-label="Map${sel?' of '+esc(sel.n):''}"></div><p class="gst warn" id="gNote" role="status" hidden></p>
+  <div id="gMap" class="gmap" role="region" aria-label="Map${sel?' of '+esc(sel.n):''}"></div><p class="gst warn" id="gNote" role="status" hidden></p>
   <p class="tag gsel">${sel?`Route: <b>${esc(sel.n)}</b>, ${gDist(gLen(sel.pts))}, about ${gEst(gLen(sel.pts))}.`:gShow?'Showing a past '+K+'.':'No route picked: you can go anywhere and the app tracks it.'}</p>
   <div class="row"><button class="btn tdgold" data-a="gstart">Start ${K}</button><button class="btn ghost" data-a="gplan">Plan a route</button></div>
   ${G.routes.length?`<h3 style="margin-top:20px">My routes</h3><div class="list">${G.routes.map(r=>`<div class="item"><button class="nm" data-a="guse" data-v="${r.id}" aria-pressed="${G.sel===r.id}">${esc(r.n)}<small>${gDist(gLen(r.pts))} · about ${gEst(gLen(r.pts))}${G.sel===r.id?' · Picked':''}</small></button><button class="iconbtn" data-a="gedit" data-v="${r.id}" aria-label="Edit ${esc(r.n)}">✎</button><button class="iconbtn" data-a="gdel" data-v="${r.id}" aria-label="Delete ${esc(r.n)}">×</button></div>`).join('')}</div>`:''}

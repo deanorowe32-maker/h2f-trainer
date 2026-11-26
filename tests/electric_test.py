@@ -20,7 +20,7 @@ with sync_playwright() as p:
         pg.wait_for_timeout(600)
         check('Manrope served by the app and loaded', E("document.fonts.check('700 16px Manrope')&&[...document.fonts].some(f=>f.family.replace(/\"/g,'')==='Manrope'&&f.status==='loaded')"))
         n = E("(()=>{const W=wkData(0);return W?(W.plan[0]||[]).filter(it=>EX[it.id]).length:0})()")
-        check(f'reactor on Today shows 0 of {n}', n > 0 and E("document.querySelector('.reactor')?.getAttribute('aria-label')") == f'0 of {n} exercises done' and E("document.querySelectorAll('.reactor .rx-seg').length") == n)
+        check(f'reactor on Today shows 0 of {n}', n > 0 and E("document.querySelector('.reactor .rx-core')?.textContent") == f'0/{n}exercises done' and E("document.querySelectorAll('.reactor .rx-seg').length") == n)
         E("(()=>{const W=wkData(0);W.plan[0].filter(it=>EX[it.id]).slice(0,2).forEach(it=>it.done=true);save();render()})()"); pg.wait_for_timeout(200)
         check('reactor lights one segment per done exercise', E("document.querySelectorAll('.reactor .rx-seg.on').length") == 2 and E("document.querySelector('.rx-core b').textContent") == f'2/{n}')
         check('effects layer never takes taps', E("getComputedStyle(document.getElementById('efx')).pointerEvents==='none'&&getComputedStyle(document.querySelector('.escan')).pointerEvents==='none'"))
