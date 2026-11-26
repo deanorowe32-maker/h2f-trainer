@@ -20,6 +20,15 @@ img{max-width:100%}
 .prep{margin:8px 0;padding-left:22px}.prep li{margin:0 0 8px}.prep li span:last-child{display:block;color:var(--muted,#93a99b);font-size:15px}.prep .prepcue{color:var(--gold);font-weight:700;background:none;padding:0}
 .vwrow{display:flex;gap:8px;margin:10px 0 4px}.vwd{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(232,191,85,.35)}
 .vwd.y{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(232,191,85,.5)}.vwd.p{background:linear-gradient(90deg,var(--gold) 50%,transparent 50%);border-color:var(--gold)}.vwd.n{border-style:dashed}
+.rxdeck{touch-action:pan-y}.rxring{cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}.rxring:focus-visible .reactor{outline:2px solid var(--gold);outline-offset:6px;border-radius:50%}
+.rxdots{display:flex;justify-content:center;gap:4px;margin:-4px 0 6px}
+.rxdot{min-height:44px;min-width:44px;border:0;background:none;color:var(--muted,#93a99b);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 6px;cursor:pointer;font:600 10px/1 var(--hud);letter-spacing:.14em;text-transform:uppercase}
+.rxdot i{width:7px;height:7px;border-radius:50%;background:rgba(232,191,85,.3);transition:transform .3s,background .3s}
+.rxdot[aria-pressed=true]{color:var(--gold)}.rxdot[aria-pressed=true] i{background:var(--gold);transform:scale(1.5);box-shadow:0 0 8px var(--gold)}
+.rxact{margin:0 0 8px}
+@keyframes rxinr{from{opacity:0;transform:translateX(40px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes rxinl{from{opacity:0;transform:translateX(-40px) scale(.94)}to{opacity:1;transform:none}}
+.rxin-r{animation:rxinr .45s cubic-bezier(.32,.72,0,1)}.rxin-l{animation:rxinl .45s cubic-bezier(.32,.72,0,1)}
 </style>
 </head>
 <body>
@@ -2159,15 +2168,41 @@ function recapHtml(now){now=now||new Date();const wd=(now.getDay()+6)%7;if(wd>2)
   if(af)L.push(`<li><b>AFT ${af.t} points</b>, ${aftPass(af)?'pass':'fail'}.</li>`);
   return `<section class="recap" id="recap"><h3>Last week</h3><p class="tag">${fmt(a)} to ${fmt(z)}</p><ul>${L.join('')}</ul><button type="button" class="btn ghost" data-a="pgopen">See your progress</button></section>`}
 function coachHtml(){const T=coachTips();return `<section class="coach" id="coach"><h3>Coach</h3>${T.map(x=>`<div class="coachtip"><b>${esc(x.head)}</b><p class="tag">${esc(x.txt)}</p><button type="button" class="btn ghost" data-a="${x.a}" data-v="${esc(x.v)}">${esc(x.btn)}</button></div>`).join('')}<p class="tag coachnote">Tips come from your own logs on this phone. Not medical advice.</p></section>`}
-function reactorHtml(n,t){let g='';for(let i=0;i<t;i++){const st=360/t,a0=(-90+i*st+st*.1)*Math.PI/180,a1=(-90+(i+1)*st-st*.1)*Math.PI/180,r=100;g+=`<path class="rx-seg${i<n?' on':''}" d="M${(150+r*Math.cos(a0)).toFixed(1)},${(150+r*Math.sin(a0)).toFixed(1)} A${r},${r} 0 0 1 ${(150+r*Math.cos(a1)).toFixed(1)},${(150+r*Math.sin(a1)).toFixed(1)}" fill="none" stroke-width="10" stroke-linecap="round"/>`}
-  return `<div class="reactor" role="img" aria-label="${n} of ${t} exercises done"><svg viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="rxg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2f7a4f"/><stop offset="1" stop-color="#e8bf55"/></linearGradient></defs><circle cx="150" cy="150" r="140" fill="none" stroke="rgba(232,191,85,.18)" stroke-width="1"/><g class="rx-spin"><circle cx="150" cy="150" r="128" fill="none" stroke="url(#rxg)" stroke-width="2" stroke-dasharray="2 10 40 10" opacity=".7"/></g><g class="rx-spinr"><circle cx="150" cy="150" r="116" fill="none" stroke="rgba(232,191,85,.35)" stroke-width="1" stroke-dasharray="1 6"/></g>${g}<circle cx="150" cy="150" r="86" fill="none" stroke="rgba(47,122,79,.5)" stroke-width="1"/></svg><div class="rx-core" aria-hidden="true"><b>${n}<small>/${t}</small></b><span>exercises done</span></div></div>`}
+function reactorHtml(n,t,o){o=o||{};let g='';for(let i=0;i<t;i++){const st=360/t,a0=(-90+i*st+st*.1)*Math.PI/180,a1=(-90+(i+1)*st-st*.1)*Math.PI/180,r=100;g+=`<path class="rx-seg${i<n?' on':''}" d="M${(150+r*Math.cos(a0)).toFixed(1)},${(150+r*Math.sin(a0)).toFixed(1)} A${r},${r} 0 0 1 ${(150+r*Math.cos(a1)).toFixed(1)},${(150+r*Math.sin(a1)).toFixed(1)}" fill="none" stroke-width="10" stroke-linecap="round"/>`}
+  return `<div class="reactor${o.cls?' '+o.cls:''}" role="img" aria-label="${o.aria||n+' of '+t+' exercises done'}"><svg viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="rxg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2f7a4f"/><stop offset="1" stop-color="#e8bf55"/></linearGradient></defs><circle cx="150" cy="150" r="140" fill="none" stroke="rgba(232,191,85,.18)" stroke-width="1"/><g class="rx-spin"><circle cx="150" cy="150" r="128" fill="none" stroke="url(#rxg)" stroke-width="2" stroke-dasharray="2 10 40 10" opacity=".7"/></g><g class="rx-spinr"><circle cx="150" cy="150" r="116" fill="none" stroke="rgba(232,191,85,.35)" stroke-width="1" stroke-dasharray="1 6"/></g>${g}<circle cx="150" cy="150" r="86" fill="none" stroke="rgba(47,122,79,.5)" stroke-width="1"/></svg><div class="rx-core" aria-hidden="true"><b>${o.b||n+'<small>/'+t+'</small>'}</b><span>${o.s||'exercises done'}</span></div></div>`}
+/* Ring deck on Today: swipe or tap the ring to flip between Workout (or Recovery on rest days), Sleep, Water and Fuel */
+let rxM=0,rxFirst=null;
+function rxSleep(){const k=today(),v=typeof S.sleep.log[k]==='number'?S.sleep.log[k]:typeof S.sleep.log[slKey(1)]==='number'?S.sleep.log[slKey(1)]:null;return v}
+function rxModes(){const sl=rxSleep(),w=S.hyd.n,tg=nuTargets(),t=nuTot(nuMeals(today()));
+  return [rxFirst,
+  {k:'sleep',lab:'Sleep',ring:reactorHtml(sl===null?0:Math.min(8,Math.floor(sl)),8,{b:sl===null?'–':slFmt(sl)+'<small>h</small>',s:sl===null?'sleep not logged':'sleep last night',aria:sl===null?'Sleep not logged yet':slFmt(sl)+' hours of sleep last night'}),act:'<button class="btn ghost small" data-a="tdgo" data-v="sleep">Log sleep</button>'},
+  {k:'water',lab:'Water',ring:reactorHtml(Math.min(8,w),8,{b:w+'<small>/8</small>',s:'cups of water',aria:w+' of 8 cups of water today'}),act:'<button class="btn ghost small" data-a="hyd" data-v="1">Add a cup</button>'},
+  {k:'fuel',lab:'Fuel',ring:reactorHtml(tg&&tg.kcal?Math.min(10,Math.round(10*t.k/tg.kcal)):0,10,{b:tg?String(t.k):'–',s:tg?'of '+tg.kcal+' kcal':'set fuel targets',aria:tg?t.k+' of '+tg.kcal+' calories today':'Fuel targets not set'}),act:'<button class="btn ghost small" data-a="tdgo" data-v="nut">Log a meal</button>'}]}
+function rxDeckHtml(){const M=rxModes();rxM=(rxM+M.length)%M.length;const m=M[rxM];
+  return `<div class="rxdeck" id="rxdeck"><div class="rxring" data-a="rxnext" aria-label="Show the next ring" role="button" tabindex="0">${m.ring}</div>
+  <div class="rxdots" role="group" aria-label="Rings">${M.map((x,i)=>`<button type="button" class="rxdot" data-a="rxm" data-v="${i}" aria-pressed="${i===rxM}" aria-label="${x.lab} ring"><i></i><span>${x.lab}</span></button>`).join('')}</div>
+  ${m.act?`<div class="rxact">${m.act}</div>`:''}</div>`}
+function rxGo(i,dir){rxM=i;const d=document.getElementById('rxdeck');if(!d)return;d.outerHTML=rxDeckHtml();const n=document.getElementById('rxdeck');if(n&&dir&&!RM())n.querySelector('.rxring').classList.add(dir>0?'rxin-r':'rxin-l')}
+(function(){let x0=null,y0=0;document.addEventListener('pointerdown',e=>{const r=e.target.closest&&e.target.closest('#rxdeck .rxring');x0=r?e.clientX:null;y0=e.clientY},{passive:true});
+  document.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){rxSwiped=true;rxGo(rxM+(dx<0?1:-1),dx<0?1:-1)}},{passive:true})})();
+let rxSwiped=false;
+/* Rest-day recovery: two things you tick, two that fill from what you log */
+function rstS(){if(!S.rest||S.rest.d!==today())S.rest={d:today(),m:false,w:false};return S.rest}
+function rstItems(){const r=rstS(),sl=rxSleep();return [['m','Mobility or stretching, 10 min',!!r.m,true],['w','Easy walk, 20 min or more',!!r.w,true],['h','8 cups of water',S.hyd.n>=8,false],['s','7 hours of sleep logged',sl!==null&&sl>=7,false]]}
+function rstRing(){const I=rstItems(),d=I.filter(x=>x[2]).length;return {k:'rest',lab:'Recovery',ring:reactorHtml(d,4,{cls:'rx-rest',s:'recovery done',aria:d+' of 4 recovery steps done'})}}
+function rstHeroHtml(){rxFirst=rstRing();const I=rstItems();
+  return `<section class="tdhero" id="tdhero">${rxDeckHtml()}
+  <p class="tdk">${ico('pt')}Recovery</p><h3 class="tdh1">Rest day</h3>
+  <p class="tdsum">No session planned today. Recovery is part of the work.</p><div class="tdcta"><button class="btn ghost" style="flex:1" data-a="tdgo" data-v="train">Open my week</button></div></section>
+  <section class="tdwide tdlistp open" id="rstlist"><div class="tdlh"><h3>Today's recovery</h3><span class="tdtog"><span>${I.filter(x=>x[2]).length} of 4</span></span></div>
+  <div class="tdlb"><div>${I.map(([k,t,on,man])=>`<div class="tdrow${on?' done':''}">${man?`<button type="button" class="tdchk" data-a="rsttick" data-v="${k}" aria-pressed="${on}" aria-label="${t} done">${TICK}</button>`:`<span class="tdchk" aria-hidden="true">${TICK}</span>`}<span class="tdn">${t}</span>${man||on?'':k==='h'?'<button class="btn ghost small" data-a="hyd" data-v="1">Add a cup</button>':'<button class="btn ghost small" data-a="tdgo" data-v="sleep">Log sleep</button>'}</div>`).join('')}</div></div></section>`}
 /* Today hero: the workout ring up top, the day's title and a gold Start button, then the list to tick off right here */
 let tdListOpen=(()=>{try{return localStorage.getItem('h2f.tdlist')!=='0'}catch(e){return true}})();
 function tdHeroHtml(W,wd){const P=W.plan[wd]||[],idx=P.map((it,i)=>i).filter(i=>EX[P[i].id]),items=idx.map(i=>P[i]),n=items.length,done=items.filter(it=>it.done).length;
   const mains=items.filter(it=>(it.s||EX[it.id].sec)==='M'),names=mains.slice(0,3).map(it=>EX[it.id].name),dn=doneOn(today()),man=dn.find(x=>x.man);
   const rows=['W','M','C'].flatMap(sc=>{const g=idx.filter(i=>(P[i].s||EX[P[i].id].sec)===sc);return g.length?[`<p class="tdph">${SECNAME[sc]}</p>`,...g.map(i=>{const it=P[i],e=EX[it.id];
     return `<div class="tdrow${it.done?' done':''}"><button type="button" class="tdchk" data-a="tdtick" data-i="${i}" aria-pressed="${!!it.done}" aria-label="${esc(e.name)} done">${TICK}</button><button type="button" class="tdn" data-a="info" data-v="${e.id}">${esc(e.name)}</button><span class="tds">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
-  return `<section class="tdhero" id="tdhero">${reactorHtml(done,n)}
+  return `<section class="tdhero" id="tdhero">${(rxFirst={k:'work',lab:'Workout',ring:reactorHtml(done,n,{cls:'rx-work'})},rxDeckHtml())}
   <p class="tdk">${ico('train')}Workout</p><h3 class="tdh1">${esc(DTYPES[W.types[wd]]||'Training')}</h3>
   <p class="tdsum">${n} exercise${n===1?'':'s'}${names.length?'. Main work: '+names.map(esc).join(', ')+(mains.length>3?' and more':''):''}.</p>
   <div class="tdcta"><button class="btn tdgold" data-a="tdtimer">${active()?'Open timer':'Start workout'}</button>${dn.length?`<span class="tddone">${TICK}Done today</span>${man?'<button class="btn ghost small" data-a="tdundo">Undo</button>':''}`:'<button class="btn ghost" data-a="tddone">Mark done</button>'}</div>
@@ -2176,7 +2211,7 @@ function tdHeroHtml(W,wd){const P=W.plan[wd]||[],idx=P.map((it,i)=>i).filter(i=>
   <div class="tdlb" id="tdlb"><div>${rows.join('')}<div class="row" style="margin-top:10px"><button class="btn ghost" data-a="tdgo" data-v="train">Open in Train</button></div></div></div></section>`}
 function tdTick(b){const W=wkData(0),wd=(new Date().getDay()+6)%7,P=W&&W.plan[wd],it=P&&P[+b.dataset.i];if(!it)return;it.done=!it.done;save();
   const row=b.closest('.tdrow');row.classList.toggle('done',it.done);b.setAttribute('aria-pressed',it.done);
-  const items=P.filter(x=>EX[x.id]),n=items.length,d=items.filter(x=>x.done).length,rx=document.querySelector('#tdhero .reactor');
+  const items=P.filter(x=>EX[x.id]),n=items.length,d=items.filter(x=>x.done).length,rx=document.querySelector('#tdhero .reactor.rx-work');
   if(rx){rx.querySelectorAll('.rx-seg').forEach((sg,i)=>sg.classList.toggle('on',i<d));const c=rx.querySelector('.rx-core b');if(c)c.innerHTML=`${d}<small>/${n}</small>`;rx.setAttribute('aria-label',`${d} of ${n} exercises done`)}
   const ct=document.getElementById('tdcnt');if(ct)ct.textContent=`${d} of ${n}`;
   if(navigator.vibrate&&it.done)try{navigator.vibrate(12)}catch(e){}}
@@ -2191,12 +2226,12 @@ function viewToday(){
     if(isCiW(W,wd)){const c=ciW(W,wd),n=ciIds(W,wd).length;work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} circuit</div><p>Circuit: ${esc(ciLine(c,n))}.</p><div class="row">${n?`<button class="btn" data-a="ciopen" data-d="${wd}" data-w="0">${CI.started&&!CI.done?'Open circuit':'Start circuit'}</button>`:''}<button class="btn${n?' ghost':''}" data-a="tdgo" data-v="train">Open today's workout</button></div>`}else
     if(isStW(W,wd)){const c=dstW(W,wd);work=`<div class="tdbig">${esc(DTYPES[W.types[wd]])} stations</div><p>${c.st.length} station${c.st.length===1?'':'s'} of ${c.mins} minutes, ${c.st.length*c.mins} minutes total.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}else
     work=`<div class="tdbig">${esc(DTYPES[W.types[wd]]||'Training')}</div><p>${items.length} exercise${items.length===1?'':'s'}${done?`, ${done} done`:''}${names.length?'. Main work: '+names.map(esc).join(', ')+(items.filter(it=>(it.s||EX[it.id].sec)==='M').length>3?' and more':''):''}.</p><div class="row"><button class="btn" data-a="tdgo" data-v="train">Open today's workout</button><button class="btn ghost" data-a="tdtimer">${active()?'Open workout timer':'Start workout timer'}</button></div>`}
-  else work=`<div class="tdbig">Rest day</div><p>No session is planned for the weekend. Recover, stretch, or open your week to plan ahead.</p><div class="row"><button class="btn ghost" data-a="tdgo" data-v="train">Open my week</button></div>`;
+  else work='';
   const sl=typeof S.sleep.log[key]==='number'?S.sleep.log[key]:typeof S.sleep.log[slKey(1)]==='number'?S.sleep.log[slKey(1)]:null,sa=slAvg(7);
   const tg=nuTargets(),t=nuTot(nuMeals(key)),af=S.aft.hist[0];
   if(wd<5&&W){const dn=doneOn(key),man=dn.find(x=>x.man);
     work+=dn.length?`<div class="row" style="margin-top:6px"><span class="tddone">${TICK}Done today</span>${man?'<button class="btn ghost small" data-a="tdundo">Undo</button>':''}</div>`:`<div class="row" style="margin-top:6px"><button class="btn ghost" data-a="tddone">Mark workout done</button></div>`}
-  let hero='';
+  let hero='';if(wd>=5)hero=rstHeroHtml();
   if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)&&!isCiW(W,wd)&&(W.plan[wd]||[]).some(it=>EX[it.id])){hero=tdHeroHtml(W,wd);work=''}
   else if(wd<5&&W&&!isStW(W,wd)&&!isPrW(W,wd,0)){const items=(W.plan[wd]||[]).filter(it=>EX[it.id]),cnt={W:0,M:0,C:0};
     const rows=['W','M','C'].flatMap(sc=>{const g=items.filter(it=>(it.s||EX[it.id].sec)===sc);return g.length?[`<div class="tdsec">${SECNAME[sc]}</div>`,...g.map(it=>{const e=EX[it.id];return `<div class="item${it.done?' struck':''}"><button class="nm" data-a="info" data-v="${e.id}">${it.done?TICK:''}<span class="sn">${esc(e.name)}</span></button><span class="rxv">${esc(it.rx||'')}${it.w?' · '+esc(it.w)+' '+au():''}</span></div>`})]:[]});
@@ -2908,6 +2943,9 @@ document.addEventListener('click',ev=>{
   else if(a==='uselw'){const it=S.plan[S.day][+b.dataset.i];if(it){it.w=b.dataset.v;save();render()}}
   else if(a==='tdundo'){const k=today();S.hist=(S.hist||[]).filter(x=>!(x.man&&dayKeyTs(x.ts)===k));render()}
   else if(a==='tdtick'){tdTick(b)}
+  else if(a==='rxnext'){if(rxSwiped){rxSwiped=false;return}rxGo(rxM+1,1)}
+  else if(a==='rxm'){const i=+v;if(i!==rxM)rxGo(i,i>rxM?1:-1)}
+  else if(a==='rsttick'&&/^[mw]$/.test(v)){const r=rstS();r[v]=!r[v];save();const y=scrollY;render();scrollTo(0,y);if(navigator.vibrate&&r[v])try{navigator.vibrate(12)}catch(e){}}
   else if(a==='rkopen'){rkShow()}
   else if(a==='closerk'){document.getElementById('rkSheet').hidden=true}
   else if(a==='tdlist'){tdListOpen=!tdListOpen;try{localStorage.setItem('h2f.tdlist',tdListOpen?'1':'0')}catch(e){}const p=document.getElementById('tdlist');p.classList.toggle('open',tdListOpen);b.setAttribute('aria-expanded',tdListOpen);b.lastChild.nodeValue=' '+(tdListOpen?'Hide':'Show')}
