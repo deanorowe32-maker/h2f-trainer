@@ -1,5 +1,5 @@
 // H2F Trainer trail routing. Snaps one planned leg (2 to 10 points) to walkable paths using openrouteservice
-// "foot-hiking". The ORS key stays here as the ORS_KEY secret; the app never sees it.
+// "foot-hiking" (api.heigit.org; api.openrouteservice.org was retired with HTTP 410). The ORS key stays here as the ORS_KEY secret; the app never sees it.
 // POST {pts:[[lat,lng],...]}  or  GET ?pts=lat,lng~lat,lng (";" also works)   ->  {pts:[[lat,lng],...], m:metres}
 const ORIGINS = ["https://h2ftrainer.com", "https://www.h2ftrainer.com", "https://h2f-trainer.vercel.app", "http://localhost:8765"];
 const PREVIEW = /^https:\/\/h2f-trainer-git-[a-z0-9-]+-h2-f-trainer\.vercel\.app$/;
@@ -33,13 +33,13 @@ Deno.serve(async (req) => {
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "anon";
     if (limited(ip)) return json(req, { error: "busy" }, 429);
     const key = Deno.env.get("ORS_KEY"); if (!key) return json(req, { error: "no key" }, 503);
-    const r = await fetch("https://api.openrouteservice.org/v2/directions/foot-hiking/geojson", {
+    const r = await fetch("https://api.heigit.org/openrouteservice/v2/directions/foot-hiking/geojson", {
       method: "POST", headers: { "Authorization": key, "Content-Type": "application/json", "Accept": "application/geo+json" },
       body: JSON.stringify({ coordinates: pts.map(([la, lo]) => [lo, la]), radiuses: pts.map(() => 350), instructions: false, elevation: false }),
       signal: AbortSignal.timeout(9000),
     });
     if (r.status === 429) return json(req, { error: "limit" }, 429);
-    if (!r.ok) { const t = await r.text(); return json(req, { error: "router", status: r.status, detail: t.slice(0, 160) }, 502); }
+    if (!r.ok) { const t = await r.text(); console.log("ors", r.status, t.slice(0, 400)); return json(req, { error: "router", status: r.status, detail: t.slice(0, 160) }, 502); }
     const g = await r.json(), f = g?.features?.[0];
     const line: number[][] = (f?.geometry?.coordinates || []).map((c: number[]) => [+c[1].toFixed(5), +c[0].toFixed(5)]);
     if (line.length < 2) return json(req, { error: "no route" }, 404);
