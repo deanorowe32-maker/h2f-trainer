@@ -29,6 +29,8 @@ img{max-width:100%}
 @keyframes rxinr{from{opacity:0;transform:translateX(40px) scale(.94)}to{opacity:1;transform:none}}
 @keyframes rxinl{from{opacity:0;transform:translateX(-40px) scale(.94)}to{opacity:1;transform:none}}
 .rxin-r{animation:rxinr .45s cubic-bezier(.32,.72,0,1)}.rxin-l{animation:rxinl .45s cubic-bezier(.32,.72,0,1)}
+/* Quick double taps count as two taps instead of zooming the page (pinch zoom still works) */
+html,body,button,a,input,select,textarea,label,[role=button],[data-a]{touch-action:manipulation}
 </style>
 </head>
 <body>
