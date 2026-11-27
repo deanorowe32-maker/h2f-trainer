@@ -1,12 +1,12 @@
-// H2F Coach. Writes a short coaching reply with Claude (Haiku) from the Soldier's question and a summary of their
-// app data that the app sends. The Anthropic key stays here as the ANTHROPIC_API_KEY secret; the app never sees it.
+// H2F Coach. Writes a short coaching reply with an open model on Groq's free plan (GPT-OSS 120B, falling back to 20B)
+// from the Soldier's question and a summary of their app data. The Groq key stays here as the GROQ_API_KEY secret; the app never sees it.
 // Nothing is stored except a per-day question count per device, per IP and in total (coach_use table, 14 days).
 // POST {dev, ctx, msgs:[{r:'u'|'a', t}]}  ->  {text, left}
 const ORIGINS = ["https://h2ftrainer.com", "https://www.h2ftrainer.com", "https://h2f-trainer.vercel.app", "http://localhost:8765"];
 const PREVIEW = /^https:\/\/h2f-trainer-git-[a-z0-9-]+-h2-f-trainer\.vercel\.app$/;
 const allowed = (o: string) => ORIGINS.includes(o) || PREVIEW.test(o);
 const PER_DEVICE = 20, PER_IP = 40, ALL = 1500; // questions a day
-const MODEL = "claude-haiku-5-5";
+const MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]; // second one is used when the first hits its free limit
 function cors(req: Request) {
   const o = req.headers.get("origin") || "";
   return { "Access-Control-Allow-Origin": allowed(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Vary": "Origin" };
@@ -62,28 +62,29 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => null);
     const c = body && typeof body === "object" ? clean(body as Record<string, unknown>) : null;
     if (!c) return json(req, { error: "input" }, 400);
-    const key = Deno.env.get("ANTHROPIC_API_KEY"); if (!key) return json(req, { error: "no key" }, 503);
+    const key = Deno.env.get("GROQ_API_KEY"); if (!key) return json(req, { error: "no key" }, 503);
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "anon";
     const n = await count(["d:" + c.dev, "i:" + ip, "all"]);
     if (!n) return json(req, { error: "count" }, 500);
     if ((n["all"] || 0) > ALL) return json(req, { error: "busy" }, 429);
     if ((n["d:" + c.dev] || 0) > PER_DEVICE || (n["i:" + ip] || 0) > PER_IP) return json(req, { error: "cap", left: 0 }, 429);
     const left = Math.max(0, PER_DEVICE - (n["d:" + c.dev] || 0));
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL, max_tokens: 700,
-        system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }, { type: "text", text: "SOLDIER DATA (from the app, " + new Date().toISOString().slice(0, 10) + "):\n" + (c.ctx || "Nothing logged yet.") }],
-        messages: c.msgs,
-      }),
-      signal: AbortSignal.timeout(25000),
-    });
-    if (r.status === 429 || r.status === 529) return json(req, { error: "busy" }, 429);
-    if (!r.ok) { const t = await r.text(); console.log("anthropic", r.status, t.slice(0, 300)); return json(req, { error: "model", status: r.status }, 502); }
-    const g = await r.json();
-    const text = (g?.content || []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("\n").trim();
-    if (!text) return json(req, { error: "empty" }, 502);
+    const sys = SYSTEM + "\n\nSOLDIER DATA (from the app, " + new Date().toISOString().slice(0, 10) + "):\n" + (c.ctx || "Nothing logged yet.");
+    let text = "";
+    for (const model of MODELS) {
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, max_completion_tokens: 1500, reasoning_effort: "low", temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
+        signal: AbortSignal.timeout(25000),
+      });
+      if (r.status === 429 || r.status === 503) continue; // free limit reached or busy: try the smaller model
+      if (!r.ok) { const t = await r.text(); console.log("groq", model, r.status, t.slice(0, 300)); return json(req, { error: "model", status: r.status }, 502); }
+      const g = await r.json();
+      text = String(g?.choices?.[0]?.message?.content || "").trim();
+      if (text) break;
+    }
+    if (!text) return json(req, { error: "busy" }, 429);
     return json(req, { text: text.slice(0, 4000), left });
   } catch (e) {
     return json(req, { error: String(e).slice(0, 120) }, 500);

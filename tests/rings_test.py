@@ -33,6 +33,7 @@ with sync_playwright() as p:
         check('dot jumps to Water 0/8', E("document.querySelector('#rxdeck .rx-core b').textContent") == '0/8')
         pg.click('#rxdeck .rxact [data-a=hyd]'); pg.wait_for_timeout(250)
         check('Add a cup fills the water ring and keeps Water showing', E("document.querySelector('#rxdeck .rx-core b').textContent") == '1/8' and E("document.querySelectorAll('#rxdeck .rx-seg.on').length") == 1)
+        pg.locator('#rxdeck .rxring').scroll_into_view_if_needed(); pg.wait_for_timeout(100)
         bx = pg.locator('#rxdeck .rxring').bounding_box(); cx, cy = bx['x'] + bx['width'] / 2, bx['y'] + bx['height'] / 2
         pg.mouse.move(cx + 80, cy); pg.mouse.down(); pg.mouse.move(cx - 80, cy, steps=5); pg.mouse.up(); pg.wait_for_timeout(250)
         check('swipe left goes to Fuel', E("document.querySelector('.rxdot[aria-pressed=true] span').textContent") == 'Fuel')

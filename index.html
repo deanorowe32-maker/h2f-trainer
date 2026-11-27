@@ -4545,7 +4545,7 @@ function gAct(a,v,b){const G=gpsS();
   if(a==='gdropold'){rtDrop();render();return true}
   return false}
 
-/* H2F Coach: questions answered by Claude (Haiku) through our Supabase "coach" function. Off until the Soldier turns it
+/* H2F Coach: questions answered by an open model on Groq (GPT-OSS) through our Supabase "coach" function. Off until the Soldier turns it
    on. Each question sends the chat so far (last 8 turns) and the summary below; the chat itself stays on this phone. */
 const CX_SUG=['How should I train this week?','Am I on track for my AFT?','What should I eat before a ruck?','How can I sleep better?'];
 let cxBusy=false,cxErr='',cxLeft=null;
@@ -4579,7 +4579,7 @@ function cxSentHtml(){return `<details class="cxsent"><summary>What gets sent</s
 function viewCoach(){const o=cxS();
   if(!o.on)return `<h2>Coach</h2>
   <p>Ask about training, the AFT, food, sleep and recovery. Answers use your own logs, so they fit you.</p>
-  <div class="cxintro"><p><b>How it works.</b> Replies are written by Claude, an AI from Anthropic. To answer, your question and a short summary of your app data go to Anthropic through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
+  <div class="cxintro"><p><b>How it works.</b> Replies are written by an AI model (OpenAI's open GPT-OSS) run by Groq. To answer, your question and a short summary of your app data go to Groq through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
   <p><b>AI can be wrong.</b> Coach is not medical advice. For pain, injury or feeling unwell, see your medic.</p></div>
   ${cxSentHtml()}
   <button class="btn" data-a="cxon">Turn on Coach</button>`;
@@ -4601,7 +4601,7 @@ async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return
   const o2=cxS();cxBusy=false;
   if(code===200&&res&&typeof res.text==='string'&&res.text){o2.msgs.push({r:'a',t:res.text.slice(0,4000)});if(typeof res.left==='number')cxLeft=res.left}
   else{if(o2.msgs.length&&o2.msgs[o2.msgs.length-1].r==='u')o2.msgs.pop();
-    cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach is busy right now. Try again in a minute.':'Coach could not answer that. Try again.';
+    cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach is resting. Try again in a few minutes, or tomorrow.':'Coach could not answer that. Try again.';
     if(code===429&&res&&res.error==='cap')cxLeft=0;setTimeout(()=>{const i=document.getElementById('cxIn');if(i&&!i.value)i.value=q},0)}
   cxSave(o2);cxRedraw()}
 function cxAct(a,v,b){const o=cxS();

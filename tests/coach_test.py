@@ -1,3 +1,4 @@
+import re
 """H2F Coach: off by default and sends nothing; consent copy and 'what gets sent' preview; turning on; suggestion
 and typed questions go to the coach function with device id, context and chat; reply shows; errors restore the
 question; caps; clear and turn off; reply text is escaped. The function is stubbed."""
@@ -27,7 +28,7 @@ with sync_playwright() as p:
     check('Coach is a Today section',E("!!document.querySelector('.subnav [data-v=coach]')"))
     pg.click('.subnav [data-v=coach]');pg.wait_for_timeout(500)
     v=E("document.getElementById('view').textContent")
-    check('off by default with consent copy',E("!document.getElementById('cxIn')") and 'Anthropic' in v and 'not medical advice' in v and 'Nothing is sent until you turn Coach on' in v)
+    check('off by default with consent copy',E("!document.getElementById('cxIn')") and 'Groq' in v and 'not medical advice' in v and 'Nothing is sent until you turn Coach on' in v)
     check('what gets sent preview shows the summary',E("document.querySelector('.cxsent pre').textContent.includes('Today:')"))
     check('nothing sent while off',len(calls)==0)
     # seed some data for the context
@@ -38,7 +39,7 @@ with sync_playwright() as p:
     c=calls[-1] if calls else {}
     check('suggestion sent with device id, context and chat',len(calls)==1 and len(c.get('dev',''))==16 and c['msgs']==[{'r':'u','t':'Am I on track for my AFT?'}])
     check('context has the logs',all(x in c.get('ctx','') for x in ['age 28','6.8 h average','Ruck · 4.1 mi','AFT: no score saved yet']))
-    check('context has no name or location',not any(x in c.get('ctx','').lower() for x in ['lat','lng','email']))
+    check('context has no name or location',not re.search(r'-?\d{1,3}\.\d{4,}|latitude|longitude|\blng\b|email|@',c.get('ctx','').lower()))
     check('reply shows',E("document.querySelectorAll('.cxm.ai').length")==1 and 'Sleep' in E("document.querySelector('.cxm.ai').textContent"))
     check('reply is escaped, bold works',E("!document.querySelector('.cxm.ai img')") and E("document.querySelector('.cxm.ai b').textContent")=='Sleep' and not dialogs)
     check('questions left shown','19 questions left today' in E("document.getElementById('cxLeft').textContent"))
