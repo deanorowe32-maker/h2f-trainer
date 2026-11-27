@@ -31,6 +31,8 @@ img{max-width:100%}
 .rxin-r{animation:rxinr .45s cubic-bezier(.32,.72,0,1)}.rxin-l{animation:rxinl .45s cubic-bezier(.32,.72,0,1)}
 /* Quick double taps count as two taps instead of zooming the page (pinch zoom still works) */
 html,body,button,a,input,select,textarea,label,[role=button],[data-a]{touch-action:manipulation}
+.cxplan{margin-top:10px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--gold) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 35%,transparent)}
+.cxplan ul{margin:8px 0;padding-left:18px}.cxplan li{margin:3px 0}.cxplan .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.cxplan .cxok{color:var(--gold);font-weight:600;margin:6px 0 0}
 </style>
 </head>
 <body>
@@ -4547,7 +4549,39 @@ function gAct(a,v,b){const G=gpsS();
 
 /* H2F Coach: questions answered by an open model on Cloudflare Workers AI through our Supabase "coach" function. Off until the Soldier turns it
    on. Each question sends the chat so far (last 8 turns) and the summary below; the chat itself stays on this phone. */
-const CX_SUG=['How should I train this week?','Am I on track for my AFT?','What should I eat before a ruck?','How can I sleep better?'];
+const CX_SUG=['How should I train this week?','Am I on track for my AFT?','What should I eat before a ruck?','How can I sleep better?','Build me a PT plan for this week'];
+/* Coach Jolt plans: for plan questions the server asks for a [PLAN] block (day | type | id - sets; ...).
+   The app strips it from the reply, keeps only Library exercises, and can save it into this or next week's Plan. */
+const CXT={'upper body':'upper',upper:'upper','lower body':'lower',lower:'lower',aerobic:'aerobic',anaerobic:'anaerobic',stretching:'stretch',stretch:'stretch',mobility:'stretch'};
+const CXD=['mon','tue','wed','thu','fri'];
+let cxNames=null,cxUndo=null;
+function cxNorm(x){return String(x).toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\b([a-z]{2,})s\b/g,'$1').trim()}
+function cxFind(n){n=String(n).trim();const p=/\(([a-z0-9_]+)\)\s*$/i.exec(n);if(p&&EX[p[1]])return p[1];if(EX[n])return n;
+  if(!cxNames){cxNames={};Object.values(EX).forEach(e=>{cxNames[cxNorm(e.name)]=e.id})}return cxNames[cxNorm(n.replace(/\([^)]*\)/g,''))]||null}
+function cxPlanParse(t){const m=/\[PLAN\]([\s\S]*?)(?:\[\/PLAN\]|$)/i.exec(t);if(!m)return {t,p:null};
+  const days=[];let miss=0;
+  m[1].split('\n').forEach(l=>{const c=l.split('|').map(x=>x.trim());if(c.length<3)return;const d=CXD.indexOf(c[0].toLowerCase().replace(/[^a-z]/g,'').slice(0,3)),ty=CXT[c[1].toLowerCase()];
+    if(d<0||!ty||days.some(x=>x.d===d))return;const items=[];
+    c.slice(2).join(' ').split(';').forEach(x=>{x=x.trim();if(!x)return;const q=/^(.*?)\s+[-–—:]\s+(.*)$/.exec(x)||/^(.*?):\s*(.*)$/.exec(x)||/^(.*?)\s+(\d.*)$/.exec(x);
+      const nm=q?q[1]:x,rx=(q?q[2]:'').replace(/(\d)\s*[xX]\s*(\d|max)/g,'$1×$2').trim().slice(0,60),id=cxFind(nm);
+      if(id){if(items.length<14)items.push({id,rx:rx||'3×10'})}else miss++});
+    if(items.length)days.push({d,t:ty,items})});
+  const rest=t.replace(m[0],'').trim();return {t:rest||'Here is your plan.',p:days.length?{days:days.sort((a,b)=>a.d-b.d),miss}:null}}
+function cxPlanHtml(m,i){const P=m.p,n=P.days.reduce((a,x)=>a+x.items.length,0),wk=['this week','next week'];
+  return `<div class="cxplan"><b>Plan: ${P.days.map(x=>DN[x.d]).join(', ')} · ${n} exercises</b>
+  <ul>${P.days.map(x=>`<li><b>${DN[x.d]}</b> ${esc(DTYPES[x.t])}: ${x.items.slice(0,4).map(it=>esc(EX[it.id]?EX[it.id].name:it.id)).join(', ')}${x.items.length>4?` +${x.items.length-4} more`:''}</li>`).join('')}</ul>
+  ${P.miss?`<p class="tag">${P.miss} exercise${P.miss>1?'s':''} not in the Library ${P.miss>1?'were':'was'} left out.</p>`:''}
+  ${typeof m.saved==='number'?`<p class="cxok" role="status">Saved to ${wk[m.saved]}'s plan.</p><div class="row"><button class="btn small" data-a="tdgo" data-v="train">Open plan</button>${cxUndo&&cxUndo.i===i&&cxUndo.wk===S.week?'<button class="btn ghost small" data-a="cxundo">Undo</button>':''}</div>`
+  :`<p class="tag">Saving replaces those days in that week's plan.</p><div class="row"><button class="btn small" data-a="cxsave" data-v="${i}:0">Save to this week</button><button class="btn ghost small" data-a="cxsave" data-v="${i}:1">Save to next week</button></div>`}</div>`}
+function cxPlanSave(i,off){const o=cxS(),m=o.msgs[i];if(!m||!m.p||!Array.isArray(m.p.days)||(off!==0&&off!==1))return;
+  const k=mkey(off),before=off===S.week?wkPack():(S.weeks[k]?JSON.parse(JSON.stringify(S.weeks[k])):null);
+  const apply=w=>m.p.days.forEach(x=>{if(!(x.d>=0&&x.d<5)||!DTYPES[x.t]||!Array.isArray(x.items))return;const it=x.items.filter(y=>y&&EX[y.id]).slice(0,14).map(y=>({id:y.id,rx:String(y.rx||'').slice(0,60)}));if(!it.length)return;
+    w.types[x.d]=x.t;w.plan[x.d]=it;w.fmt[x.d]='n';w.dst[x.d]=null;w.dcir[x.d]=null});
+  if(off===S.week)apply({types:S.types,plan:S.plan,fmt:S.fmt,dst:S.dst,dcir:S.dcir});else{const w=S.weeks[k]||wkCopy();apply(w);S.weeks[k]=w}
+  cxUndo={i,off,k,wk:S.week,before};m.saved=off;cxSave(o);save();cxRedraw()}
+function cxPlanUndo(){const u=cxUndo;if(!u||u.wk!==S.week)return;cxUndo=null;
+  if(u.off===S.week)wkUnpack(u.before);else if(u.before)S.weeks[u.k]=u.before;else delete S.weeks[u.k];
+  const o=cxS();if(o.msgs[u.i])delete o.msgs[u.i].saved;cxSave(o);save();cxRedraw()}
 let cxBusy=false,cxErr='',cxLeft=null;
 function cxS(){let o=null;try{o=JSON.parse(localStorage.getItem('h2f.coach')||'null')}catch(e){}
   if(!o||typeof o!=='object')o={};if(typeof o.dev!=='string'||!/^[a-z0-9]{16}$/.test(o.dev)){let d='';const a=new Uint8Array(16);try{crypto.getRandomValues(a)}catch(e){a.forEach((_,i)=>a[i]=Math.random()*256)}a.forEach(x=>d+='abcdefghijklmnopqrstuvwxyz0123456789'[x%36]);o.dev=d}
@@ -4574,7 +4608,7 @@ function cxCtx(){const L=[],t=(f)=>{try{const s=f();if(s)L.push(s)}catch(e){}};c
   t(()=>'App rank: '+RK[rkState().tier][0]+'.');
   return L.join('\n').slice(0,4000)}
 function cxText(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}
-function cxLogHtml(o){return o.msgs.map(m=>`<div class="cxm ${m.r==='u'?'me':'ai'}">${m.r==='a'?'<span class="cxwho">Coach Jolt</span>':''}<p>${cxText(m.t)}</p></div>`).join('')+(cxBusy?'<div class="cxm ai cxwait" role="status"><span class="cxwho">Coach Jolt</span><p>Thinking<span class="cxdots"><i></i><i></i><i></i></span></p></div>':'')}
+function cxLogHtml(o){return o.msgs.map((m,i)=>`<div class="cxm ${m.r==='u'?'me':'ai'}">${m.r==='a'?'<span class="cxwho">Coach Jolt</span>':''}<p>${cxText(m.t)}</p>${m.r==='a'&&m.p&&Array.isArray(m.p.days)&&m.p.days.length?cxPlanHtml(m,i):''}</div>`).join('')+(cxBusy?'<div class="cxm ai cxwait" role="status"><span class="cxwho">Coach Jolt</span><p>Thinking<span class="cxdots"><i></i><i></i><i></i></span></p></div>':'')}
 function cxSentHtml(){return `<details class="cxsent"><summary>What gets sent</summary><p class="tag">With each question: your question, the chat so far, and this summary of your app data. Nothing else (no name, no location).</p><pre>${esc(cxCtx())}</pre></details>`}
 function viewCoach(){const o=cxS();
   if(!o.on)return `<h2>Coach Jolt</h2>
@@ -4599,7 +4633,7 @@ async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return
   try{const r=await fetch(CLOUD.url+'/functions/v1/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dev:o.dev,ctx:cxCtx(),msgs:o.msgs.slice(-8).map(m=>({r:m.r,t:m.t}))})});
     code=r.status;res=await r.json().catch(()=>null)}catch(e){code=-1}
   const o2=cxS();cxBusy=false;
-  if(code===200&&res&&typeof res.text==='string'&&res.text){o2.msgs.push({r:'a',t:res.text.slice(0,4000)});if(typeof res.left==='number')cxLeft=res.left}
+  if(code===200&&res&&typeof res.text==='string'&&res.text){const P=cxPlanParse(res.text);o2.msgs.push(P.p?{r:'a',t:P.t.slice(0,4000),p:P.p}:{r:'a',t:P.t.slice(0,4000)});if(typeof res.left==='number')cxLeft=res.left}
   else{if(o2.msgs.length&&o2.msgs[o2.msgs.length-1].r==='u')o2.msgs.pop();
     cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach Jolt is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach Jolt is resting. Try again in a few minutes, or tomorrow.':'Coach Jolt could not answer that. Try again.';
     if(code===429&&res&&res.error==='cap')cxLeft=0;setTimeout(()=>{const i=document.getElementById('cxIn');if(i&&!i.value)i.value=q},0)}
@@ -4607,7 +4641,9 @@ async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return
 function cxAct(a,v,b){const o=cxS();
   if(a==='cxon'){o.on=true;cxSave(o);render();return true}
   if(a==='cxoff'){o.on=false;cxSave(o);cxErr='';render();return true}
-  if(a==='cxclear'){o.msgs=[];cxSave(o);cxErr='';render();return true}
+  if(a==='cxclear'){o.msgs=[];cxUndo=null;cxSave(o);cxErr='';render();return true}
+  if(a==='cxsave'){const q=/^(\d+):([01])$/.exec(v||'');if(q)cxPlanSave(+q[1],+q[2]);return true}
+  if(a==='cxundo'){cxPlanUndo();return true}
   if(a==='cxsug'){const s=CX_SUG[+v];if(s)cxAsk(s);return true}
   if(a==='cxsend'){const i=document.getElementById('cxIn');if(i&&i.value.trim()){const q=i.value;i.value='';cxAsk(q)}return true}
   return false}

@@ -34,7 +34,7 @@ with sync_playwright() as p:
     # seed some data for the context
     E("S.nut.age='28';S.nut.sex='m';S.nut.wt='180';S.nut.ht='70';S.nut.hu='in';S.sleep.log[slKey(1)]=6.5;S.sleep.log[slKey(2)]=7;S.hist=[{id:'h1',ts:Date.now()-864e5,day:'Mon',type:'Ruck · 4.1 mi · 35 lb',ms:3600000,d:1,n:1}];render()")
     pg.click('[data-a=cxon]');pg.wait_for_timeout(300)
-    check('turned on shows input and suggestions',E("!!document.getElementById('cxIn')") and E("document.querySelectorAll('[data-a=cxsug]').length")==4)
+    check('turned on shows input and suggestions',E("!!document.getElementById('cxIn')") and E("document.querySelectorAll('[data-a=cxsug]').length")==5)
     pg.click('[data-a=cxsug][data-v="1"]');pg.wait_for_timeout(800)
     c=calls[-1] if calls else {}
     check('suggestion sent with device id, context and chat',len(calls)==1 and len(c.get('dev',''))==16 and c['msgs']==[{'r':'u','t':'Am I on track for my AFT?'}])
@@ -54,7 +54,7 @@ with sync_playwright() as p:
     mode['v']='cap';pg.click('[data-a=cxsend]');pg.wait_for_timeout(800)
     check('cap message',"20 questions" in E("document.getElementById('cxErr').textContent") and '0 questions left' in E("document.getElementById('cxLeft').textContent"))
     pg.click('[data-a=cxclear]');pg.wait_for_timeout(200)
-    check('clear chat',E("JSON.parse(localStorage.getItem('h2f.coach')).msgs.length")==0 and E("document.querySelectorAll('[data-a=cxsug]').length")==4)
+    check('clear chat',E("JSON.parse(localStorage.getItem('h2f.coach')).msgs.length")==0 and E("document.querySelectorAll('[data-a=cxsug]').length")==5)
     pg.click('[data-a=cxoff]');pg.wait_for_timeout(200)
     check('turn off',E("!document.getElementById('cxIn')") and E("!!document.querySelector('[data-a=cxon]')"))
     pg.goto('http://localhost:8765/#coach');pg.wait_for_timeout(900)
