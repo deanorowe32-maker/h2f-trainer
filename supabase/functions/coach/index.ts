@@ -73,12 +73,13 @@ Deno.serve(async (req) => {
     const sys = SYSTEM + "\n\nSOLDIER DATA (from the app, " + new Date().toISOString().slice(0, 10) + "):\n" + (c.ctx || "Nothing logged yet.");
     let text = "";
     for (const model of MODELS) {
-      const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + acct + "/ai/v1/chat/completions", {
+      let r: Response;
+      try { r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + acct + "/ai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, max_tokens: 700, temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
-        signal: AbortSignal.timeout(25000),
-      });
+        body: JSON.stringify({ model, max_tokens: 2000, temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
+        signal: AbortSignal.timeout(40000),
+      }); } catch (e) { console.log("workers-ai fetch", model, String(e).slice(0, 200)); continue; }
       if (!r.ok) {
         const t = await r.text(); console.log("workers-ai", model, r.status, t.slice(0, 300));
         if (r.status === 429 || r.status >= 500 || /neuron|limit|capacity/i.test(t)) continue; // daily allowance used up or busy: try the next model
@@ -86,12 +87,15 @@ Deno.serve(async (req) => {
         continue;
       }
       const g = await r.json();
-      text = String(g?.choices?.[0]?.message?.content ?? g?.result?.response ?? "").trim();
+      const m = g?.choices?.[0]?.message?.content ?? g?.result?.choices?.[0]?.message?.content ?? g?.result?.response ?? "";
+      text = (Array.isArray(m) ? m.map((x: { text?: string }) => x?.text || "").join("") : String(m)).trim();
       if (text) break;
+      console.log("workers-ai empty", model, JSON.stringify(g).slice(0, 600));
     }
     if (!text) return json(req, { error: "busy" }, 429);
     return json(req, { text: text.slice(0, 4000), left });
   } catch (e) {
+    console.log("coach error", String(e).slice(0, 300));
     return json(req, { error: String(e).slice(0, 120) }, 500);
   }
 });
