@@ -1821,7 +1821,7 @@ const DN=['Mon','Tue','Wed','Thu','Fri'];
 const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 function dayDate(i){const d=monday(S.week);d.setDate(d.getDate()+i);return d}
 
-const TABS=[['today','Today'],['coach','Coach'],['train','Workout'],['ruck','Ruck & Run'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
+const TABS=[['today','Today'],['coach','Coach Jolt'],['train','Workout'],['ruck','Ruck & Run'],['pt','Recovery'],['assess','Test'],['lib','Library'],['fm','FM 7-22'],['nut','Fuel'],['sleep','Sleep'],['mind','Mind'],['spirit','Spirit'],['creator','From the Creator'],['unit','Unit']];
 const TAB_ICON={
  today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
  train:'<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>',
@@ -1854,7 +1854,7 @@ let tabsKey='',FX={view:false,wk:0,ink:null,strike:null,complete:false,cup:-1};
 const TICK='<svg class="tk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 /* Navigation: five destinations. Train, Readiness and Unit hold several sections behind a switcher. */
 const GROUPS=[['today','Today',['today','coach']],['train','Train',['train','ruck','lib','assess']],['rehab','Recovery',['pt']],['ready','Readiness',['sleep','nut','mind','spirit']],['unit','Unit',['unit','fm','creator']]];
-const SUBLAB={today:'Today',coach:'Coach',train:'Plan',ruck:'Ruck & Run',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
+const SUBLAB={today:'Today',coach:'Coach Jolt',train:'Plan',ruck:'Ruck & Run',lib:'Library',assess:'Test',sleep:'Sleep',nut:'Fuel',mind:'Mind',spirit:'Spirit',unit:'Unit',fm:'FM 7-22',creator:'Creator'};
 Object.assign(TAB_ICON,{rehab:TAB_ICON.pt,ready:'<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',unit:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M16 14.2c2.4.1 4.1 1.7 4.6 4.3"/>',
  backup:'<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>',heart:'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/>',home:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 8v6M9 11h6"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',chev:'<path d="M9 6l6 6-6 6"/>'});
@@ -4574,23 +4574,23 @@ function cxCtx(){const L=[],t=(f)=>{try{const s=f();if(s)L.push(s)}catch(e){}};c
   t(()=>'App rank: '+RK[rkState().tier][0]+'.');
   return L.join('\n').slice(0,4000)}
 function cxText(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}
-function cxLogHtml(o){return o.msgs.map(m=>`<div class="cxm ${m.r==='u'?'me':'ai'}">${m.r==='a'?'<span class="cxwho">Coach</span>':''}<p>${cxText(m.t)}</p></div>`).join('')+(cxBusy?'<div class="cxm ai cxwait" role="status"><span class="cxwho">Coach</span><p>Thinking<span class="cxdots"><i></i><i></i><i></i></span></p></div>':'')}
+function cxLogHtml(o){return o.msgs.map(m=>`<div class="cxm ${m.r==='u'?'me':'ai'}">${m.r==='a'?'<span class="cxwho">Coach Jolt</span>':''}<p>${cxText(m.t)}</p></div>`).join('')+(cxBusy?'<div class="cxm ai cxwait" role="status"><span class="cxwho">Coach Jolt</span><p>Thinking<span class="cxdots"><i></i><i></i><i></i></span></p></div>':'')}
 function cxSentHtml(){return `<details class="cxsent"><summary>What gets sent</summary><p class="tag">With each question: your question, the chat so far, and this summary of your app data. Nothing else (no name, no location).</p><pre>${esc(cxCtx())}</pre></details>`}
 function viewCoach(){const o=cxS();
-  if(!o.on)return `<h2>Coach</h2>
+  if(!o.on)return `<h2>Coach Jolt</h2>
   <p>Ask about training, the AFT, food, sleep and recovery. Answers use your own logs, so they fit you.</p>
-  <div class="cxintro"><p><b>How it works.</b> Replies are written by an open AI model run by Cloudflare. To answer, your question and a short summary of your app data go to Cloudflare through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
-  <p><b>AI can be wrong.</b> Coach is not medical advice. For pain, injury or feeling unwell, see your medic.</p></div>
+  <div class="cxintro"><p><b>How it works.</b> Replies are written by an open AI model run by Cloudflare. To answer, your question and a short summary of your app data go to Cloudflare through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach Jolt on.</p>
+  <p><b>AI can be wrong.</b> Coach Jolt is not medical advice. For pain, injury or feeling unwell, see your medic.</p></div>
   ${cxSentHtml()}
-  <button class="btn" data-a="cxon">Turn on Coach</button>`;
-  return `<h2>Coach</h2>
+  <button class="btn" data-a="cxon">Turn on Coach Jolt</button>`;
+  return `<h2>Coach Jolt</h2>
   <div class="cxlog" id="cxLog" aria-live="polite">${o.msgs.length||cxBusy?cxLogHtml(o):`<p class="tag">Ask anything about your training, food, sleep or recovery. Try one of these:</p>`}</div>
   ${o.msgs.length?'':`<div class="cxsug">${CX_SUG.map((s,i)=>`<button class="chip" data-a="cxsug" data-v="${i}">${esc(s)}</button>`).join('')}</div>`}
   <p class="cxerr" id="cxErr" role="alert"${cxErr?'':' hidden'}>${esc(cxErr)}</p>
   <div class="cxbar"><label class="vh" for="cxIn">Your question</label><textarea id="cxIn" rows="2" maxlength="600" placeholder="Ask your coach…"${cxBusy?' disabled':''}></textarea><button class="btn" data-a="cxsend"${cxBusy?' disabled':''} aria-label="Send">Send</button></div>
   <p class="tag" id="cxLeft">${cxLeft!=null?cxLeft+' question'+(cxLeft===1?'':'s')+' left today. ':''}AI can be wrong. Not medical advice: for pain or injury, see your medic.</p>
   ${cxSentHtml()}
-  <div class="cxfoot">${o.msgs.length?'<button class="btn ghost small" data-a="cxclear">Clear chat</button>':''}<button class="btn ghost small" data-a="cxoff">Turn off Coach</button></div>`}
+  <div class="cxfoot">${o.msgs.length?'<button class="btn ghost small" data-a="cxclear">Clear chat</button>':''}<button class="btn ghost small" data-a="cxoff">Turn off Coach Jolt</button></div>`}
 function cxScroll(){const l=document.getElementById('cxLog');if(l&&l.lastElementChild&&S.tab==='coach')l.lastElementChild.scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'})}
 function cxRedraw(){if(S.tab!=='coach')return;const y=scrollY;render();scrollTo(0,y);cxScroll()}
 async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return;const o=cxS();if(!o.on)return;
@@ -4601,7 +4601,7 @@ async function cxAsk(q){q=String(q||'').trim().slice(0,600);if(!q||cxBusy)return
   const o2=cxS();cxBusy=false;
   if(code===200&&res&&typeof res.text==='string'&&res.text){o2.msgs.push({r:'a',t:res.text.slice(0,4000)});if(typeof res.left==='number')cxLeft=res.left}
   else{if(o2.msgs.length&&o2.msgs[o2.msgs.length-1].r==='u')o2.msgs.pop();
-    cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach is resting. Try again in a few minutes, or tomorrow.':'Coach could not answer that. Try again.';
+    cxErr=code===-1?'No signal. Your question was not sent. Try again when you have a connection.':code===503?'Coach Jolt is not switched on for the app yet. Check back soon.':code===429&&res&&res.error==='cap'?'You have used today\'s 20 questions. More tomorrow.':code===429?'Coach Jolt is resting. Try again in a few minutes, or tomorrow.':'Coach Jolt could not answer that. Try again.';
     if(code===429&&res&&res.error==='cap')cxLeft=0;setTimeout(()=>{const i=document.getElementById('cxIn');if(i&&!i.value)i.value=q},0)}
   cxSave(o2);cxRedraw()}
 function cxAct(a,v,b){const o=cxS();

@@ -14,7 +14,7 @@ function cors(req: Request) {
 }
 const json = (req: Request, body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
-const SYSTEM = `You are H2F Coach inside H2F Trainer, an unofficial fitness app for U.S. Army Soldiers built around the Army's Holistic Health and Fitness (H2F) domains: physical, nutrition, sleep, mental and spiritual readiness.
+const SYSTEM = `You are Coach Jolt, the AI coach inside H2F Trainer, an unofficial fitness app for U.S. Army Soldiers built around the Army's Holistic Health and Fitness (H2F) domains: physical, nutrition, sleep, mental and spiritual readiness.
 
 How to answer:
 - Be a direct, encouraging coach. Plain words, short sentences. Under 150 words unless the Soldier asks for more or asks for a plan.
