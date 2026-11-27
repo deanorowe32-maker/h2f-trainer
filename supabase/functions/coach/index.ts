@@ -1,12 +1,13 @@
-// H2F Coach. Writes a short coaching reply with an open model on Groq's free plan (GPT-OSS 120B, falling back to 20B)
-// from the Soldier's question and a summary of their app data. The Groq key stays here as the GROQ_API_KEY secret; the app never sees it.
+// H2F Coach. Writes a short coaching reply with an open model on Cloudflare Workers AI's free daily allowance
+// from the Soldier's question and a summary of their app data. The Cloudflare account ID and API token stay here as the
+// CF_ACCOUNT_ID and CF_AI_TOKEN secrets; the app never sees them.
 // Nothing is stored except a per-day question count per device, per IP and in total (coach_use table, 14 days).
 // POST {dev, ctx, msgs:[{r:'u'|'a', t}]}  ->  {text, left}
 const ORIGINS = ["https://h2ftrainer.com", "https://www.h2ftrainer.com", "https://h2f-trainer.vercel.app", "http://localhost:8765"];
 const PREVIEW = /^https:\/\/h2f-trainer-git-[a-z0-9-]+-h2-f-trainer\.vercel\.app$/;
 const allowed = (o: string) => ORIGINS.includes(o) || PREVIEW.test(o);
 const PER_DEVICE = 20, PER_IP = 40, ALL = 1500; // questions a day
-const MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]; // second one is used when the first hits its free limit
+const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash"]; // both on the Workers Free plan; the second is a fallback
 function cors(req: Request) {
   const o = req.headers.get("origin") || "";
   return { "Access-Control-Allow-Origin": allowed(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Vary": "Origin" };
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => null);
     const c = body && typeof body === "object" ? clean(body as Record<string, unknown>) : null;
     if (!c) return json(req, { error: "input" }, 400);
-    const key = Deno.env.get("GROQ_API_KEY"); if (!key) return json(req, { error: "no key" }, 503);
+    const key = Deno.env.get("CF_AI_TOKEN"), acct = Deno.env.get("CF_ACCOUNT_ID"); if (!key || !acct || !/^[a-f0-9]{32}$/.test(acct)) return json(req, { error: "no key" }, 503);
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "anon";
     const n = await count(["d:" + c.dev, "i:" + ip, "all"]);
     if (!n) return json(req, { error: "count" }, 500);
@@ -72,16 +73,20 @@ Deno.serve(async (req) => {
     const sys = SYSTEM + "\n\nSOLDIER DATA (from the app, " + new Date().toISOString().slice(0, 10) + "):\n" + (c.ctx || "Nothing logged yet.");
     let text = "";
     for (const model of MODELS) {
-      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + acct + "/ai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, max_completion_tokens: 1500, reasoning_effort: "low", temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
+        body: JSON.stringify({ model, max_tokens: 700, temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
         signal: AbortSignal.timeout(25000),
       });
-      if (r.status === 429 || r.status === 503) continue; // free limit reached or busy: try the smaller model
-      if (!r.ok) { const t = await r.text(); console.log("groq", model, r.status, t.slice(0, 300)); return json(req, { error: "model", status: r.status }, 502); }
+      if (!r.ok) {
+        const t = await r.text(); console.log("workers-ai", model, r.status, t.slice(0, 300));
+        if (r.status === 429 || r.status >= 500 || /neuron|limit|capacity/i.test(t)) continue; // daily allowance used up or busy: try the next model
+        if (r.status === 401 || r.status === 403) return json(req, { error: "no key" }, 503);
+        continue;
+      }
       const g = await r.json();
-      text = String(g?.choices?.[0]?.message?.content || "").trim();
+      text = String(g?.choices?.[0]?.message?.content ?? g?.result?.response ?? "").trim();
       if (text) break;
     }
     if (!text) return json(req, { error: "busy" }, 429);

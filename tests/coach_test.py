@@ -28,7 +28,7 @@ with sync_playwright() as p:
     check('Coach is a Today section',E("!!document.querySelector('.subnav [data-v=coach]')"))
     pg.click('.subnav [data-v=coach]');pg.wait_for_timeout(500)
     v=E("document.getElementById('view').textContent")
-    check('off by default with consent copy',E("!document.getElementById('cxIn')") and 'Groq' in v and 'not medical advice' in v and 'Nothing is sent until you turn Coach on' in v)
+    check('off by default with consent copy',E("!document.getElementById('cxIn')") and 'Cloudflare' in v and 'not medical advice' in v and 'Nothing is sent until you turn Coach on' in v)
     check('what gets sent preview shows the summary',E("document.querySelector('.cxsent pre').textContent.includes('Today:')"))
     check('nothing sent while off',len(calls)==0)
     # seed some data for the context

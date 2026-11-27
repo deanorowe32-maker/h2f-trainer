@@ -4545,7 +4545,7 @@ function gAct(a,v,b){const G=gpsS();
   if(a==='gdropold'){rtDrop();render();return true}
   return false}
 
-/* H2F Coach: questions answered by an open model on Groq (GPT-OSS) through our Supabase "coach" function. Off until the Soldier turns it
+/* H2F Coach: questions answered by an open model on Cloudflare Workers AI through our Supabase "coach" function. Off until the Soldier turns it
    on. Each question sends the chat so far (last 8 turns) and the summary below; the chat itself stays on this phone. */
 const CX_SUG=['How should I train this week?','Am I on track for my AFT?','What should I eat before a ruck?','How can I sleep better?'];
 let cxBusy=false,cxErr='',cxLeft=null;
@@ -4579,7 +4579,7 @@ function cxSentHtml(){return `<details class="cxsent"><summary>What gets sent</s
 function viewCoach(){const o=cxS();
   if(!o.on)return `<h2>Coach</h2>
   <p>Ask about training, the AFT, food, sleep and recovery. Answers use your own logs, so they fit you.</p>
-  <div class="cxintro"><p><b>How it works.</b> Replies are written by an AI model (OpenAI's open GPT-OSS) run by Groq. To answer, your question and a short summary of your app data go to Groq through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
+  <div class="cxintro"><p><b>How it works.</b> Replies are written by an open AI model run by Cloudflare. To answer, your question and a short summary of your app data go to Cloudflare through H2F Trainer's server. Your chat stays on this phone. Nothing is sent until you turn Coach on.</p>
   <p><b>AI can be wrong.</b> Coach is not medical advice. For pain, injury or feeling unwell, see your medic.</p></div>
   ${cxSentHtml()}
   <button class="btn" data-a="cxon">Turn on Coach</button>`;
