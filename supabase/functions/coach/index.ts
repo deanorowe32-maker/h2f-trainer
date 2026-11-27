@@ -7,7 +7,7 @@ const ORIGINS = ["https://h2ftrainer.com", "https://www.h2ftrainer.com", "https:
 const PREVIEW = /^https:\/\/h2f-trainer-git-[a-z0-9-]+-h2-f-trainer\.vercel\.app$/;
 const allowed = (o: string) => ORIGINS.includes(o) || PREVIEW.test(o);
 const PER_DEVICE = 20, PER_IP = 40, ALL = 1500; // questions a day
-const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash"]; // both on the Workers Free plan; the second is a fallback
+const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"]; // tried in order; thinking is switched off so the whole budget goes to the reply
 function cors(req: Request) {
   const o = req.headers.get("origin") || "";
   return { "Access-Control-Allow-Origin": allowed(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Vary": "Origin" };
@@ -95,8 +95,8 @@ Deno.serve(async (req) => {
       try { r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + acct + "/ai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, max_tokens: 2000, temperature: 0.6, messages: [{ role: "system", content: sys }, ...c.msgs] }),
-        signal: AbortSignal.timeout(40000),
+        body: JSON.stringify({ model, max_completion_tokens: 1500, temperature: 0.6, chat_template_kwargs: { enable_thinking: false }, messages: [{ role: "system", content: sys }, ...c.msgs] }),
+        signal: AbortSignal.timeout(35000),
       }); } catch (e) { console.log("workers-ai fetch", model, String(e).slice(0, 200)); continue; }
       if (!r.ok) {
         const t = await r.text(); console.log("workers-ai", model, r.status, t.slice(0, 300));
